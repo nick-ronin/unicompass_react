@@ -15,7 +15,7 @@ export default function Header() {
       </div>
       <div className='flex gap-6 justify-end'>
         <Link className='hover:text-dark-orange flex items-center' href='/notifications'><span className='icon'>notifications</span></Link>
-        <button className='bg-dark-orange text-white hover:text-dark-orange hover:bg-white flex items-center px-6 py-3 rounded-2xl cursor-pointer'><span className='icon'>language</span></button>
+        <button className='bg-orange text-white hover:bg-dark-orange flex items-center px-6 py-3 rounded-2xl cursor-pointer'><span className='icon'>language</span></button>
         <Link href='/profile'><Image className='hover:stroke-black hover:fill-black' src='/NoAvatarDefault.svg' width={52} height={52} alt='No Avatar'/></Link>
       </div>
     </header>
