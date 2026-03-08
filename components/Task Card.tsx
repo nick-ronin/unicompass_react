@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import Dropdown from './Dropdown';
 
 interface TaskCardProps {
     name: string;
@@ -14,7 +15,7 @@ export default function TaskCard({ name, description, deadline, status, color }:
             <h3 className=''>{name}</h3>
             <p className=''>{description}</p>
             <p className=''>{deadline}</p>
-            <span className=''>{status}</span>
+            <Dropdown options={["Выполнена", "В процессе", "Не выполнена"]} onSelect={(option) => console.log(option)}/>
         </div>
     );
 }
