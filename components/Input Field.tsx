@@ -14,15 +14,15 @@ export default function InputField({
     placeholder = 'Placeholder',
     ...props
 }: InputFieldProps) {
-    const baseInputClasses = 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan';
+    const baseInputClasses = 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan focus:bg-white dark:bg-surface dark:text-white dark:focus:bg-surface transition-colors duration-150 w-full';
 
     if (icon) {
         return (
-            <div className={cn('relative text-black', containerClassName)}>
+            <div className={cn('relative text-black dark:text-white', containerClassName)}>
                 <input
                     type={type}
                     placeholder={placeholder}
-                    className={cn(baseInputClasses, 'pl-10 pr-4', className)}
+                    className={cn(baseInputClasses, 'pl-12 pr-4', className)}
                     {...props}
                 />
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>

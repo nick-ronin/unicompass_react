@@ -1,14 +1,29 @@
 @import 'tailwindcss';
 @import '@savaryna/tailwindcss-material-symbols';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: var(--color-white);
-  --foreground: var(--color-black);
+  --foreground: var(--color-dark-gray);
+  --surface: var(--color-white);
+  --surface-secondary: var(--color-light-blue-gray);
+}
+
+.dark {
+  --background: var(--dark-gray-bg);
+  --foreground: var(--color-white);
+  --surface: #2D2D2D;
+  --surface-secondary: #25253e;
 }
 
 @theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
   --color-white: #fff;
-  --color-black: #1E1E1F;
+  --color-dark-gray: #1E1E1F;
   --color-dark-cyan: #197278;
   --color-cyan: #32A2A9;
   --color-dark-orange: #C44536;
@@ -19,8 +34,18 @@
   --color-medium-blue-gray: #899397;
   --color-medium-warm-gray: #A29F9F;
   --color-gray: #7B7474;
+  --color-dark-red: #5E1A43;
+  --color-light-green: #21C47D;
+  --color-light-orange: #FF773C;
 }
 
 body {
   background: var(--background);
+  color: var(--foreground);
+}
+
+*,
+*::before,
+*::after {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }

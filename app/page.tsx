@@ -1,11 +1,5 @@
-import Image from 'next/image';
-import InputField from '@/components/Input Field';
-import Button from '@/components/Button';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  return (
-    <div>
-      
-    </div>
-  );
+export default function RootPage() {
+  redirect('/ru/student');
 }

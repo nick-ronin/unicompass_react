@@ -6,7 +6,23 @@ import Trip from '@/components/Trip';
 
 // TODO: replace with real data
 
-export default function Home() {
+const leftFields = [
+  "Адрес проживания",
+  "Гражданство",
+  "Номер паспорта",
+  "СНИЛС",
+  "ИНН"
+]
+
+const rightFields = [
+  "Дата рождения",
+  "Электронная почта",
+  "Электронная почта СФУ",
+  "Номер телефона родной страны",
+  "Номер телефона РФ"
+]
+
+export default function ProfilePage() {
   return (
     <div className='px-48 pb-8 gap-24 flex flex-col'>
       {/* Краткая информация */}
@@ -25,52 +41,24 @@ export default function Home() {
             <Button className='bg-orange text-white hover:bg-dark-orange text-lg' icon={<span className='icon icon-rounded'>edit</span>}>Редактировать</Button>
           </div>
           {/* Поля для редактирования */}
-          <div className='flex flex-row gap-8 justify-between'>
+          <div className="grid grid-cols-2 gap-8">
             {/* Левая колонка */}
             <div className='flex flex-col gap-4'>
-              <div className=''>
-                <p className='text-lg px-4'>Адрес проживания</p>
-                <InputField placeholder='Адрес проживания' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>Гражданство</p>
-                <InputField placeholder='Гражданство' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>Номер паспорта</p>
-                <InputField placeholder='Номер паспорта' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>СНИЛС</p>
-                <InputField placeholder='СНИЛС' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>ИНН</p>
-                <InputField placeholder='ИНН' className='w-xl text-lg'></InputField>
-              </div>
+              {leftFields.map(label => (
+                <div key={label}>
+                  <p className="text-lg px-4">{label}</p>
+                  <InputField placeholder={label} className="w-full text-lg"/>
+                </div>
+              ))}
             </div>
             {/* Правая колонка */}
             <div className='flex flex-col gap-4'>
-              <div className=''>
-                <p className='text-lg px-4'>Дата рождения</p>
-                <InputField placeholder='Дата рождения' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>Электронная почта</p>
-                <InputField placeholder='Электронная почта' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>Электронная почта СФУ</p>
-                <InputField placeholder='Электронная почта СФУ' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>Номер телефона родной страны</p>
-                <InputField placeholder='Номер телефона родной страны' className='w-xl text-lg'></InputField>
-              </div>
-              <div className=''>
-                <p className='text-lg px-4'>Номер телефона РФ</p>
-                <InputField placeholder='Номер телефона РФ' className='w-xl text-lg'></InputField>
-              </div>
+              {rightFields.map(label => (
+                <div key={label}>
+                  <p className="text-lg px-4">{label}</p>
+                  <InputField placeholder={label} className="w-full text-lg"/>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -93,12 +81,12 @@ export default function Home() {
       <div className='flex flex-col gap-8'>
         <div className='flex flex-row justify-between items-center'>
           <p className='text-2xl font-extrabold'>Мои поездки</p>
-          <Button className='bg-cyan text-white hover:bg-dark-cyan' icon={<span className='icon icon-rounded'>add</span>}>Добавить поездку</Button>
+          <Button className='bg-cyan text-white hover:bg-dark-cyan text-lg' icon={<span className='icon icon-rounded'>add</span>}>Добавить поездку</Button>
         </div>
         <div className='flex flex-col gap-4'>
-          <Trip></Trip>
-          <Trip></Trip>
-          <Trip></Trip>
+          <Trip from='Алматы' to='Красноярск' date='29.08.2026'></Trip>
+          <Trip from='Москва' to='Санкт-Петербург' date='30.08.2026'></Trip>
+          <Trip from='Казань' to='Нижний Новгород' date='31.08.2026'></Trip>
         </div>
       </div>
     </div>
