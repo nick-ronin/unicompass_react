@@ -13,12 +13,15 @@ interface CalendarProps {
 }
 
 export default function Calendar({ onDateSelect, selectedDate, highlightedDates = [] }: CalendarProps) {
-    const [selected, setSelected] = useState<Date | undefined>(selectedDate || new Date());
+    const [selected, setSelected] = useState<Date | Date[] | null>(selectedDate || new Date());
 
-    const handleDateChange = (date: Date | Date[]) => {
-        if (date instanceof Date) {
-            setSelected(date);
-            onDateSelect?.(date);
+    const handleDateChange = (value: Date | Date[] | null) => {
+        if (value instanceof Date) {
+            setSelected(value);
+            onDateSelect?.(value);
+        } else if (Array.isArray(value) && value.length > 0 && value[0] instanceof Date) {
+            setSelected(value);
+            onDateSelect?.(value[0]);
         }
     };
 
