@@ -23,17 +23,30 @@ const rightFields = {
   phone_rf: "Номер телефона РФ"
 };
 
+// Mock data for student profile
+const mockStudent = {
+  first_name: 'Иван',
+  last_name: 'Петров',
+  patronymic: 'Сергеевич',
+  address: 'ул. Пушкина, д. 10, кв. 5',
+  citizenship: 'Российская Федерация',
+  passport: '1234567890',
+  snils: '123-456-789-00',
+  inn: '1234567890',
+  date_of_birth: '15.05.2004',
+  email: 'ivan.petrov@email.com',
+  sfu_email: 'ivan.petrov@sfu-kras.ru',
+  phone_home: '+7 (965) 123-45-67',
+  phone_rf: '+7 (923) 987-65-43'
+};
+
 export default function ProfilePage() {
-  const [student, setStudent] = useState(null);
+  const [student, setStudent] = useState(mockStudent);
 
   useEffect(() => {
-    fetch('api/student/2')
-      .then(res => res.json())
-      .then(data => setStudent(data))
-      .catch(err => console.error(err));
+    // Using mock data instead of API
+    setStudent(mockStudent);
   }, []);
-
-  if (!student) return <p className='text-dark-gray dark:text-white'>Загрузка данных...</p>;
 
   return (
     <div className='px-48 pb-8 gap-24 flex flex-col'>
