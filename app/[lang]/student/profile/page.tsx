@@ -27,7 +27,7 @@ export default function ProfilePage() {
   const [student, setStudent] = useState(null);
 
   useEffect(() => {
-    fetch('https://159.194.196.47:8000/student/2')
+    fetch('api/student/2')
       .then(res => res.json())
       .then(data => setStudent(data))
       .catch(err => console.error(err));
