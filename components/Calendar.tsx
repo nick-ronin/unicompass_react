@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, MouseEvent } from 'react';
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './calendar.css';
@@ -13,15 +13,22 @@ interface CalendarProps {
 }
 
 export default function Calendar({ onDateSelect, selectedDate, highlightedDates = [] }: CalendarProps) {
-    const [selected, setSelected] = useState<Date | Date[] | null>(selectedDate || new Date());
+    const [selected, setSelected] = useState<Date | Date[] | [Date | null, Date | null] | null>(selectedDate || new Date());
 
-    const handleDateChange = (value: Date | Date[] | null) => {
+    const handleDateChange = (value: unknown, _event?: MouseEvent<HTMLButtonElement>) => {
+        // Handle single date
         if (value instanceof Date) {
             setSelected(value);
             onDateSelect?.(value);
-        } else if (Array.isArray(value) && value.length > 0 && value[0] instanceof Date) {
+        }
+        // Handle date array (range selection)
+        else if (Array.isArray(value)) {
             setSelected(value);
-            onDateSelect?.(value[0]);
+            // Pass the first valid date to onDateSelect
+            const firstDate = value.find(d => d instanceof Date);
+            if (firstDate instanceof Date) {
+                onDateSelect?.(firstDate);
+            }
         }
     };
 
