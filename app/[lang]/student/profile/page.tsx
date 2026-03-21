@@ -7,6 +7,22 @@ import InputField from '@/components/Input Field';
 import Document from '@/components/Document';
 import Trip from '@/components/Trip';
 
+interface Student {
+  first_name: string;
+  last_name: string;
+  patronymic: string;
+  address: string;
+  citizenship: string;
+  passport: string;
+  snils: string;
+  inn: string;
+  date_of_birth: string;
+  email: string;
+  sfu_email: string;
+  phone_home: string;
+  phone_rf: string;
+}
+
 const leftFields = {
   address: "Адрес проживания",
   citizenship: "Гражданство",
@@ -24,7 +40,7 @@ const rightFields = {
 };
 
 // Mock data for student profile
-const mockStudent = {
+const mockStudent: Student = {
   first_name: 'Иван',
   last_name: 'Петров',
   patronymic: 'Сергеевич',
@@ -41,7 +57,7 @@ const mockStudent = {
 };
 
 export default function ProfilePage() {
-  const [student, setStudent] = useState(mockStudent);
+  const [student, setStudent] = useState<Student>(mockStudent);
 
   useEffect(() => {
     // Using mock data instead of API
@@ -75,7 +91,7 @@ export default function ProfilePage() {
               {Object.entries(leftFields).map(([key, label]) => (
                 <div key={key}>
                   <p className="text-lg px-4 text-dark-gray dark:text-white">{label}</p>
-                  <InputField placeholder={label} className="w-full text-lg" value={student[key] || ''} />
+                  <InputField placeholder={label} className="w-full text-lg" value={student[key as keyof Student] || ''} readOnly />
                 </div>
               ))}
             </div>
@@ -84,7 +100,7 @@ export default function ProfilePage() {
               {Object.entries(rightFields).map(([key, label]) => (
                 <div key={key}>
                   <p className="text-lg px-4 text-dark-gray dark:text-white">{label}</p>
-                  <InputField placeholder={label} className="w-full text-lg" value={student[key] || ''} />
+                  <InputField placeholder={label} className="w-full text-lg" value={student[key as keyof Student] || ''} readOnly />
                 </div>
               ))}
             </div>
