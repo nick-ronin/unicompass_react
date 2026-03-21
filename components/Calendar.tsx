@@ -13,7 +13,7 @@ interface CalendarProps {
 }
 
 export default function Calendar({ onDateSelect, selectedDate, highlightedDates = [] }: CalendarProps) {
-    const [selected, setSelected] = useState<Date | Date[] | [Date | null, Date | null] | null>(selectedDate || new Date());
+    const [selected, setSelected] = useState<Date | undefined>(selectedDate || new Date());
 
     const handleDateChange = (value: unknown, _event?: MouseEvent<HTMLButtonElement>) => {
         // Handle single date
@@ -21,12 +21,11 @@ export default function Calendar({ onDateSelect, selectedDate, highlightedDates 
             setSelected(value);
             onDateSelect?.(value);
         }
-        // Handle date array (range selection)
-        else if (Array.isArray(value)) {
-            setSelected(value);
-            // Pass the first valid date to onDateSelect
-            const firstDate = value.find(d => d instanceof Date);
+        // Handle range selection (2-element array) - take the first date
+        else if (Array.isArray(value) && value.length > 0) {
+            const firstDate = value[0];
             if (firstDate instanceof Date) {
+                setSelected(firstDate);
                 onDateSelect?.(firstDate);
             }
         }
