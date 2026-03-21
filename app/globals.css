@@ -7,6 +7,7 @@
   --foreground: var(--color-dark-gray);
   --surface: var(--color-white);
   --surface-secondary: var(--color-light-blue-gray);
+  --logo: var(--color-orange);
 }
 
 .dark {
@@ -14,6 +15,7 @@
   --foreground: var(--color-white);
   --surface: #2D2D2D;
   --surface-secondary: #25253e;
+  --logo: var(--color-white);
 }
 
 @theme {

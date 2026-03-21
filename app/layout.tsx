@@ -9,7 +9,7 @@ const ceraProRegular = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'UniCompass',
+  title: 'Адаптация+',
   description: 'Made by the best devs',
 };
 

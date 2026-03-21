@@ -4,7 +4,7 @@ import Link from 'next/link';
 export default function Footer() {
     return (
         <div className='flex space-between bg-light-blue-gray dark:bg-surface px-12 py-3 rounded-2xl gap-24 items-center'>
-            <Image src='/logo/Logo.svg' width={95} height={40} alt='Logo'></Image>
+            <Image src='/logo/a+.png' alt='Unicompass Logo' width={120} height={40} />
             <p className='max-w-sm text-sm'>© 2026, Институт космических и информационных технологий Сибирского федерального университета</p>
             <div className='flex flex-col'>
                 <div className='flex gap-4'>

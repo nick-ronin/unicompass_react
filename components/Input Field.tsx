@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
     icon?: ReactNode;
     containerClassName?: string;
+    disableDarkTheme?: boolean;
 }
 
 export default function InputField({
@@ -12,13 +13,16 @@ export default function InputField({
     className,
     type = 'text',
     placeholder = 'Placeholder',
+    disableDarkTheme = false,
     ...props
 }: InputFieldProps) {
-    const baseInputClasses = 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan focus:bg-white dark:bg-surface dark:text-white dark:focus:bg-surface transition-colors duration-150 w-full';
+    const baseInputClasses = disableDarkTheme 
+        ? 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan focus:bg-white transition-colors duration-150 w-full'
+        : 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan focus:bg-white dark:bg-surface dark:text-white dark:focus:bg-surface transition-colors duration-150 w-full';
 
     if (icon) {
         return (
-            <div className={cn('relative text-black dark:text-white', containerClassName)}>
+            <div className={cn('relative text-black', disableDarkTheme ? '' : 'dark:text-white', containerClassName)}>
                 <input
                     type={type}
                     placeholder={placeholder}

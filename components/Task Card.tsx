@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import Dropdown from './Dropdown';
 import Button from './Button';
+import { useUpdateTask } from '@/lib/hooks';
+import { Task } from '@/lib/types';
 
 interface TaskCardProps {
     name: string;
@@ -12,6 +14,8 @@ interface TaskCardProps {
     status?: 'completed' | 'in-progress' | 'not completed';
     color?: string;
     className?: string;
+    id?: string;
+    onStatusChange?: (newStatus: string) => void;
 }
 
 const statusMap: Record<string, string> = {
@@ -26,37 +30,155 @@ const statusLabelMap: Record<string, string> = {
     'not completed': 'Не выполнена',
 };
 
-const statusGradientMap: Record<string, string> = {
-    'completed': 'bg-gradient-to-t from-cyan to-light-green',
-    'in-progress': 'bg-gradient-to-t from-light-orange to-yellow',
-    'not completed': 'bg-gradient-to-t from-dark-red to-orange',
+const statusConfigMap: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
+    'completed': { 
+        bg: 'bg-gradient-to-br from-light-green via-cyan to-dark-cyan', 
+        border: 'border-l-4 border-light-green',
+        icon: 'check_circle',
+        accent: 'text-white'
+    },
+    'in-progress': { 
+        bg: 'bg-gradient-to-br from-dark-yellow via-yellow to-yellow', 
+        border: 'border-l-4 border-yellow',
+        icon: 'schedule',
+        accent: 'text-white'
+    },
+    'not completed': { 
+        bg: 'bg-gradient-to-br from-light-orange via-orange to-dark-orange', 
+        border: 'border-l-4 border-orange',
+        icon: 'circle',
+        accent: 'text-white'
+    },
 };
 
-export default function TaskCard({ name, description, deadline, status = 'not completed', color, className }: TaskCardProps) {
+export default function TaskCard({ 
+    name, 
+    description, 
+    deadline, 
+    status = 'not completed', 
+    color, 
+    className,
+    id,
+    onStatusChange
+}: TaskCardProps) {
     const [currentStatus, setCurrentStatus] = useState(status);
+    const [isHovered, setIsHovered] = useState(false);
+    const { updateTask } = useUpdateTask(id || '');
 
-    const handleStatusChange = (option: string) => {
+    const handleStatusChange = async (option: string) => {
         const mapped = statusMap[option];
-        if (mapped) setCurrentStatus(mapped as TaskCardProps['status'] & string);
+        if (mapped) {
+            setCurrentStatus(mapped as TaskCardProps['status'] & string);
+            // Update backend if id is provided
+            if (id) {
+                try {
+                    await updateTask({ status: mapped as Task['status'] });
+                    onStatusChange?.(mapped);
+                } catch (err) {
+                    console.error('Failed to update task status:', err);
+                    setCurrentStatus(status); // Revert on error
+                }
+            }
+        }
     };
 
+    // Calculate days until deadline
+    const getDeadlineInfo = () => {
+        const deadlineDate = new Date(deadline);
+        const today = new Date();
+        const timeDiff = deadlineDate.getTime() - today.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        if (daysDiff < 0) return { text: 'Просрочено', badge: 'bg-dark-red text-white' };
+        if (daysDiff === 0) return { text: 'Сегодня', badge: 'bg-orange text-white' };
+        if (daysDiff === 1) return { text: 'Завтра', badge: 'bg-yellow text-white' };
+        if (daysDiff <= 7) return { text: `${daysDiff} дней`, badge: 'bg-orange text-white' };
+        return { text: `${daysDiff} дней`, badge: 'bg-white bg-opacity-30 text-white' };
+    };
+
+    const deadlineInfo = getDeadlineInfo();
+    const config = statusConfigMap[currentStatus];
+
     return (
-        <div className={cn('flex flex-col gap-3 p-6 rounded-4xl shadow-md max-w-60 h-64 cursor-pointer text-white transition-transform duration-200 ease-in-out hover:scale-101 hover:shadow-xl', statusGradientMap[currentStatus], className)} style={color ? { borderLeft: `4px solid ${color}` } : undefined}>
-            <h3 className='text-xl font-medium'>{name}</h3>
-            <p className=''>{description}</p>
-                <p className='text-sm flex items-center gap-1'>
-                    <span className='material-symbols-outlined'>calendar_today</span>
-                    {deadline}
+        <div 
+            className={cn(
+                'relative group overflow-hidden rounded-2xl shadow-lg transition-all duration-300 cursor-pointer h-80 flex flex-col',
+                'hover:shadow-2xl hover:scale-105 dark:hover:shadow-xl',
+                config.bg,
+                config.border,
+                className
+            )}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={color ? { borderLeftColor: color } : undefined}
+        >
+            {/* Background Pattern */}
+            <div className='absolute inset-0 opacity-10'>
+                <div className='absolute top-0 right-0 w-40 h-40 bg-white rounded-full -mr-20 -mt-20'></div>
+                <div className='absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full -ml-16 -mb-16'></div>
+            </div>
+
+            {/* Content */}
+            <div className='relative z-10 flex flex-col h-full p-6'>
+                {/* Header */}
+                <div className='flex items-start justify-between mb-3'>
+                    <div className='flex-1'>
+                        <h3 className='text-xl font-bold text-white mb-1 line-clamp-2'>
+                            {name}
+                        </h3>
+                        <div className='flex items-center gap-2'>
+                            <span className={cn('material-symbols-outlined text-lg', config.accent)}>
+                                {config.icon}
+                            </span>
+                            <span className='text-xs font-semibold text-white opacity-90'>
+                                {statusLabelMap[currentStatus]}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Description */}
+                <p className='text-sm text-white opacity-90 mb-4 line-clamp-2 flex-grow'>
+                    {description}
                 </p>
+
+                {/* Spacer */}
+                <div className='flex-grow'></div>
+
+                {/* Deadline Info */}
+                <div className='flex items-center justify-between mb-4 px-3 py-2'>
+                    <div className='flex items-center gap-2'>
+                        <span className='material-symbols-outlined text-base text-white'>calendar_today</span>
+                        <span className='text-xs text-white opacity-80'>{deadline}</span>
+                    </div>
+                    <span className={cn('text-xs font-bold px-3 py-1 rounded-full', deadlineInfo.badge)}>
+                        {deadlineInfo.text}
+                    </span>
+                </div>
+
+                {/* Status Dropdown */}
                 <Dropdown
                     options={["Выполнена", "В процессе", "Не выполнена"]}
                     onSelect={handleStatusChange}
                     defaultValue={statusLabelMap[currentStatus]}
-                    className='w-48 text-black'
+                    className='w-full text-black text-sm mb-3'
                 />
+
+                {/* Action Button */}
                 {currentStatus === 'completed' && (
-                    <Button className='bg-white text-black self-start w-full' icon={<span className='material-symbols-outlined'>add</span>}>Подтвердить</Button>
+                    <Button 
+                        className='bg-white text-dark-gray hover:bg-light-blue-gray self-start w-full font-semibold shadow-lg transition-all' 
+                        icon={<span className='material-symbols-outlined'>check</span>}
+                    >
+                        Подтвердить
+                    </Button>
                 )}
+            </div>
+
+            {/* Hover Effect Border */}
+            {isHovered && (
+                <div className='absolute inset-0 border-2 border-white opacity-30 rounded-2xl pointer-events-none'></div>
+            )}
         </div>
     );
 }

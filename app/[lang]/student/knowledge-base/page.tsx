@@ -14,17 +14,17 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
 
   return (
     <div className='pb-8'>
-      <div className='bg-cyan flex flex-col items-center justify-center px-60 py-32 gap-8'>
+      <div className='bg-cyan dark:bg-dark-cyan flex flex-col items-center justify-center px-60 py-32 gap-8'>
         <p className='text-white text-5xl'>Нужна помощь?</p>
         <div className='flex flex-row gap-4'>
           <InputField icon={<span className='material-symbols-outlined'>search</span>} placeholder='С чем нужна помощь?' className='text-xl w-96 focus:bg-white'/>
-          <Button className='bg-white text-cyan hover:bg-cyan hover:text-white border-2 flex items-center px-6 py-3 rounded-2xl cursor-pointer text-xl'>Найти</Button>
+          <Button className='bg-white text-cyan hover:bg-cyan hover:text-white border-2 flex items-center px-6 py-3 rounded-2xl cursor-pointer text-xl dark:bg-white dark:text-cyan dark:hover:bg-cyan dark:hover:text-white'>Найти</Button>
         </div>
       </div>
       <div className='px-32 py-8 flex flex-row gap-12'>
         <div className='flex flex-col gap-12'>
-          <p className='font-extrabold text-3xl'>Разделы</p>
-          <div className='flex flex-col gap-6 text-xl text-gray'>
+          <p className='font-extrabold text-3xl text-dark-gray dark:text-white'>Разделы</p>
+          <div className='flex flex-col gap-6 text-xl text-gray dark:text-medium-blue-gray'>
             <Link href={`${base}/knowledge-base/education`} className='hover:underline'>Обучение</Link>
             <Link href={`${base}/knowledge-base/events`} className='hover:underline'>Мероприятия</Link>
             <Link href={`${base}/knowledge-base/dormitory`} className='hover:underline'>Общежитие</Link>
@@ -35,7 +35,7 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
           </div>
         </div>
         <div className='flex flex-col gap-10'>
-          <p className='font-extrabold text-3xl'>Часто ищут</p>
+          <p className='font-extrabold text-3xl text-dark-gray dark:text-white'>Часто ищут</p>
           <div className='flex flex-col gap-6'>
             <div className='flex flex-row gap-8'>
               <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
@@ -51,7 +51,7 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
             </div>
           </div>
           <div className='flex flex-col gap-6'>
-            <p className='font-extrabold text-3xl'>FAQ</p>
+            <p className='font-extrabold text-3xl text-dark-gray dark:text-white'>FAQ</p>
             <div className='flex flex-col gap-3'>
               <FAQItem question='Как подать заявку на обмен?' answer='Для подачи заявки перейдите в раздел «Профиль» и нажмите кнопку «Подать заявку».' />
               <FAQItem question='Как подать заявку на обмен?' answer='Для подачи заявки перейдите в раздел «Профиль» и нажмите кнопку «Подать заявку».' />
@@ -64,7 +64,7 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
         {/* CTA */}
         <div className='bg-cover bg-center bg-no-repeat px-74 py-48 flex flex-col items-start justify-center gap-6' style={{ backgroundImage: "url('/Questions Left.svg')" }}>
           <p className='text-white text-5xl'>Остались вопросы?</p>
-          <Button className='group bg-white text-dark-yellow pr-6 pl-4 py-4 text-2xl font-medium transition-all duration-300 hover:gap-3'>
+          <Button className='group bg-white text-dark-yellow pr-6 pl-4 py-4 text-2xl font-medium transition-all duration-300 hover:gap-3 dark:bg-white dark:text-dark-yellow'>
             <span className='material-symbols-outlined inline-flex items-center max-w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-w-8 group-hover:opacity-100'>arrow_forward</span>
             Спросить сотрудника ЦАИВР
           </Button>
