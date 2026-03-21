@@ -35,7 +35,7 @@ export default function LanguageToggle() {
       aria-label={`Сменить язык на ${nextLang.label}`}
       title={`Сменить язык на ${nextLang.label}`}
     >
-      <span className='icon'>language</span>
+      <span className='material-symbols-outlined'>language</span>
       <span className='text-sm font-medium'>{displayLang}</span>
     </button>
   );

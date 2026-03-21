@@ -23,7 +23,7 @@ export default function ThemeToggle() {
             aria-label={label}
             title={label}
         >
-            <span className='icon'>
+            <span className='material-symbols-outlined'>
                 {icon}
             </span>
         </button>

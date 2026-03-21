@@ -25,7 +25,7 @@ export default function FAQItem({ question, answer, className }: FAQItemProps) {
                 className="w-full flex items-center justify-between px-6 py-5 cursor-pointer"
             >
                 <span className="text-xl font-medium text-black dark:text-white">{question}</span>
-                <span className="icon text-black dark:text-white select-none">
+                <span className="material-symbols-outlined text-black dark:text-white select-none">
                     {isOpen ? 'remove' : 'add'}
                 </span>
             </button>

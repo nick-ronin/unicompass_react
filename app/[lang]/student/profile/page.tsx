@@ -38,7 +38,7 @@ export default function ProfilePage() {
         {/* Поля для редактирования + кнопка редактировать */}
         <div className='flex flex-col'>
           <div className='flex justify-end'>
-            <Button className='bg-orange text-white hover:bg-dark-orange text-lg' icon={<span className='icon icon-rounded'>edit</span>}>Редактировать</Button>
+            <Button className='bg-orange text-white hover:bg-dark-orange text-lg' icon={<span className='material-symbols-outlined'>edit</span>}>Редактировать</Button>
           </div>
           {/* Поля для редактирования */}
           <div className="grid grid-cols-2 gap-8">
@@ -74,14 +74,14 @@ export default function ProfilePage() {
           <Document name='Аттестат' image={<Image src='/img/doc4.png' width={240} height={340} alt='Document' className='object-fill'></Image>}></Document>
           <Document name='Справка' image={<Image src='/img/doc6.jpg' width={240} height={340} alt='Document' className='object-fill'></Image>}></Document>
           <div className='flex items-center justify-center w-[264]'>
-            <Button className='bg-cyan text-white hover:bg-dark-cyan px-4 py-4 rounded-full' icon={<span className='icon icon-rounded icon-48'>add</span>}></Button>
+            <Button className='bg-cyan text-white hover:bg-dark-cyan px-4 py-4 rounded-full' icon={<span className='material-symbols-outlined'>add</span>}></Button>
           </div>
         </div>
       </div>
       <div className='flex flex-col gap-8'>
         <div className='flex flex-row justify-between items-center'>
           <p className='text-2xl font-extrabold'>Мои поездки</p>
-          <Button className='bg-cyan text-white hover:bg-dark-cyan text-lg' icon={<span className='icon icon-rounded'>add</span>}>Добавить поездку</Button>
+          <Button className='bg-cyan text-white hover:bg-dark-cyan text-lg' icon={<span className='material-symbols-outlined'>add</span>}>Добавить поездку</Button>
         </div>
         <div className='flex flex-col gap-4'>
           <Trip from='Алматы' to='Красноярск' date='29.08.2026'></Trip>

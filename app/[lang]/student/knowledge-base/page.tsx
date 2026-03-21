@@ -17,7 +17,7 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
       <div className='bg-cyan flex flex-col items-center justify-center px-60 py-32 gap-8'>
         <p className='text-white text-5xl'>Нужна помощь?</p>
         <div className='flex flex-row gap-4'>
-          <InputField icon={<span className='icon'>search</span>} placeholder='С чем нужна помощь?' className='text-xl w-96 focus:bg-white'/>
+          <InputField icon={<span className='material-symbols-outlined'>search</span>} placeholder='С чем нужна помощь?' className='text-xl w-96 focus:bg-white'/>
           <Button className='bg-white text-cyan hover:bg-cyan hover:text-white border-2 flex items-center px-6 py-3 rounded-2xl cursor-pointer text-xl'>Найти</Button>
         </div>
       </div>
@@ -38,16 +38,16 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
           <p className='font-extrabold text-3xl'>Часто ищут</p>
           <div className='flex flex-col gap-6'>
             <div className='flex flex-row gap-8'>
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
             </div>
             <div className='flex flex-row gap-8'>
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
-              <KnowledgeBaseCard icon={<span className='icon icon-40'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
+              <KnowledgeBaseCard icon={<span className='material-symbols-outlined'>search</span>} title='Как перевестись на бюджет?' description='Порядок и условия перевода на бюджетное обучение' />
             </div>
           </div>
           <div className='flex flex-col gap-6'>
@@ -65,7 +65,7 @@ export default async function KnowledgeBasePage({ params }: KnowledgeBasePagePro
         <div className='bg-cover bg-center bg-no-repeat px-74 py-48 flex flex-col items-start justify-center gap-6' style={{ backgroundImage: "url('/Questions Left.svg')" }}>
           <p className='text-white text-5xl'>Остались вопросы?</p>
           <Button className='group bg-white text-dark-yellow pr-6 pl-4 py-4 text-2xl font-medium transition-all duration-300 hover:gap-3'>
-            <span className='icon inline-flex items-center max-w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-w-8 group-hover:opacity-100'>arrow_forward</span>
+            <span className='material-symbols-outlined inline-flex items-center max-w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-w-8 group-hover:opacity-100'>arrow_forward</span>
             Спросить сотрудника ЦАИВР
           </Button>
         </div>
