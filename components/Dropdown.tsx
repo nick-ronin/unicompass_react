@@ -29,7 +29,7 @@ export default function Dropdown({ label, options, onSelect, className, defaultV
             <button
                 type='button'
                 onClick={() => setIsOpen(!isOpen)}
-                className='flex items-center justify-between px-4 py-3 rounded-2xl bg-light-blue-gray dark:bg-dark-gray dark:text-white cursor-pointer'
+                className='flex items-center justify-between px-4 py-3 rounded-2xl bg-light-blue-gray dark:bg-surface dark:text-white cursor-pointer'
             >
                 <span>{selected || 'Выберите...'}</span>
                 <span className={cn('material-symbols-outlined transition-transform duration-200', isOpen && 'rotate-180')}>
@@ -37,7 +37,7 @@ export default function Dropdown({ label, options, onSelect, className, defaultV
                 </span>
             </button>
             {isOpen && (
-                <div className='absolute top-full mt-1 left-0 right-0 bg-white dark:bg-dark-gray dark:text-white rounded-2xl shadow-lg z-10 overflow-hidden'>
+                <div className='absolute top-full mt-1 left-0 right-0 bg-white dark:bg-surface dark:text-white rounded-2xl shadow-lg z-10 overflow-hidden'>
                     {options.map((option) => (
                         <button
                             key={option}

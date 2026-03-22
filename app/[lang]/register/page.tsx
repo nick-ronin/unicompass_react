@@ -90,7 +90,7 @@ export default function RegisterPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://159.194.196.47:8000/student/register', {
+      const response = await fetch('/api/student/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -40,7 +40,7 @@ export default function AdminTasksPage() {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://159.194.196.47:8000/task');
+        const response = await fetch('/api/task');
         
         if (!response.ok) {
           throw new Error(`Ошибка при загрузке: ${response.status}`);
@@ -48,7 +48,6 @@ export default function AdminTasksPage() {
         
         const data = await response.json();
         
-        // Преобразуем данные из API в формат нашей таблицы
         const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
           (task: any, index: number) => ({
             id: task.id?.toString() || (index + 1).toString(),
@@ -105,7 +104,7 @@ export default function AdminTasksPage() {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch(`http://159.194.196.47:8000/task/${editingTask.id}`, {
+      const response = await fetch(`/api/task/${editingTask.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +143,7 @@ export default function AdminTasksPage() {
       setIsSubmitting(true);
 
       // Create task using backend API
-      const taskResponse = await fetch('http://159.194.196.47:8000/task', {
+      const taskResponse = await fetch('/api/task', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +163,7 @@ export default function AdminTasksPage() {
 
       // Assign task to students
       for (const studentId of formData.studentIds) {
-        const assignResponse = await fetch('http://159.194.196.47:8000/student_task', {
+        const assignResponse = await fetch('/api/student_task', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -183,7 +182,7 @@ export default function AdminTasksPage() {
 
       // Refresh tasks list
       setIsCreateModalOpen(false);
-      const tasksResponse = await fetch('http://159.194.196.47:8000/task');
+      const tasksResponse = await fetch('/api/task');
       if (tasksResponse.ok) {
         const data = await tasksResponse.json();
         const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
@@ -216,7 +215,7 @@ export default function AdminTasksPage() {
 
       // Assign existing task to students
       for (const studentId of studentIds) {
-        const assignResponse = await fetch('http://159.194.196.47:8000/student_task', {
+        const assignResponse = await fetch('/api/student_task', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

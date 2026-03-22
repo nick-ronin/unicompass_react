@@ -4,7 +4,7 @@ import InputField from '@/components/Input Field';
 
 export default function TasksPage() {
   return (
-    <div className='min-h-screen dark:bg-surface py-12 px-6 md:px-12 lg:px-16'>
+    <div className='min-h-screen dark:bg-dark-gray py-12 px-6 md:px-12 lg:px-16'>
       {/* Header Section */}
       <div className='max-w-7xl mx-auto mb-12'>
         <div className='mb-8'>

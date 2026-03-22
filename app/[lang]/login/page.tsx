@@ -12,36 +12,157 @@ export default function LoginPage() {
   const segments = pathname.split('/').filter(Boolean);
   const currentLang = segments[0] || 'ru';
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const translations = {
     ru: {
       title: 'Войти на сайт',
-      email: 'Электронная почта',
+      username: 'Логин',
       password: 'Пароль',
       loginBtn: 'Войти',
       register: 'Зарегистрироваться',
       forgotPassword: 'Забыли пароль?',
+      loginError: 'Ошибка при входе',
+      fillAllFields: 'Заполните логин и пароль',
     },
     en: {
       title: 'Sign In',
-      email: 'Email',
+      username: 'Username',
       password: 'Password',
       loginBtn: 'Sign In',
       register: 'Sign Up',
       forgotPassword: 'Forgot password?',
+      loginError: 'Login error',
+      fillAllFields: 'Please fill in username and password',
     },
   };
 
   const t = translations[currentLang as keyof typeof translations] || translations.ru;
 
+  const extractErrorMessage = (errorData: unknown): string | null => {
+    if (!errorData) return null;
+
+    if (typeof errorData === 'string') {
+      return errorData;
+    }
+
+    if (Array.isArray(errorData)) {
+      const messages = errorData
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            const obj = item as { msg?: unknown; detail?: unknown };
+            if (typeof obj.msg === 'string') return obj.msg;
+            if (typeof obj.detail === 'string') return obj.detail;
+          }
+          return null;
+        })
+        .filter((msg): msg is string => Boolean(msg));
+
+      return messages.length ? messages.join(', ') : null;
+    }
+
+    if (typeof errorData === 'object') {
+      const obj = errorData as { message?: unknown; detail?: unknown; msg?: unknown };
+      if (typeof obj.message === 'string') return obj.message;
+      if (typeof obj.msg === 'string') return obj.msg;
+      return extractErrorMessage(obj.detail);
+    }
+
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // TODO: Implement login logic
-    setTimeout(() => setLoading(false), 1000);
+
+    if (!username.trim() || !password.trim()) {
+      setError(t.fillAllFields);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const normalizedUsername = username.trim();
+      const payloadVariants: Array<{
+        body: string;
+        headers: Record<string, string>;
+      }> = [
+        {
+          body: JSON.stringify({ username: normalizedUsername, password }),
+          headers: { 'Content-Type': 'application/json' },
+        },
+        {
+          body: JSON.stringify({ login: normalizedUsername, password }),
+          headers: { 'Content-Type': 'application/json' },
+        },
+        {
+          body: new URLSearchParams({ username: normalizedUsername, password }).toString(),
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        },
+        {
+          body: new URLSearchParams({ login: normalizedUsername, password }).toString(),
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        },
+      ];
+
+      let lastErrorMessage = `${t.loginError}`;
+      let isLoggedIn = false;
+      let loginResponseData: any = null;
+
+      for (const variant of payloadVariants) {
+        const response = await fetch('/api/student/login', {
+          method: 'POST',
+          headers: variant.headers,
+          body: variant.body,
+        });
+
+        if (response.ok) {
+          loginResponseData = await response.json().catch(() => null);
+          isLoggedIn = true;
+          break;
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        const message = extractErrorMessage(errorData) || `${t.loginError}: ${response.status}`;
+        lastErrorMessage = message;
+
+        const isValidationError = response.status === 422;
+        const hasMissingFields = /field required/i.test(message);
+        if (!(isValidationError && hasMissingFields)) {
+          break;
+        }
+      }
+
+      if (!isLoggedIn) {
+        throw new Error(lastErrorMessage);
+      }
+
+      const studentId =
+        loginResponseData?.student_id ??
+        loginResponseData?.studentId ??
+        loginResponseData?.id ??
+        loginResponseData?.student?.id ??
+        loginResponseData?.user?.id;
+
+      localStorage.setItem(
+        'studentAuth',
+        JSON.stringify({
+          username: normalizedUsername,
+          studentId: studentId ? String(studentId) : null,
+        })
+      );
+
+      router.push(`/${currentLang}/student`);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : t.loginError);
+      setLoading(false);
+    }
   };
 
   const switchLanguage = () => {
@@ -72,19 +193,26 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className='space-y-6'>
-            {/* Email Field */}
+            {/* Error Message */}
+            {error && (
+              <div className='bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm'>
+                {error}
+              </div>
+            )}
+
+            {/* Username Field */}
             <div>
               <label className='block text-base font-medium text-dark-gray mb-2'>
-                {t.email}
+                {t.username}
               </label>
               <InputField
-                type='email'
-                placeholder='example@example.com'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type='text'
+                placeholder='username'
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 disableDarkTheme
-                icon={<span className='material-symbols-outlined'>mail</span>}
+                icon={<span className='material-symbols-outlined'>account_circle</span>}
               />
             </div>
 

@@ -39,33 +39,107 @@ const rightFields = {
   phone_rf: "Номер телефона РФ"
 };
 
-// Mock data for student profile
-const mockStudent: Student = {
-  first_name: 'Иван',
-  last_name: 'Петров',
-  patronymic: 'Сергеевич',
-  address: 'ул. Пушкина, д. 10, кв. 5',
-  citizenship: 'Российская Федерация',
-  passport: '1234567890',
-  snils: '123-456-789-00',
-  inn: '1234567890',
-  date_of_birth: '15.05.2004',
-  email: 'ivan.petrov@email.com',
-  sfu_email: 'ivan.petrov@sfu-kras.ru',
-  phone_home: '+7 (965) 123-45-67',
-  phone_rf: '+7 (923) 987-65-43'
-};
-
 export default function ProfilePage() {
-  const [student, setStudent] = useState<Student>(mockStudent);
+  const [student, setStudent] = useState<Student | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Using mock data instead of API
-    setStudent(mockStudent);
+    const loadCurrentStudentProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const storedAuthRaw = localStorage.getItem('studentAuth');
+        if (!storedAuthRaw) {
+          throw new Error('Не найден активный пользователь. Войдите в систему снова.');
+        }
+
+        const storedAuth = JSON.parse(storedAuthRaw) as { username?: string; studentId?: string | null };
+        const normalizedUsername = storedAuth.username?.trim().toLowerCase() || '';
+        const storedStudentId = storedAuth.studentId?.toString() || '';
+
+        let profileSource: any = null;
+
+        if (storedStudentId) {
+          const byIdResponse = await fetch(`/api/student/${storedStudentId}`);
+          if (byIdResponse.ok) {
+            profileSource = await byIdResponse.json();
+          }
+        }
+
+        if (!profileSource) {
+          const listResponse = await fetch('/api/student/full_info_list');
+          if (!listResponse.ok) {
+            throw new Error(`Ошибка при загрузке профиля: ${listResponse.status}`);
+          }
+
+          const listData = await listResponse.json();
+          const students = Array.isArray(listData) ? listData : listData.results || [];
+
+          profileSource = students.find((item: any) => {
+            const itemLogin = String(item.login || '').trim().toLowerCase();
+            const itemId = item.id?.toString() || '';
+            return (normalizedUsername && itemLogin === normalizedUsername) || (storedStudentId && itemId === storedStudentId);
+          });
+        }
+
+        if (!profileSource) {
+          throw new Error('Профиль текущего пользователя не найден.');
+        }
+
+        setStudent({
+          first_name: profileSource.first_name || '',
+          last_name: profileSource.last_name || '',
+          patronymic: profileSource.patronymic || '',
+          address: profileSource.address || '',
+          citizenship: profileSource.citizenship || '',
+          passport: profileSource.passport || '',
+          snils: profileSource.snils || '',
+          inn: profileSource.inn || '',
+          date_of_birth: profileSource.date_of_birth || '',
+          email: profileSource.email || '',
+          sfu_email: profileSource.sfu_email || '',
+          phone_home: profileSource.phone_home || '',
+          phone_rf: profileSource.phone_rf || profileSource.phone_number || '',
+        });
+
+        if (profileSource.id) {
+          localStorage.setItem(
+            'studentAuth',
+            JSON.stringify({
+              username: storedAuth.username || profileSource.login || '',
+              studentId: String(profileSource.id),
+            })
+          );
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки профиля текущего студента:', err);
+        setError(err instanceof Error ? err.message : 'Не удалось загрузить профиль.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCurrentStudentProfile();
   }, []);
 
   return (
     <div className='px-48 pb-8 gap-24 flex flex-col'>
+      {loading && (
+        <div className='bg-white rounded-2xl p-4 text-dark-gray'>
+          Загрузка профиля...
+        </div>
+      )}
+
+      {error && (
+        <div className='bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4'>
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && student && (
+      <>
       {/* Краткая информация */}
       <div>
         <div className='flex flex-row gap-4 items-center mt-8'>
@@ -138,6 +212,8 @@ export default function ProfilePage() {
           <Trip from='Казань' to='Нижний Новгород' date='31.08.2026' />
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
