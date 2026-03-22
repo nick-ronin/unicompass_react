@@ -28,7 +28,7 @@ export default function ChatUserCard({
         'p-3 rounded-lg cursor-pointer transition-colors duration-200',
         isActive
           ? 'bg-cyan'
-          : 'hover:bg-light-blue-gray'
+          : 'hover:bg-light-blue-gray dark:hover:bg-dark-gray'
       )}
     >
       <div className='flex flex-row gap-3'>
@@ -56,7 +56,7 @@ export default function ChatUserCard({
           <p
             className={cn(
               'text-xl font-medium truncate',
-              isActive ? 'text-white' : 'text-dark-gray'
+              isActive ? 'text-white' : 'text-dark-gray dark:text-white'
             )}
           >
             {name}

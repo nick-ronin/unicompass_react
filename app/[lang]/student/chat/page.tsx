@@ -228,17 +228,17 @@ export default function ChatPage() {
   };
 
   return (
-    <div className='flex h-[calc(100vh-80px)] bg-white dark:bg-surface'>
+    <div className='flex h-[calc(100vh-120px)] bg-white dark:bg-surface mb-8'>
       {/* Left sidebar - Users list */}
-      <div className='w-80 border-r border-light-blue-gray dark:border-surface-secondary flex flex-col'>
+      <div className='w-80 border-r border-light-blue-gray dark:border-dark-gray flex flex-col'>
         {/* Search */}
-        <div className='p-4 border-b border-light-blue-gray dark:border-surface-secondary'>
+        <div className='p-4 border-b border-light-blue-gray dark:border-dark-gray'>
           <InputField
             icon={<span className='material-symbols-outlined'>search</span>}
             placeholder='Найти чат...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            className='w-full text-lg'
+            className='w-full text-lg dark:bg-dark-gray'
           />
         </div>
 
@@ -271,7 +271,7 @@ export default function ChatPage() {
         {activeUser ? (
           <>
             {/* Header with user info */}
-            <div className='border-b border-light-blue-gray dark:border-surface-secondary py-3 px-4 bg-white dark:bg-surface text-start'>
+            <div className='border-b border-light-blue-gray dark:border-dark-gray py-3 px-4 bg-white dark:bg-surface text-start'>
               <h2 className='text-2xl font-semibold text-dark-gray dark:text-white'>
                 {activeUser.fullName}
               </h2>
@@ -279,7 +279,7 @@ export default function ChatPage() {
             </div>
 
             {/* Messages area */}
-            <div className='flex-1 overflow-y-auto p-6 bg-white dark:bg-surface'>
+            <div className='flex-1 overflow-y-auto p-6 bg-white dark:bg-dark-gray'>
               {activeUserId && (messages[activeUserId]?.length ?? 0) > 0 ? (
                 <>
                   {activeUserId &&

@@ -39,6 +39,9 @@ export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
         <Link href={base}>
           <Image src='/logo/a+.png' alt='A+ Logo' width={120} height={40} />
         </Link>
+        <Link href='https://fadm.gov.ru/directions/grant/'>
+          <Image src='/rosmol-black.png' alt='rosmol-black' width={120} height={40} />
+        </Link>
         <div className='inline-block h-8 w-px bg-medium-blue-gray'></div>
         {navigationLinks.map((link) => (
           <Link key={link.label} className='hover:text-dark-orange' href={link.href}>

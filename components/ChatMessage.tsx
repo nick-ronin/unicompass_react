@@ -38,13 +38,13 @@ export default function ChatMessage({
       case 'received':
         return <span className={`${iconClass} text-dark-gray`}>done_all</span>;
       case 'read':
-        return <span className={`${iconClass} text-cyan`}>done_all</span>;
+        return <span className={`${iconClass} text-white`}>done_all</span>;
       default:
         return null;
     }
   };
 
-  const bgColor = isOwn ? 'bg-cyan dark:bg-cyan' : 'bg-light-blue-gray dark:bg-surface-secondary';
+  const bgColor = isOwn ? 'bg-cyan dark:bg-cyan' : 'bg-light-blue-gray dark:bg-surface';
   const textColor = isOwn ? 'text-white' : 'text-dark-gray dark:text-white';
 
   return (

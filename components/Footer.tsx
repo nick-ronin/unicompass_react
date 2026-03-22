@@ -5,6 +5,9 @@ export default function Footer() {
     return (
         <div className='flex space-between bg-light-blue-gray dark:bg-surface px-12 py-3 rounded-2xl gap-24 items-center'>
             <Image src='/logo/a+.png' alt='Unicompass Logo' width={120} height={40} />
+            <Link href='https://fadm.gov.ru/directions/grant/'>
+                <Image src='/rosmol-black.png' alt='rosmol-black' width={120} height={40} />
+            </Link>
             <p className='max-w-sm text-sm'>© 2026, Институт космических и информационных технологий Сибирского федерального университета</p>
             <div className='flex flex-col'>
                 <div className='flex gap-4'>

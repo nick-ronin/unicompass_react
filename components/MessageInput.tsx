@@ -37,9 +37,9 @@ export default function MessageInput({
   };
 
   return (
-    <div className='bg-white dark:bg-surface border-t border-light-blue-gray dark:border-surface-secondary p-4'>
+    <div className='bg-white dark:bg-surface border-t border-light-blue-gray dark:border-dark-gray p-4'>
       {attachedFile && (
-        <div className='mb-3 flex items-center gap-2 bg-light-blue-gray dark:bg-surface-secondary rounded p-2'>
+        <div className='mb-3 flex items-center gap-2 bg-light-blue-gray dark:bg-dark-gray rounded p-2'>
           <span className='material-symbols-outlined text-dark-gray dark:text-white text-2xl'>
             attachment
           </span>
@@ -73,7 +73,7 @@ export default function MessageInput({
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
-          className='flex-1 resize-none border border-light-blue-gray dark:border-surface-secondary rounded-lg p-3 focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan text-dark-gray dark:text-white bg-white dark:bg-surface-secondary text-base max-h-24'
+          className='flex-1 resize-none rounded-lg p-3 focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan text-dark-gray dark:text-white bg-white dark:bg-dark-gray text-base max-h-24'
           rows={1}
         />
 
