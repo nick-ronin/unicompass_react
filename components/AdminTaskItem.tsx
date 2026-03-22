@@ -13,10 +13,11 @@ interface AdminTaskItemProps {
   view?: 'list' | 'grid';
   task?: Task;
   isLoading?: boolean;
+  lang?: string;
 }
 
 const getTaskIcon = (taskName: string): string => {
-  if (taskName.includes('Регистрация')) return 'app_registration';
+  if (taskName.includes('Registration')) return 'app_registration';
   if (taskName.includes('билет')) return 'card_membership';
   if (taskName.includes('русском языке') || taskName.includes('язык')) return 'language';
   if (taskName.includes('банк')) return 'account_balance';
@@ -34,6 +35,19 @@ const getCompletionColor = (percent: number): string => {
   return 'bg-orange';
 };
 
+const copy = {
+  en: {
+    assign: 'Assign task',
+    edit: 'Edit task',
+    completion: 'Completed by students',
+  },
+  ru: {
+    assign: 'Назначить задачу',
+    edit: 'Редактировать задачу',
+    completion: 'Выполнено студентами',
+  },
+};
+
 export default function AdminTaskItem({
   id,
   name,
@@ -44,9 +58,11 @@ export default function AdminTaskItem({
   view = 'list',
   task,
   isLoading = false,
+  lang = 'ru',
 }: AdminTaskItemProps) {
   const icon = getTaskIcon(name);
   const completionColor = getCompletionColor(completionPercent);
+  const t = copy[(lang as keyof typeof copy) ?? 'ru'] || copy.ru;
 
   if (isLoading) {
     return (
@@ -72,14 +88,14 @@ export default function AdminTaskItem({
             <button
               onClick={() => onAssign?.(id)}
               className='shrink-0 text-purple-600 hover:text-purple-700 transition-colors p-2 hover:bg-purple-100 rounded-lg dark:hover:bg-dark-gray dark:text-purple-400 dark:hover:text-purple-300'
-              aria-label='Назначить задачу'
+              aria-label={t.assign}
             >
               <span className='material-symbols-outlined text-2xl'>person_add</span>
             </button>
             <button
               onClick={() => onEdit?.(id)}
               className='shrink-0 text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray'
-              aria-label='Редактировать задачу'
+              aria-label={t.edit}
             >
               <span className='material-symbols-outlined text-2xl'>edit</span>
             </button>
@@ -98,7 +114,7 @@ export default function AdminTaskItem({
         <div className='flex flex-col gap-2 pt-2 border-t border-light-blue-gray dark:border-dark-gray'>
           <div className='flex justify-between items-center'>
             <span className='text-xs text-gray dark:text-medium-blue-gray uppercase tracking-wide'>
-              Выполнили студенты
+                {t.completion}
             </span>
             <span className={`text-lg font-bold ${completionColor.replace('bg-', 'text-')}`}>
               {completionPercent}%
@@ -148,14 +164,14 @@ export default function AdminTaskItem({
         <button
           onClick={() => onAssign?.(id)}
           className='text-purple-600 hover:text-purple-700 transition-colors p-2 hover:bg-purple-100 rounded-lg dark:hover:bg-dark-gray dark:text-purple-400 dark:hover:text-purple-300 shrink-0'
-          aria-label='Назначить задачу'
+          aria-label={t.assign}
         >
           <span className='material-symbols-outlined'>person_add</span>
         </button>
         <button
           onClick={() => onEdit?.(id)}
           className='text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray shrink-0'
-          aria-label='Редактировать задачу'
+          aria-label={t.edit}
         >
           <span className='material-symbols-outlined'>edit</span>
         </button>

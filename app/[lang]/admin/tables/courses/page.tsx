@@ -19,57 +19,57 @@ interface Course {
 const sampleCourses: Course[] = [
   {
     id: '1',
-    name: 'Введение в программирование',
+    name: 'Introduction to Programming',
     code: 'CS-101',
-    teacher: 'Доцент Сидорова М.В.',
+    teacher: 'Associate Professor Sidorova M.V..',
     semester: '1',
     students: '45',
-    status: 'Активен',
+    status: 'Active',
   },
   {
     id: '2',
-    name: 'Объектно-ориентированное программирование',
+    name: 'Object-oriented programming',
     code: 'CS-201',
-    teacher: 'Доцент Сидорова М.В.',
+    teacher: 'Associate Professor Sidorova M.V..',
     semester: '2',
     students: '38',
-    status: 'Активен',
+    status: 'Active',
   },
   {
     id: '3',
-    name: 'Базы данных',
+    name: 'Databases',
     code: 'CS-301',
-    teacher: 'Доцент Сидорова М.В.',
+    teacher: 'Associate Professor Sidorova M.V..',
     semester: '3',
     students: '32',
-    status: 'Активен',
+    status: 'Active',
   },
   {
     id: '4',
-    name: 'Веб-разработка',
+    name: 'Web development',
     code: 'CS-302',
-    teacher: 'Ассистент Иванов А.А.',
+    teacher: 'Assistant Ivanov A.A..',
     semester: '3',
     students: '40',
-    status: 'Активен',
+    status: 'Active',
   },
   {
     id: '5',
-    name: 'Машинное обучение',
+    name: 'Machine learning',
     code: 'CS-401',
-    teacher: 'Профессор Петров И.И.',
+    teacher: 'Professor Petrov I.I..',
     semester: '4',
     students: '28',
-    status: 'Планируется',
+    status: 'Planned',
   },
   {
     id: '6',
-    name: 'Компьютерные сети',
+    name: 'Computer networks',
     code: 'CS-302',
-    teacher: 'Доцент Козлов Д.Е.',
+    teacher: 'Associate Professor Kozlov D.E..',
     semester: '3',
     students: '35',
-    status: 'Активен',
+    status: 'Active',
   },
 ];
 
@@ -78,13 +78,13 @@ export default function CoursesTablePage() {
   const lang = params.lang as string;
   const [courses] = useState<Course[]>(sampleCourses);
 
-  // Поиск, сортировка и фильтрация
+  // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  // Получение уникальных значений для фильтров
+  // Getting unique values ​​for filters
   const uniqueSemesters = useMemo(
     () => [...new Set(courses.map(c => c.semester))].sort((a, b) => Number(a) - Number(b)),
     [courses]
@@ -95,11 +95,11 @@ export default function CoursesTablePage() {
     [courses]
   );
 
-  // Фильтрованные и отсортированные данные
+  // Filtercurated and sorted data
   const filteredAndSortedData = useMemo(() => {
     let result = [...courses];
 
-    // Поиск - ищем по названию, коду и преподавателю
+    // Search - search by name, code and teacher
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -110,17 +110,17 @@ export default function CoursesTablePage() {
       );
     }
 
-    // Фильтрация по семестру
+    // Filteration by semester
     if (filters.semester) {
       result = result.filter(c => c.semester === filters.semester);
     }
 
-    // Фильтрация по статусу
+    // Filteration by status
     if (filters.status) {
       result = result.filter(c => c.status === filters.status);
     }
 
-    // Сортировка
+    // Sorting
     if (sortColumn) {
       result.sort((a, b) => {
         const aValue = a[sortColumn as keyof Course] || '';
@@ -149,23 +149,23 @@ export default function CoursesTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'name', label: 'Название' },
-    { key: 'code', label: 'Код' },
-    { key: 'teacher', label: 'Преподаватель' },
-    { key: 'semester', label: 'Семестр' },
-    { key: 'students', label: 'Студентов' },
-    { key: 'status', label: 'Статус' },
+    { key: 'name', label: 'Name' },
+    { key: 'code', label: 'Code' },
+    { key: 'teacher', label: 'Teacher' },
+    { key: 'semester', label: 'Semester' },
+    { key: 'students', label: 'Students' },
+    { key: 'status', label: 'Status' },
   ];
 
   const filterOptions = [
     {
       name: 'semester',
-      label: 'Семестр',
+      label: 'Semester',
       options: uniqueSemesters.map(s => ({ label: s, value: s })),
     },
     {
       name: 'status',
-      label: 'Статус',
+      label: 'Status',
       options: uniqueStatuses.map(s => ({ label: s, value: s })),
     },
   ];
@@ -177,24 +177,24 @@ export default function CoursesTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Вернуться к таблицам
+          ← Return to tables
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Курсы
+          Courses
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Всего курсов: {courses.length}
+          Allth courses: {courses.length}
         </p>
       </div>
 
       <div className='mb-6'>
         <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Добавить курс
+          + Add a course
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Поиск по названию, коду, преподавателю...'
+        searchPlaceholder='Search by name, code, teacher...'
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -209,12 +209,12 @@ export default function CoursesTablePage() {
       <Table<Course>
         columns={[
           { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'name', label: 'Название', sortable: true },
-          { key: 'code', label: 'Код', sortable: true },
-          { key: 'teacher', label: 'Преподаватель', sortable: true },
-          { key: 'semester', label: 'Семестр', sortable: true },
-          { key: 'students', label: 'Студентов', sortable: true },
-          { key: 'status', label: 'Статус', sortable: true },
+          { key: 'name', label: 'Name', sortable: true },
+          { key: 'code', label: 'Code', sortable: true },
+          { key: 'teacher', label: 'Teacher', sortable: true },
+          { key: 'semester', label: 'Semester', sortable: true },
+          { key: 'students', label: 'Students', sortable: true },
+          { key: 'status', label: 'Status', sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}

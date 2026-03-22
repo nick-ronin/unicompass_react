@@ -10,7 +10,7 @@ interface MessageInputProps {
 
 export default function MessageInput({
   onSendMessage,
-  placeholder = 'Введите сообщение...',
+  placeholder = 'Enter message...',
 }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
@@ -83,7 +83,7 @@ export default function MessageInput({
           icon={<span className='material-symbols-outlined'>send</span>}
           iconPosition='right'
         >
-          <span className='hidden sm:inline'>Отправить</span>
+          <span className='hidden sm:inline'>Send</span>
         </Button>
       </div>
     </div>

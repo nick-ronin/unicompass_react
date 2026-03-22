@@ -7,7 +7,7 @@ export interface ScheduleItem {
     id: string;
     time: string;
     subject: string;
-    type: 'лекция' | 'пр. занятие' | 'лаб. работа' | 'ЭИОС';
+    type: 'lecture' | 'practical class' | 'lab work' | 'LMS';
     location: string;
     isCurrent?: boolean;
 }
@@ -27,33 +27,33 @@ export default function Schedule({ date, items, className = '', useApiData = fal
         {
             id: '1',
             time: '09:00-10:30',
-            subject: 'Математический анализ',
-            type: 'лекция',
-            location: 'Корпус №1, аудитория 101',
+            subject: 'Mathematical Analysis',
+            type: 'lecture',
+            location: 'Building 1, room 101',
             isCurrent: true,
         },
         {
             id: '2',
             time: '10:40-12:10',
-            subject: 'Английский язык',
-            type: 'пр. занятие',
-            location: 'Корпус №2, аудитория 205',
+            subject: 'English Language',
+            type: 'practical class',
+            location: 'Building 2, room 205',
             isCurrent: false,
         },
         {
             id: '3',
             time: '13:00-14:30',
-            subject: 'Основы программирования',
-            type: 'лаб. работа',
-            location: 'Корпус №3, компьютерный класс 301',
+            subject: 'Programming Fundamentals',
+            type: 'lab work',
+            location: 'Building 3, computer lab 301',
             isCurrent: false,
         },
         {
             id: '4',
             time: '14:40-16:10',
-            subject: 'История',
-            type: 'ЭИОС',
-            location: 'Онлайн',
+            subject: 'History',
+            type: 'LMS',
+            location: 'Online',
             isCurrent: false,
         },
     ];
@@ -86,7 +86,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
     if (error) {
         return (
             <div className={cn('p-4 bg-red-50 dark:bg-red-900/20 rounded-lg', className)}>
-                <p className='text-red-600 dark:text-red-400'>Ошибка при загрузке расписания: {error}</p>
+                <p className='text-red-600 dark:text-red-400'>Error loading schedule: {error}</p>
             </div>
         );
     }
@@ -95,7 +95,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
         <div className={cn('p-4', className)}>
             <div className='mb-4'>
                 <h3 className='text-2xl text-dark-gray dark:text-white'>
-                    Расписание на {date.toLocaleDateString('ru-RU', {
+                    Schedule for {date.toLocaleDateString('ru-RU', {
                         weekday: 'long',
                         day: 'numeric',
                         month: 'long',
@@ -112,7 +112,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
                                 'py-3 px-6 rounded-4xl flex justify-between items-start transition-colors',
                                 item.isCurrent
                                     ? 'bg-cyan text-white'
-                                    : 'bg-light-blue-gray text-dark-gray'
+                                    : 'bg-light-blue-gray text-dark-gray dark:bg-surface dark:text-white',
                             )}
                         >
                             <div className='flex-1 space-y-0.26'>
@@ -133,7 +133,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
                     ))
                 ) : (
                     <div className='text-center py-8 text-medium-blue-gray dark:text-gray'>
-                        <p>Нет занятий на этот день</p>
+                        <p>No classes for this day</p>
                     </div>
                 )}
             </div>

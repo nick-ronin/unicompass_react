@@ -19,57 +19,57 @@ interface Schedule {
 const sampleSchedules: Schedule[] = [
   {
     id: '1',
-    day: 'Понедельник',
+    day: 'Monday',
     time: '09:00-10:30',
-    course: 'Введение в программирование',
-    group: 'МИ-101',
+    course: 'Introduction to Programming',
+    group: 'MI-101',
     room: '305',
-    teacher: 'Доцент Сидорова М.В.',
+    teacher: 'Associate Professor Sidorova M.V..',
   },
   {
     id: '2',
-    day: 'Понедельник',
+    day: 'Monday',
     time: '11:00-12:30',
-    course: 'ООП',
-    group: 'МИ-102',
+    course: 'OOP',
+    group: 'MI-102',
     room: '307',
-    teacher: 'Доцент Сидорова М.В.',
+    teacher: 'Associate Professor Sidorova M.V..',
   },
   {
     id: '3',
-    day: 'Вторник',
+    day: 'Tuesday',
     time: '08:30-10:00',
-    course: 'Базы данных',
-    group: 'ПМ-101',
+    course: 'Databases',
+    group: 'PM-101',
     room: '310',
-    teacher: 'Ассистент Иванов А.А.',
+    teacher: 'Assistant Ivanov A.A..',
   },
   {
     id: '4',
-    day: 'Вторник',
+    day: 'Tuesday',
     time: '10:30-12:00',
-    course: 'Веб-разработка',
-    group: 'МИ-201',
+    course: 'Web development',
+    group: 'MI-201',
     room: '312',
-    teacher: 'Профессор Петров И.И.',
+    teacher: 'Professor Petrov I.I..',
   },
   {
     id: '5',
-    day: 'Среда',
+    day: 'Wednesday',
     time: '09:00-10:30',
-    course: 'Компьютерные сети',
-    group: 'МИ-301',
+    course: 'Computer networks',
+    group: 'MI-301',
     room: '315',
-    teacher: 'Доцент Козлов Д.Е.',
+    teacher: 'Associate Professor Kozlov D.E..',
   },
   {
     id: '6',
-    day: 'Четверг',
+    day: 'Thursday',
     time: '14:00-15:30',
-    course: 'Введение в программирование',
-    group: 'МИ-102',
+    course: 'Introduction to Programming',
+    group: 'MI-102',
     room: '306',
-    teacher: 'Профессор Смирнова Е.П.',
+    teacher: 'Professor Smirnova E.P..',
   },
 ];
 
@@ -78,13 +78,13 @@ export default function SchedulesTablePage() {
   const lang = params.lang as string;
   const [schedules] = useState<Schedule[]>(sampleSchedules);
 
-  // Поиск, сортировка и фильтрация
+  // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  // Получение уникальных значений для фильтров
+  // Getting unique values ​​for filters
   const uniqueDays = useMemo(
     () => [...new Set(schedules.map(s => s.day))].sort(),
     [schedules]
@@ -95,11 +95,11 @@ export default function SchedulesTablePage() {
     [schedules]
   );
 
-  // Фильтрованные и отсортированные данные
+  // Filtercurated and sorted data
   const filteredAndSortedData = useMemo(() => {
     let result = [...schedules];
 
-    // Поиск - ищем по курсу, группе и преподавателю
+    // Search - search by course, group and teacher
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -110,17 +110,17 @@ export default function SchedulesTablePage() {
       );
     }
 
-    // Фильтрация по дню
+    // Filteration by day
     if (filters.day) {
       result = result.filter(s => s.day === filters.day);
     }
 
-    // Фильтрация по аудитории
+    // Filteration by audience
     if (filters.room) {
       result = result.filter(s => s.room === filters.room);
     }
 
-    // Сортировка
+    // Sorting
     if (sortColumn) {
       result.sort((a, b) => {
         const aValue = a[sortColumn as keyof Schedule] || '';
@@ -143,23 +143,23 @@ export default function SchedulesTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'day', label: 'День' },
-    { key: 'time', label: 'Время' },
-    { key: 'course', label: 'Курс' },
-    { key: 'group', label: 'Группа' },
-    { key: 'room', label: 'Аудитория' },
-    { key: 'teacher', label: 'Преподаватель' },
+    { key: 'day', label: 'Day' },
+    { key: 'time', label: 'Time' },
+    { key: 'course', label: 'Well' },
+    { key: 'group', label: 'Group' },
+    { key: 'room', label: 'Audience' },
+    { key: 'teacher', label: 'Teacher' },
   ];
 
   const filterOptions = [
     {
       name: 'day',
-      label: 'День недели',
+      label: 'Day weeks',
       options: uniqueDays.map(d => ({ label: d, value: d })),
     },
     {
       name: 'room',
-      label: 'Аудитория',
+      label: 'Audience',
       options: uniqueRooms.map(r => ({ label: r, value: r })),
     },
   ];
@@ -171,24 +171,24 @@ export default function SchedulesTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Вернуться к таблицам
+          ← Return to tables
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Расписания
+          Schedules
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Всего записей в расписании: {schedules.length}
+          Allth entries in the schedule: {schedules.length}
         </p>
       </div>
 
       <div className='mb-6'>
         <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Добавить расписание
+          + Add schedule
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Поиск по курсу, группе, преподавателю...'
+        searchPlaceholder='Search by course, group, teacher...'
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -203,12 +203,12 @@ export default function SchedulesTablePage() {
       <Table<Schedule>
         columns={[
           { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'day', label: 'День', sortable: true },
-          { key: 'time', label: 'Время', sortable: true },
-          { key: 'course', label: 'Курс', sortable: true },
-          { key: 'group', label: 'Группа', sortable: true },
-          { key: 'room', label: 'Аудитория', sortable: true },
-          { key: 'teacher', label: 'Преподаватель', sortable: true },
+          { key: 'day', label: 'Day', sortable: true },
+          { key: 'time', label: 'Time', sortable: true },
+          { key: 'course', label: 'Well', sortable: true },
+          { key: 'group', label: 'Group', sortable: true },
+          { key: 'room', label: 'Audience', sortable: true },
+          { key: 'teacher', label: 'Teacher', sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}

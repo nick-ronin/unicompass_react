@@ -7,7 +7,7 @@ interface ButtonProps {
     type?: 'button' | 'submit' | 'reset';
     className?: string;
     icon?: ReactNode;
-    iconPosition?: 'left' | 'right'; // по дефолту слева
+    iconPosition?: 'left' | 'right'; // by default on the left
     disabled?: boolean;
 }
 

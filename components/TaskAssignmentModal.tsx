@@ -29,13 +29,90 @@ interface TaskAssignmentModalProps {
   isLoading?: boolean;
   onClose: () => void;
   onSubmit: (data: TaskAssignmentFormData) => void;
+  lang?: string;
 }
+
+const copy = {
+  en: {
+    title: 'Create and assign task',
+    nameLabel: 'Task name *',
+    namePlaceholder: 'Enter task name',
+    descriptionLabel: 'Task description *',
+    descriptionPlaceholder: 'Enter a detailed task description',
+    deadlineLabel: 'Deadline *',
+    assignmentTypeLabel: 'Assignment type *',
+    assignmentTypeOptions: {
+      all: 'All students',
+      citizenship: 'By citizenship',
+      group: 'By group',
+      gender: 'By gender',
+    },
+    selectCitizenship: 'Select citizenship *',
+    selectGroup: 'Select group *',
+    selectGender: 'Select gender *',
+    selectPlaceholder: 'Select...',
+    studentsLabel: 'Students for assignment',
+    clearAll: 'Clear all',
+    selectAll: 'Select all',
+    studentsNotFound: 'Students not found',
+    studentsNotFoundFiltered: 'No students found for selected filter',
+    loadingStudents: 'Loading students...',
+    selectedCount: (count: number) => `Selected students: ${count}`,
+    cancel: 'Cancel',
+    submit: 'Create and assign',
+    errors: {
+      name: 'Task name is required',
+      description: 'Task description is required',
+      deadline: 'Deadline is required',
+      students: 'Select at least one student',
+      filter: 'Select a filter',
+    },
+    selectLabel: (count: number) => `Students for assignment (${count}) *`,
+  },
+  ru: {
+    title: 'Создать и назначить задачу',
+    nameLabel: 'Название задачи *',
+    namePlaceholder: 'Введите название задачи',
+    descriptionLabel: 'Описание задачи *',
+    descriptionPlaceholder: 'Введите подробное описание задачи',
+    deadlineLabel: 'Дедлайн *',
+    assignmentTypeLabel: 'Тип назначения *',
+    assignmentTypeOptions: {
+      all: 'Всем студентам',
+      citizenship: 'По гражданству',
+      group: 'По группе',
+      gender: 'По полу',
+    },
+    selectCitizenship: 'Выберите гражданство *',
+    selectGroup: 'Выберите группу *',
+    selectGender: 'Выберите пол *',
+    selectPlaceholder: 'Выберите...',
+    studentsLabel: 'Студенты для назначения',
+    clearAll: 'Сбросить выбор',
+    selectAll: 'Выбрать всех',
+    studentsNotFound: 'Студенты не найдены',
+    studentsNotFoundFiltered: 'Нет студентов по выбранному фильтру',
+    loadingStudents: 'Загрузка студентов...',
+    selectedCount: (count: number) => `Выбрано студентов: ${count}`,
+    cancel: 'Отмена',
+    submit: 'Создать и назначить',
+    errors: {
+      name: 'Название задачи обязательно',
+      description: 'Описание задачи обязательно',
+      deadline: 'Укажите дедлайн',
+      students: 'Выберите хотя бы одного студента',
+      filter: 'Выберите фильтр',
+    },
+    selectLabel: (count: number) => `Студенты для назначения (${count}) *`,
+  },
+};
 
 export default function TaskAssignmentModal({
   isOpen,
   isLoading = false,
   onClose,
   onSubmit,
+  lang = 'ru',
 }: TaskAssignmentModalProps) {
   const [formData, setFormData] = useState<TaskAssignmentFormData>({
     name: '',
@@ -53,6 +130,8 @@ export default function TaskAssignmentModal({
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('all');
   const [selectedFilter, setSelectedFilter] = useState<string>('');
 
+  const t = copy[(lang as keyof typeof copy) ?? 'ru'] || copy.ru;
+
   useEffect(() => {
     if (isOpen) {
       fetchStudents();
@@ -65,7 +144,7 @@ export default function TaskAssignmentModal({
       const response = await fetch('/api/student/full_info_list');
 
       if (!response.ok) {
-        throw new Error('Ошибка при загрузке студентов');
+        throw new Error(t.loadingStudents);
       }
 
       const data = await response.json();
@@ -84,8 +163,8 @@ export default function TaskAssignmentModal({
 
       setStudents(studentList);
     } catch (err) {
-      console.error('Ошибка при загрузке студентов:', err);
-      setErrors({ students: 'Не удалось загрузить студентов' });
+      console.error('Error loading students:', err);
+      setErrors({ students: t.loadingStudents });
     } finally {
       setLoadingStudents(false);
     }
@@ -126,23 +205,23 @@ export default function TaskAssignmentModal({
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Название задачи обязательно';
+      newErrors.name = t.errors.name;
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = 'Описание задачи обязательно';
+      newErrors.description = t.errors.description;
     }
 
     if (!formData.deadline) {
-      newErrors.deadline = 'Дата выполнения обязательна';
+      newErrors.deadline = t.errors.deadline;
     }
 
     if (selectedStudents.length === 0) {
-      newErrors.students = 'Выберите хотя бы одного студента';
+      newErrors.students = t.errors.students;
     }
 
     if (assignmentType !== 'all' && !selectedFilter) {
-      newErrors.filter = 'Выберите фильтр';
+      newErrors.filter = t.errors.filter;
     }
 
     setErrors(newErrors);
@@ -190,7 +269,7 @@ export default function TaskAssignmentModal({
         {/* Header */}
         <div className='sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
           <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-            Создать и назначить задачу
+            {t.title}
           </h2>
           <button
             onClick={onClose}
@@ -205,7 +284,7 @@ export default function TaskAssignmentModal({
           {/* Task Name */}
           <div>
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Название задачи *
+              {t.nameLabel}
             </label>
             <input
               type='text'
@@ -214,7 +293,7 @@ export default function TaskAssignmentModal({
               className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 ${
                 errors.name ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
               }`}
-              placeholder='Введите название задачи'
+              placeholder={t.namePlaceholder}
             />
             {errors.name && <p className='text-red-500 text-sm mt-1'>{errors.name}</p>}
           </div>
@@ -222,7 +301,7 @@ export default function TaskAssignmentModal({
           {/* Description */}
           <div>
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Описание задачи *
+              {t.descriptionLabel}
             </label>
             <textarea
               value={formData.description}
@@ -231,7 +310,7 @@ export default function TaskAssignmentModal({
               className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 ${
                 errors.description ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
               }`}
-              placeholder='Введите подробное описание задачи'
+              placeholder={t.descriptionPlaceholder}
             />
             {errors.description && <p className='text-red-500 text-sm mt-1'>{errors.description}</p>}
           </div>
@@ -239,7 +318,7 @@ export default function TaskAssignmentModal({
           {/* Deadline */}
           <div>
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Дата выполнения *
+              {t.deadlineLabel}
             </label>
             <input
               type='date'
@@ -255,14 +334,14 @@ export default function TaskAssignmentModal({
           {/* Assignment Type Selection */}
           <div>
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
-              Тип назначения *
+              {t.assignmentTypeLabel}
             </label>
             <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
               {[
-                { value: 'all', label: 'Всем студентам' },
-                { value: 'citizenship', label: 'По гражданству' },
-                { value: 'group', label: 'По группе' },
-                { value: 'gender', label: 'По полу' },
+                { value: 'all', label: t.assignmentTypeOptions.all },
+                { value: 'citizenship', label: t.assignmentTypeOptions.citizenship },
+                { value: 'group', label: t.assignmentTypeOptions.group },
+                { value: 'gender', label: t.assignmentTypeOptions.gender },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -284,10 +363,9 @@ export default function TaskAssignmentModal({
           {assignmentType !== 'all' && (
             <div>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                {assignmentType === 'citizenship' && 'Выберите гражданство'}
-                {assignmentType === 'group' && 'Выберите группу'}
-                {assignmentType === 'gender' && 'Выберите пол'}
-                {' *'}
+                {assignmentType === 'citizenship' && t.selectCitizenship}
+                {assignmentType === 'group' && t.selectGroup}
+                {assignmentType === 'gender' && t.selectGender}
               </label>
               <select
                 value={selectedFilter}
@@ -299,7 +377,7 @@ export default function TaskAssignmentModal({
                   errors.filter ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
                 }`}
               >
-                <option value=''>Выберите...</option>
+                <option value=''>{t.selectPlaceholder}</option>
                 {assignmentType === 'citizenship' &&
                   uniqueCitizenships.map((c) => (
                     <option key={c} value={c}>
@@ -315,7 +393,7 @@ export default function TaskAssignmentModal({
                 {assignmentType === 'gender' &&
                   uniqueGenders.map((g) => (
                     <option key={g} value={g}>
-                      {g === 'male' ? 'Мужской' : g === 'female' ? 'Женский' : g}
+                      {g === 'male' ? 'Male' : g === 'female' ? 'Female' : g}
                     </option>
                   ))}
               </select>
@@ -327,14 +405,14 @@ export default function TaskAssignmentModal({
           <div>
             <div className='flex justify-between items-center mb-2'>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-                Студенты для назначения ({filteredStudents.length}) *
+                {t.selectLabel(filteredStudents.length)}
               </label>
               <button
                 type='button'
                 onClick={selectAllFiltered}
                 className='text-sm text-blue-600 dark:text-blue-400 hover:underline'
               >
-                {selectedStudents.length === filteredStudents.length ? 'Снять все' : 'Выбрать всех'}
+                {selectedStudents.length === filteredStudents.length ? t.clearAll : t.selectAll}
               </button>
             </div>
 
@@ -342,14 +420,14 @@ export default function TaskAssignmentModal({
 
             {loadingStudents ? (
               <div className='text-center py-4'>
-                <p className='text-gray-600 dark:text-gray-400'>Загрузка студентов...</p>
+                <p className='text-gray-600 dark:text-gray-400'>{t.loadingStudents}</p>
               </div>
             ) : filteredStudents.length === 0 ? (
               <div className='text-center py-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg'>
                 <p className='text-gray-600 dark:text-gray-400'>
                   {assignmentType === 'all'
-                    ? 'Студенты не найдены'
-                    : 'Студенты с выбранным фильтром не найдены'}
+                    ? t.studentsNotFound
+                    : t.studentsNotFoundFiltered}
                 </p>
               </div>
             ) : (
@@ -383,7 +461,7 @@ export default function TaskAssignmentModal({
 
             {selectedStudents.length > 0 && (
               <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
-                Выбрано студентов: {selectedStudents.length}
+                {t.selectedCount(selectedStudents.length)}
               </p>
             )}
           </div>
@@ -396,14 +474,14 @@ export default function TaskAssignmentModal({
               disabled={isLoading}
               className='flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 font-medium'
             >
-              Отмена
+              {t.cancel}
             </button>
             <button
               type='submit'
               disabled={isLoading}
               className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium'
             >
-              {isLoading ? 'Создание...' : 'Создать и назначить'}
+              {isLoading ? `${t.submit}...` : t.submit}
             </button>
           </div>
         </form>

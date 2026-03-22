@@ -66,7 +66,7 @@ export interface ScheduleItem {
   id: string;
   time: string;
   subject: string;
-  type: 'лекция' | 'пр. занятие' | 'лаб. работа' | 'ЭИОС';
+  type: 'lecture' | 'practical class' | 'lab work' | 'LMS';
   location: string;
   teacherId: string;
   groupId: string;

@@ -18,6 +18,7 @@ interface TableProps<T> {
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
   onSort?: (column: string, direction: 'asc' | 'desc') => void;
+  lang?: 'ru' | 'en';
 }
 
 export default function Table<T extends { id: string | number }>({
@@ -32,7 +33,30 @@ export default function Table<T extends { id: string | number }>({
   sortColumn = '',
   sortDirection = 'asc',
   onSort,
+  lang = 'ru',
 }: TableProps<T>) {
+  const translations = {
+    ru: {
+      error: 'Ошибка загрузки данных:',
+      retry: 'Повторить',
+      empty: 'Нет данных для отображения',
+      actions: 'Действия',
+      edit: 'Редактировать',
+      delete: 'Удалить',
+      loading: 'Загрузка...',
+    },
+    en: {
+      error: 'Error loading data:',
+      retry: 'Try again',
+      empty: 'No data to display',
+      actions: 'Actions',
+      edit: 'Edit',
+      delete: 'Delete',
+      loading: 'Loading...',
+    },
+  };
+
+  const t = translations[lang] || translations.ru;
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
 
   const handleColumnSort = (columnKey: string, sortable?: boolean) => {
@@ -74,13 +98,13 @@ export default function Table<T extends { id: string | number }>({
   if (error) {
     return (
       <div className='overflow-x-auto rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20 p-6'>
-        <p className='text-red-600 dark:text-red-400 mb-4'>Ошибка при загрузке данных: {error}</p>
+        <p className='text-red-600 dark:text-red-400 mb-4'>{t.error} {error}</p>
         {onRetry && (
           <button
             onClick={onRetry}
             className='px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors'
           >
-            Попробовать ещё
+            {t.retry}
           </button>
         )}
       </div>
@@ -90,7 +114,7 @@ export default function Table<T extends { id: string | number }>({
   if (data.length === 0) {
     return (
       <div className='overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-6 text-center'>
-        <p className='text-gray-500 dark:text-gray-400'>Нет данных для отображения</p>
+        <p className='text-gray-500 dark:text-gray-400'>{t.empty}</p>
       </div>
     );
   }
@@ -131,7 +155,7 @@ export default function Table<T extends { id: string | number }>({
             ))}
             {(onEdit || onDelete) && (
               <th className='px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700'>
-                Действия
+                {t.actions}
               </th>
             )}
           </tr>
@@ -170,7 +194,7 @@ export default function Table<T extends { id: string | number }>({
                       onClick={() => onEdit(item)}
                       className='text-blue-600 dark:text-blue-400 hover:underline font-medium'
                     >
-                      Редактировать
+                      {t.edit}
                     </button>
                   )}
                   {onDelete && (
@@ -178,7 +202,7 @@ export default function Table<T extends { id: string | number }>({
                       onClick={() => onDelete(item)}
                       className='text-red-600 dark:text-red-400 hover:underline font-medium'
                     >
-                      Удалить
+                      {t.delete}
                     </button>
                   )}
                 </td>

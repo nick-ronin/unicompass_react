@@ -27,7 +27,7 @@ interface TableControlsProps {
 }
 
 export default function TableControls({
-  searchPlaceholder = 'Поиск...',
+  searchPlaceholder = 'Search...',
   sortOptions = [],
   filterOptions = [],
   onSearch,
@@ -48,12 +48,12 @@ export default function TableControls({
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
-      // Переключаем направление сортировки
+      // Switching direction sorting
       const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
       setSortDirection(newDirection);
       onSort?.(key, newDirection);
     } else {
-      // Устанавливаем новый ключ сортировки
+      // Install new key sorting
       setSortKey(key);
       setSortDirection('asc');
       onSort?.(key, 'asc');
@@ -85,7 +85,7 @@ export default function TableControls({
 
   return (
     <div className='space-y-4 mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50'>
-      {/* Поиск */}
+      {/* Search */}
       <div className='flex gap-2 items-center'>
         <div className='flex-1 relative'>
           <input
@@ -105,7 +105,7 @@ export default function TableControls({
           )}
         </div>
 
-        {/* Кнопка для фильтров */}
+        {/* Button For filters */}
         {filterOptions.length > 0 && (
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -115,22 +115,22 @@ export default function TableControls({
                 : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600'
             }`}
           >
-            Фильтры {Object.keys(activeFilters).length > 0 && `(${Object.keys(activeFilters).length})`}
+            Filters {Object.keys(activeFilters).length > 0 && `(${Object.keys(activeFilters).length})`}
           </button>
         )}
 
-        {/* Кнопка сброса */}
+        {/* Button reset */}
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
             className='px-4 py-2 rounded-lg font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors'
           >
-            Сбросить
+            Reset
           </button>
         )}
       </div>
 
-      {/* Сортировка и информация */}
+      {/* Sorting And AndнформацAndя */}
       {(sortOptions.length > 0 || resultCount !== undefined) && (
         <div className='flex gap-2 items-center flex-wrap'>
           {sortOptions.length > 0 && (
@@ -139,7 +139,7 @@ export default function TableControls({
               onChange={(e) => handleSort(e.target.value)}
               className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm'
             >
-              <option value=''>Сортировка по...</option>
+              <option value=''>Sorting By...</option>
               {sortOptions.map((opt) => (
                 <option key={opt.key} value={opt.key}>
                   {opt.label} {sortKey === opt.key && (sortDirection === 'asc' ? '↑' : '↓')}
@@ -150,13 +150,13 @@ export default function TableControls({
 
           {resultCount !== undefined && (
             <span className='text-sm text-gray-600 dark:text-gray-400 ml-auto'>
-              Найдено: {resultCount}
+              Found: {resultCount}
             </span>
           )}
         </div>
       )}
 
-      {/* Фильтры */}
+      {/* Filters */}
       {showFilters && filterOptions.length > 0 && (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 border-t border-gray-200 dark:border-gray-700'>
           {filterOptions.map((filter) => (
@@ -169,7 +169,7 @@ export default function TableControls({
                 onChange={(e) => handleFilterChange(filter.name, e.target.value)}
                 className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm'
               >
-                <option value=''>Все</option>
+                <option value=''>All</option>
                 {filter.options.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}

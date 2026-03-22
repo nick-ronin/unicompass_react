@@ -28,20 +28,26 @@ export default function RegisterPage() {
       title: 'Регистрация',
       firstName: 'Имя',
       lastName: 'Фамилия',
-      patronymic: 'Отчество (необязательно)',
+      patronymic: 'Отчество (при наличии)',
       citizenship: 'Гражданство',
-      login: 'Логин',
+      login: 'Имя пользователя',
       password: 'Пароль',
       passwordConfirm: 'Повторите пароль',
-      agreeTermsText: 'Я согласен на обработку персональных данных',
+      agreeTermsText: 'Согласен на обработку персональных данных',
       registerBtn: 'Зарегистрироваться',
-      alreadyRegistered: 'Уже зарегистрированы?',
+      alreadyRegistered: 'Уже есть аккаунт?',
       loginLink: 'Войти',
       loginGosuslugi: 'Войти через Госуслуги',
       passwordMismatch: 'Пароли не совпадают',
-      agreeTerms: 'Вы должны согласиться с обработкой персональных данных',
-      registrationError: 'Ошибка при регистрации',
-      fillAllFields: 'Заполните все обязательные поля',
+      agreeTerms: 'Нужно принять обработку персональных данных',
+      registrationError: 'Ошибка регистрации',
+      fillAllFields: 'Заполните обязательные поля',
+      placeholderFirstName: 'Иван',
+      placeholderLastName: 'Иванов',
+      placeholderPatronymic: 'Иванович',
+      placeholderCitizenship: 'Россия',
+      placeholderUsername: 'username',
+      placeholderPassword: '••••••••',
     },
     en: {
       title: 'Sign Up',
@@ -61,6 +67,12 @@ export default function RegisterPage() {
       agreeTerms: 'You must agree to the processing of personal data',
       registrationError: 'Registration error',
       fillAllFields: 'Please fill in all required fields',
+      placeholderFirstName: 'Ivan',
+      placeholderLastName: 'Ivanov',
+      placeholderPatronymic: 'Ivanovich',
+      placeholderCitizenship: 'Russia',
+      placeholderUsername: 'username',
+      placeholderPassword: '••••••••',
     },
   };
 
@@ -161,7 +173,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='text'
-                placeholder='Иван'
+                placeholder={t.placeholderFirstName}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
@@ -177,7 +189,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='text'
-                placeholder='Иванов'
+                placeholder={t.placeholderLastName}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
@@ -193,7 +205,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='text'
-                placeholder='Иванович'
+                placeholder={t.placeholderPatronymic}
                 value={patronymic}
                 disableDarkTheme
                 onChange={(e) => setPatronymic(e.target.value)}
@@ -208,7 +220,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='text'
-                placeholder='Россия'
+                placeholder={t.placeholderCitizenship}
                 value={citizenship}
                 disableDarkTheme
                 onChange={(e) => setCitizenship(e.target.value)}
@@ -224,7 +236,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='text'
-                placeholder='username'
+                placeholder={t.placeholderUsername}
                 value={login}
                 disableDarkTheme
                 onChange={(e) => setLogin(e.target.value)}
@@ -240,7 +252,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='password'
-                placeholder='••••••••'
+                placeholder={t.placeholderPassword}
                 disableDarkTheme
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -256,7 +268,7 @@ export default function RegisterPage() {
               </label>
               <InputField
                 type='password'
-                placeholder='••••••••'
+                placeholder={t.placeholderPassword}
                 disableDarkTheme
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
@@ -291,7 +303,7 @@ export default function RegisterPage() {
           {/* Divider */}
           <div className='my-6 flex items-center gap-3'>
             <div className='flex-1 h-px bg-medium-blue-gray'></div>
-            <span className='text-base text-medium-blue-gray'>или</span>
+            <span className='text-base text-medium-blue-gray'>or</span>
             <div className='flex-1 h-px bg-medium-blue-gray'></div>
           </div>
 

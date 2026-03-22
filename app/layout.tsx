@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='ru' className={ceraProRegular.variable} suppressHydrationWarning>
+    <html className={ceraProRegular.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

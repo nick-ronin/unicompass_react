@@ -19,14 +19,14 @@ export default function LoginPage() {
 
   const translations = {
     ru: {
-      title: 'Войти на сайт',
-      username: 'Логин',
+      title: 'Вход',
+      username: 'Имя пользователя',
       password: 'Пароль',
       loginBtn: 'Войти',
       register: 'Зарегистрироваться',
       forgotPassword: 'Забыли пароль?',
-      loginError: 'Ошибка при входе',
-      fillAllFields: 'Заполните логин и пароль',
+      loginError: 'Ошибка входа',
+      fillAllFields: 'Введите имя пользователя и пароль',
     },
     en: {
       title: 'Sign In',
@@ -244,7 +244,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className='my-6 flex items-center gap-3'>
             <div className='flex-1 h-px bg-medium-blue-gray'></div>
-            <span className='text-base text-medium-blue-gray'>или</span>
+            <span className='text-base text-medium-blue-gray'>or</span>
             <div className='flex-1 h-px bg-medium-blue-gray'></div>
           </div>
 

@@ -18,43 +18,43 @@ interface Teacher {
 const sampleTeachers: Teacher[] = [
   {
     id: '1',
-    name: 'Профессор Петров И.И.',
+    name: 'Professor Petrov AND.AND.',
     email: 'prof.petrov@example.com',
-    department: 'Математика',
-    subjects: 'Алгебра, Геометрия',
-    status: 'Активен',
+    department: 'Mathematics',
+    subjects: 'Algebra, Geometry',
+    status: 'Active',
   },
   {
     id: '2',
-    name: 'Доцент Сидорова М.В.',
+    name: 'Associate Professor Sidorova M.IN.',
     email: 'doc.sidorova@example.com',
-    department: 'Информатика',
-    subjects: 'ООП, Базы данных',
-    status: 'Активен',
+    department: 'ANDнформатAndToа',
+    subjects: 'OOP, Bases data',
+    status: 'Active',
   },
   {
     id: '3',
-    name: 'Ассистент Иванов А.А.',
+    name: 'Assistant ANDванов A.A.',
     email: 'assist.ivanov@example.com',
-    department: 'Физика',
-    subjects: 'Механика, Термодинамика',
-    status: 'Активен',
+    department: 'Physics',
+    subjects: 'MеханAndToа, Thermodynamics',
+    status: 'Active',
   },
   {
     id: '4',
-    name: 'Профессор Смирнова Е.П.',
+    name: 'Professor Smirnova E.P.',
     email: 'prof.smirnova@example.com',
-    department: 'Литература',
-    subjects: 'Русская литература',
-    status: 'В отпуске',
+    department: 'Literature',
+    subjects: 'Russian literature',
+    status: 'IN vacation',
   },
   {
     id: '5',
-    name: 'Доцент Козлов Д.Е.',
+    name: 'Associate Professor Kozlov D.E.',
     email: 'doc.kozlov@example.com',
-    department: 'История',
-    subjects: 'Всемирная история, История России',
-    status: 'Активен',
+    department: 'History',
+    subjects: 'Allpeaceful story, History Russia',
+    status: 'Active',
   },
 ];
 
@@ -63,13 +63,13 @@ export default function TeachersTablePage() {
   const lang = params.lang as string;
   const [teachers] = useState<Teacher[]>(sampleTeachers);
 
-  // Поиск, сортировка и фильтрация
+  // PоAndсTo, sorting And фAndльтрацAndя
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  // Получение уникальных значений для фильтров
+  // PолученAndе унAndToальных значенAndй For фAndльтров
   const uniqueDepartments = useMemo(
     () => [...new Set(teachers.map(t => t.department))].sort(),
     [teachers]
@@ -80,11 +80,11 @@ export default function TeachersTablePage() {
     [teachers]
   );
 
-  // Фильтрованные и отсортированные данные
+  // Filterovated And отсортAndрovated data
   const filteredAndSortedData = useMemo(() => {
     let result = [...teachers];
 
-    // Поиск - ищем по имени, email и дисциплинам
+    // PоAndсTo - Andщем By AndменAnd, email And дAndсцAndплAndнам
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -95,17 +95,17 @@ export default function TeachersTablePage() {
       );
     }
 
-    // Фильтрация по кафедре
+    // FilterацAndя By department
     if (filters.department) {
       result = result.filter(t => t.department === filters.department);
     }
 
-    // Фильтрация по статусу
+    // FilterацAndя By status
     if (filters.status) {
       result = result.filter(t => t.status === filters.status);
     }
 
-    // Сортировка
+    // Sorting
     if (sortColumn) {
       result.sort((a, b) => {
         const aValue = a[sortColumn as keyof Teacher] || '';
@@ -128,21 +128,21 @@ export default function TeachersTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'name', label: 'Имя' },
-    { key: 'department', label: 'Кафедра' },
+    { key: 'name', label: 'First name' },
+    { key: 'department', label: 'Department' },
     { key: 'email', label: 'Email' },
-    { key: 'status', label: 'Статус' },
+    { key: 'status', label: 'Status' },
   ];
 
   const filterOptions = [
     {
       name: 'department',
-      label: 'Кафедра',
+      label: 'Department',
       options: uniqueDepartments.map(d => ({ label: d, value: d })),
     },
     {
       name: 'status',
-      label: 'Статус',
+      label: 'Status',
       options: uniqueStatuses.map(s => ({ label: s, value: s })),
     },
   ];
@@ -154,24 +154,24 @@ export default function TeachersTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Вернуться к таблицам
+          ← INернуться To таблAndцам
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Преподаватели
+          PреByдавателAnd
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Всего преподавателей: {teachers.length}
+          Allth преByдавателей: {teachers.length}
         </p>
       </div>
 
       <div className='mb-6'>
         <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Добавить преподавателя
+          + DобавAndть преByдавателя
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Поиск по имени, email, дисциплинам...'
+        searchPlaceholder='PоAndсTo By AndменAnd, email, дAndсцAndплAndнам...'
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -186,11 +186,11 @@ export default function TeachersTablePage() {
       <Table<Teacher>
         columns={[
           { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'name', label: 'Имя', sortable: true },
+          { key: 'name', label: 'First name', sortable: true },
           { key: 'email', label: 'Email', sortable: true },
-          { key: 'department', label: 'Кафедра', sortable: true },
-          { key: 'subjects', label: 'Дисциплины' },
-          { key: 'status', label: 'Статус', sortable: true },
+          { key: 'department', label: 'Department', sortable: true },
+          { key: 'subjects', label: 'DAndсцAndплAndны' },
+          { key: 'status', label: 'Status', sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}

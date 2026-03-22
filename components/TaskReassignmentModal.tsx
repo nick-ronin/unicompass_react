@@ -28,7 +28,73 @@ interface TaskReassignmentModalProps {
   onClose: () => void;
   onSubmit: (taskId: string | number, studentIds: (string | number)[]) => void;
   preSelectedTaskId?: string | null;
+  lang?: string;
 }
+
+const copy = {
+  en: {
+    title: 'Assign existing task',
+    selectTask: 'Select task *',
+    selectTaskPlaceholder: 'Select task...',
+    assignmentTypeLabel: 'Assignment type *',
+    assignmentTypeOptions: {
+      all: 'All students',
+      citizenship: 'By citizenship',
+      group: 'By group',
+      gender: 'By gender',
+    },
+    selectCitizenship: 'Select citizenship *',
+    selectGroup: 'Select group *',
+    selectGender: 'Select gender *',
+    selectPlaceholder: 'Select...',
+    studentsLabel: (count: number) => `Students for assignment (${count}) *`,
+    clearAll: 'Clear all',
+    selectAll: 'Select all',
+    loading: 'Loading students...',
+    studentsNotFound: 'Students not found',
+    studentsNotFoundFiltered: 'No students found for selected filter',
+    selectedCount: (count: number) => `Selected students: ${count}`,
+    cancel: 'Cancel',
+    submit: 'Assign task',
+    submitting: 'Assigning...',
+    errors: {
+      task: 'Select task',
+      filter: 'Select a filter',
+      students: 'Select at least one student',
+    },
+  },
+  ru: {
+    title: 'Назначить существующую задачу',
+    selectTask: 'Выберите задачу *',
+    selectTaskPlaceholder: 'Выберите задачу...',
+    assignmentTypeLabel: 'Тип назначения *',
+    assignmentTypeOptions: {
+      all: 'Всем студентам',
+      citizenship: 'По гражданству',
+      group: 'По группе',
+      gender: 'По полу',
+    },
+    selectCitizenship: 'Выберите гражданство *',
+    selectGroup: 'Выберите группу *',
+    selectGender: 'Выберите пол *',
+    selectPlaceholder: 'Выберите...',
+    studentsLabel: (count: number) => `Студенты для назначения (${count}) *`,
+    clearAll: 'Сбросить выбор',
+    selectAll: 'Выбрать всех',
+    loading: 'Загрузка студентов...',
+    studentsNotFound: 'Студенты не найдены',
+    studentsNotFoundFiltered: 'Нет студентов по выбранному фильтру',
+    selectedCount: (count: number) => `Выбрано студентов: ${count}`,
+    cancel: 'Отмена',
+    submit: 'Назначить задачу',
+    submitting: 'Назначение...',
+    errors: {
+      task: 'Выберите задачу',
+      filter: 'Выберите фильтр',
+      students: 'Выберите хотя бы одного студента',
+    },
+  },
+};
 
 export default function TaskReassignmentModal({
   isOpen,
@@ -36,6 +102,7 @@ export default function TaskReassignmentModal({
   onClose,
   onSubmit,
   preSelectedTaskId,
+  lang = 'ru',
 }: TaskReassignmentModalProps) {
   // Data states
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -50,6 +117,7 @@ export default function TaskReassignmentModal({
   const [loadingData, setLoadingData] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedStudents, setSelectedStudents] = useState<(string | number)[]>([]);
+  const t = copy[(lang as keyof typeof copy) ?? 'ru'] || copy.ru;
 
   useEffect(() => {
     if (isOpen) {
@@ -67,7 +135,7 @@ export default function TaskReassignmentModal({
       setErrors({});
 
       // Fetch tasks
-      const tasksResponse = await fetch('http://159.194.196.47:8000/task');
+      const tasksResponse = await fetch('/api/task');
       let tasksList: Task[] = [];
       if (tasksResponse.ok) {
         const tasksData = await tasksResponse.json();
@@ -95,8 +163,8 @@ export default function TaskReassignmentModal({
       }
       setStudents(studentsList);
     } catch (err) {
-      console.error('Ошибка при загрузке данных:', err);
-      setErrors({ data: 'Ошибка при загрузке данных' });
+      console.error('Error loading data:', err);
+      setErrors({ data: t.loading });
     } finally {
       setLoadingData(false);
     }
@@ -137,15 +205,15 @@ export default function TaskReassignmentModal({
     const newErrors: Record<string, string> = {};
 
     if (!selectedTaskId) {
-      newErrors.taskId = 'Выберите задачу';
+      newErrors.taskId = t.errors.task;
     }
 
     if (assignmentType !== 'all' && !selectedFilter) {
-      newErrors.filter = 'Выберите фильтр';
+      newErrors.filter = t.errors.filter;
     }
 
     if (selectedStudents.length === 0) {
-      newErrors.students = 'Выберите хотя бы одного студента';
+      newErrors.students = t.errors.students;
     }
 
     setErrors(newErrors);
@@ -190,7 +258,7 @@ export default function TaskReassignmentModal({
         {/* Header */}
         <div className='sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
           <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-            Назначить существующую задачу
+            {t.title}
           </h2>
           <button
             onClick={onClose}
@@ -205,7 +273,7 @@ export default function TaskReassignmentModal({
           {/* Task Selection */}
           <div>
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Выберите задачу *
+              {t.selectTask}
             </label>
             <select
               value={selectedTaskId}
@@ -214,10 +282,10 @@ export default function TaskReassignmentModal({
                 errors.taskId ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
               }`}
             >
-              <option value=''>Выберите задачу...</option>
+              <option value=''>{t.selectTaskPlaceholder}</option>
               {tasks.map((task) => (
                 <option key={task.id} value={task.id}>
-                  {task.name || task.title || `Задача ${task.id}`}
+                  {task.name || task.title || `Task ${task.id}`}
                 </option>
               ))}
             </select>
@@ -227,14 +295,14 @@ export default function TaskReassignmentModal({
           {/* Assignment Type Selection */}
           <div>
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
-              Тип назначения *
+              {t.assignmentTypeLabel}
             </label>
             <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
               {[
-                { value: 'all', label: 'Всем студентам' },
-                { value: 'citizenship', label: 'По гражданству' },
-                { value: 'group', label: 'По группе' },
-                { value: 'gender', label: 'По полу' },
+                { value: 'all', label: t.assignmentTypeOptions.all },
+                { value: 'citizenship', label: t.assignmentTypeOptions.citizenship },
+                { value: 'group', label: t.assignmentTypeOptions.group },
+                { value: 'gender', label: t.assignmentTypeOptions.gender },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -256,10 +324,9 @@ export default function TaskReassignmentModal({
           {assignmentType !== 'all' && (
             <div>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                {assignmentType === 'citizenship' && 'Выберите гражданство'}
-                {assignmentType === 'group' && 'Выберите группу'}
-                {assignmentType === 'gender' && 'Выберите пол'}
-                {' *'}
+                {assignmentType === 'citizenship' && t.selectCitizenship}
+                {assignmentType === 'group' && t.selectGroup}
+                {assignmentType === 'gender' && t.selectGender}
               </label>
               <select
                 value={selectedFilter}
@@ -271,7 +338,7 @@ export default function TaskReassignmentModal({
                   errors.filter ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
                 }`}
               >
-                <option value=''>Выберите...</option>
+                <option value=''>{t.selectPlaceholder}</option>
                 {assignmentType === 'citizenship' &&
                   uniqueCitizenships.map((c) => (
                     <option key={c} value={c}>
@@ -287,7 +354,7 @@ export default function TaskReassignmentModal({
                 {assignmentType === 'gender' &&
                   uniqueGenders.map((g) => (
                     <option key={g} value={g}>
-                      {g === 'male' ? 'Мужской' : g === 'female' ? 'Женский' : g}
+                      {g === 'male' ? 'Male' : g === 'female' ? 'Female' : g}
                     </option>
                   ))}
               </select>
@@ -299,15 +366,14 @@ export default function TaskReassignmentModal({
           <div>
             <div className='flex justify-between items-center mb-2'>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-                Студенты для назначения ({filteredStudents.length})
-                {' *'}
+                {t.studentsLabel(filteredStudents.length)}
               </label>
               <button
                 type='button'
                 onClick={selectAllFiltered}
                 className='text-sm text-blue-600 dark:text-blue-400 hover:underline'
               >
-                {selectedStudents.length === filteredStudents.length ? 'Снять все' : 'Выбрать всех'}
+                {selectedStudents.length === filteredStudents.length ? t.clearAll : t.selectAll}
               </button>
             </div>
 
@@ -315,14 +381,14 @@ export default function TaskReassignmentModal({
 
             {loadingData ? (
               <div className='text-center py-4'>
-                <p className='text-gray-600 dark:text-gray-400'>Загрузка студентов...</p>
+                <p className='text-gray-600 dark:text-gray-400'>{t.loading}</p>
               </div>
             ) : filteredStudents.length === 0 ? (
               <div className='bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg text-center'>
                 <p className='text-gray-600 dark:text-gray-400'>
                   {assignmentType === 'all'
-                    ? 'Студенты не найдены'
-                    : 'Студенты с выбранным фильтром не найдены'}
+                    ? t.studentsNotFound
+                    : t.studentsNotFoundFiltered}
                 </p>
               </div>
             ) : (
@@ -356,7 +422,7 @@ export default function TaskReassignmentModal({
 
             {selectedStudents.length > 0 && (
               <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
-                Выбрано студентов: {selectedStudents.length}
+                {t.selectedCount(selectedStudents.length)}
               </p>
             )}
           </div>
@@ -369,14 +435,14 @@ export default function TaskReassignmentModal({
               disabled={isLoading}
               className='flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 font-medium'
             >
-              Отмена
+              {t.cancel}
             </button>
             <button
               type='submit'
               disabled={isLoading}
               className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium'
             >
-              {isLoading ? 'Назначение...' : 'Назначить задачу'}
+              {isLoading ? t.submitting : t.submit}
             </button>
           </div>
         </form>

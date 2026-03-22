@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
+
+type Lang = 'ru' | 'en';
 
 interface TaskStat {
   id: string;
@@ -14,11 +17,11 @@ interface TaskStat {
 const mockTaskStats: TaskStat[] = [
   {
     id: '1',
-    name: 'Регистрация в системе',
+    name: 'Registration в системе',
     completionPercent: 95,
     completed: 95,
     total: 100,
-    description: 'Регистрация студентов в системе'
+    description: 'Registration students в системе'
   },
   {
     id: '2',
@@ -79,7 +82,7 @@ const mockTaskStats: TaskStat[] = [
 ];
 
 const getTaskIcon = (taskName: string): string => {
-  if (taskName.includes('Регистрация')) return 'app_registration';
+  if (taskName.includes('Registration')) return 'app_registration';
   if (taskName.includes('ОМС') || taskName.includes('медицин')) return 'local_hospital';
   if (taskName.includes('русском')) return 'language';
   if (taskName.includes('банк')) return 'account_balance';
@@ -89,39 +92,87 @@ const getTaskIcon = (taskName: string): string => {
   return 'task_alt';
 };
 
+const translations = {
+  en: {
+    title: 'Task completion statistics',
+    subtitle: 'Overall progress on task completion by students',
+    sortAsc: 'Ascending',
+    sortDesc: 'Descending',
+    mostCompleted: 'Most completed',
+    leastCompleted: 'Least completed',
+    allTasks: 'All tasks',
+    status: (c: number, t: number) => `${c}/${t}`,
+    tasks: {
+      'Registration в системе': { name: 'System registration', desc: 'Register students in the system' },
+      'Оформление ОМС': { name: 'OMS insurance', desc: 'Medical insurance policy registration' },
+      'Медосмотр': { name: 'Medical examination', desc: 'Passing the medical exam' },
+      'Знание русского языка (тест)': { name: 'Russian language test', desc: 'Testing Russian language proficiency' },
+      'Дактилоскопия': { name: 'Fingerprinting', desc: 'Completing fingerprinting' },
+      'Миграционная карта': { name: 'Migration card', desc: 'Issuing a migration card' },
+      'Экскурсия по кампусу': { name: 'Campus tour', desc: 'Attending the campus tour' },
+      'Банковский счет': { name: 'Bank account', desc: 'Opening a bank account' },
+    },
+  },
+  ru: {
+    title: 'Статистика выполнения задач',
+    subtitle: 'Общий прогресс выполнения задач студентами',
+    sortAsc: 'По возрастанию',
+    sortDesc: 'По убыванию',
+    mostCompleted: 'Больше всего выполнено',
+    leastCompleted: 'Меньше всего выполнено',
+    allTasks: 'Все задачи',
+    status: (c: number, t: number) => `${c}/${t}`,
+  },
+};
+
 export default function TaskCompletionStats() {
   const [sortBy, setSortBy] = useState<'asc' | 'desc'>('desc');
   const [isTasksExpanded, setIsTasksExpanded] = useState(false);
+  const params = useParams();
+  const lang = (params?.lang as Lang) || 'ru';
+  const t = translations[lang] || translations.ru;
 
   const sortedTasks = [...mockTaskStats].sort((a, b) => {
     return sortBy === 'desc' ? b.completionPercent - a.completionPercent : a.completionPercent - b.completionPercent;
   });
 
-  const mostCompleted = sortedTasks[0];
-  const leastCompleted = sortedTasks[sortedTasks.length - 1];
+  const localizeTask = (task: TaskStat): TaskStat => {
+    if (lang === 'ru') return task;
+    const map = translations.en.tasks as Record<string, { name: string; desc: string }>;
+    const localized = map[task.name];
+    return {
+      ...task,
+      name: localized?.name || task.name,
+      description: localized?.desc || task.description,
+    };
+  };
+
+  const localizedSorted = sortedTasks.map(localizeTask);
+  const mostCompleted = localizedSorted[0];
+  const leastCompleted = localizedSorted[localizedSorted.length - 1];
 
   return (
     <div className='space-y-8 w-full'>
       {/* Header with sort controls */}
       <div className='bg-white dark:bg-surface rounded-2xl p-6 shadow-lg'>
         <div className='flex justify-between items-center mb-2'>
-          <h2 className='text-2xl font-bold text-black dark:text-white'>Статистика выполнения задач</h2>
+          <h2 className='text-2xl font-bold text-black dark:text-white'>{t.title}</h2>
           <button
             onClick={() => setSortBy(sortBy === 'desc' ? 'asc' : 'desc')}
             className='flex items-center gap-2 px-4 py-2 rounded-lg bg-light-blue-gray dark:bg-dark-gray hover:bg-blue-gray transition-colors text-black dark:text-white cursor-pointer'
           >
             <span className='material-symbols-outlined'>sort</span>
-            {sortBy === 'desc' ? 'По убыванию' : 'По возрастанию'}
+            {sortBy === 'desc' ? t.sortDesc : t.sortAsc}
           </button>
         </div>
-        <p className='text-gray dark:text-medium-warm-gray'>Общий прогресс выполнения всех задач студентами</p>
+        <p className='text-gray dark:text-medium-warm-gray'>{t.subtitle}</p>
       </div>
 
       {/* Most and Least Completed - Side by Side */}
       <div className='grid grid-cols-2 gap-4'>
         {/* Most Completed */}
         <div className='space-y-2'>
-          <h3 className='text-xs font-bold text-gray dark:text-medium-warm-gray uppercase tracking-wider px-1'>Больше всего выполнили</h3>
+          <h3 className='text-xs font-bold text-gray dark:text-medium-warm-gray uppercase tracking-wider px-1'>{t.mostCompleted}</h3>
           <div className='bg-gradient-to-br from-light-green via-cyan to-dark-cyan rounded-xl p-4 text-white shadow-lg'>
             <div className='flex items-start gap-2 mb-2'>
               <div className='p-2 bg-white/20 rounded shrink-0'>
@@ -136,7 +187,7 @@ export default function TaskCompletionStats() {
               <div className='h-1 rounded-full bg-white' style={{ width: `${mostCompleted.completionPercent}%` }} />
             </div>
             <div className='flex justify-between items-center text-xs'>
-              <span className='text-white/80'>{mostCompleted.completed}/{mostCompleted.total}</span>
+              <span className='text-white/80'>{t.status(mostCompleted.completed, mostCompleted.total)}</span>
               <span className='font-bold'>{mostCompleted.completionPercent}%</span>
             </div>
           </div>
@@ -144,7 +195,7 @@ export default function TaskCompletionStats() {
 
         {/* Least Completed */}
         <div className='space-y-2'>
-          <h3 className='text-xs font-bold text-gray dark:text-medium-warm-gray uppercase tracking-wider px-1'>Меньше всего выполнили</h3>
+          <h3 className='text-xs font-bold text-gray dark:text-medium-warm-gray uppercase tracking-wider px-1'>{t.leastCompleted}</h3>
           <div className='bg-gradient-to-br from-medium-blue-gray via-medium-warm-gray to-gray dark:from-medium-warm-gray dark:via-gray dark:to-dark-cyan border-l-4 border-medium-blue-gray rounded-xl p-4 text-white shadow-lg'>
             <div className='flex items-start gap-2 mb-2'>
               <div className='p-2 bg-white/20 rounded shrink-0'>
@@ -159,7 +210,7 @@ export default function TaskCompletionStats() {
               <div className='h-1 rounded-full bg-white' style={{ width: `${leastCompleted.completionPercent}%` }} />
             </div>
             <div className='flex justify-between items-center text-xs'>
-              <span className='text-white/80'>{leastCompleted.completed}/{leastCompleted.total}</span>
+              <span className='text-white/80'>{t.status(leastCompleted.completed, leastCompleted.total)}</span>
               <span className='font-bold'>{leastCompleted.completionPercent}%</span>
             </div>
           </div>
@@ -172,7 +223,7 @@ export default function TaskCompletionStats() {
           onClick={() => setIsTasksExpanded(!isTasksExpanded)}
           className='w-full flex justify-between items-center p-6 hover:bg-light-blue-gray dark:hover:bg-dark-gray rounded-2xl transition-colors cursor-pointer'
         >
-          <h3 className='text-lg font-bold text-black dark:text-white'>Все задачи</h3>
+          <h3 className='text-lg font-bold text-black dark:text-white'>{t.allTasks}</h3>
           <span
             className='material-symbols-outlined text-black dark:text-white transition-transform'
             style={{ transform: isTasksExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
@@ -183,7 +234,7 @@ export default function TaskCompletionStats() {
 
         {isTasksExpanded && (
           <div className='border-t border-light-blue-gray dark:border-gray p-6 space-y-3'>
-            {sortedTasks.map((task) => (
+            {localizedSorted.map((task) => (
               <div
                 key={task.id}
                 className='flex items-center justify-between p-3 rounded-lg bg-light-blue-gray dark:bg-dark-gray hover:bg-blue-gray dark:hover:bg-gray transition-colors'

@@ -18,9 +18,38 @@ interface AdminProfileData {
 interface AdminProfileProps {
   userId?: string;
   onSave?: (data: AdminProfileData) => void;
+  lang?: 'ru' | 'en';
 }
 
-export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
+const translations = {
+  ru: {
+    admin: 'Администратор',
+    edit: 'Редактировать',
+    cancel: 'Отмена',
+    save: 'Сохранить',
+    saving: 'Сохранение...',
+    firstName: 'Имя',
+    lastName: 'Фамилия',
+    email: 'Email',
+    phone: 'Телефон',
+    error: 'Ошибка:',
+  },
+  en: {
+    admin: 'Administrator',
+    edit: 'Edit',
+    cancel: 'Cancel',
+    save: 'Save',
+    saving: 'Saving...',
+    firstName: 'First name',
+    lastName: 'Last name',
+    email: 'Email',
+    phone: 'Phone',
+    error: 'Error:',
+  },
+};
+
+export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfileProps) {
+  const t = translations[lang] || translations.ru;
   const { data: currentUser, loading: userLoading } = useCurrentUser();
   const { updateUser, loading: updateLoading, error: updateError } = useUpdateUser(userId || currentUser?.id || '');
   
@@ -28,11 +57,11 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [profileData, setProfileData] = useState<AdminProfileData>({
-    firstName: 'Иван',
-    lastName: 'Петров',
+    firstName: 'Ivan',
+    lastName: 'Petrov',
     email: 'ivan.petrov@unicompass.ru',
     phone: '+7 (999) 123-45-67',
-    workingHours: 'Пн-Пт: 09:00 - 18:00',
+    workingHours: 'Mon-Fri: 09:00 - 18:00',
   });
 
   const [tempData, setTempData] = useState<AdminProfileData>(profileData);
@@ -84,7 +113,7 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('Файл загружен:', file.name);
+      console.log('File uploaded:', file.name);
       // Here you can handle the file upload (e.g., send to server)
     }
   };
@@ -110,21 +139,21 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
 
   return (
     <div className='px-48 pb-8 gap-24 flex flex-col'>
-      {/* Краткая информация */}
+      {/* Summary information */}
       <div>
         <div className='flex flex-row gap-4 items-center mt-8'>
           <svg width="52" height="53" viewBox="0 0 52 53" fill="none" xmlns="http://www.w3.org/2000/svg" className='text-dark-gray dark:text-white'>
-            <circle cx="26" cy="26" r="24.5" stroke="currentColor" stroke-width="3"/>
+            <circle cx="26" cy="26" r="24.5" stroke="currentColor" strokeWidth="3"/>
             <path d="M15.5713 36.5402V48.7668C15.5713 48.7668 17.7959 51.6779 25.8601 51.6779C33.9242 51.6779 36.4269 48.7668 36.4269 48.7668V36.5402C36.4269 33.0469 34.8975 26.9336 25.8601 26.9336C16.8226 26.9336 15.5713 33.1925 15.5713 36.5402Z" fill="currentColor" stroke="currentColor"/>
             <path d="M26.1396 12.2965C29.5279 12.2965 32.3133 15.1787 32.3135 18.7828C32.3135 22.3871 29.528 25.2701 26.1396 25.2701C22.7513 25.2701 19.9658 22.3871 19.9658 18.7828C19.966 15.1787 22.7514 12.2965 26.1396 12.2965Z" fill="currentColor" stroke="currentColor"/>
           </svg>
           <div className='flex flex-col'>
             <p className='text-2xl font-extrabold text-dark-gray dark:text-white'>{profileData.firstName} {profileData.lastName}</p>
-            <p className='text-lg text-dark-gray dark:text-white'>Администратор</p>
+            <p className='text-lg text-dark-gray dark:text-white'>{t.admin}</p>
           </div>
         </div>
 
-        {/* Поля для редактирования */}
+        {/* Editing fields */}
         <div className='flex flex-col'>
           <div className='flex justify-end'>
             <Button 
@@ -132,22 +161,22 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
               onClick={handleEditClick}
               disabled={updateLoading}
             >
-              {isEditing ? 'Отменить' : 'Редактировать'}
+              {isEditing ? t.cancel : t.edit}
             </Button>
           </div>
 
           {updateError && (
             <div className='text-red-600 dark:text-red-400 mb-4'>
-              Ошибка: {updateError}
+              {t.error} {updateError}
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-8">
             <div className='flex flex-col gap-4'>
               <div>
-                <p className="text-lg px-4 text-dark-gray dark:text-white">Имя</p>
+                <p className="text-lg px-4 text-dark-gray dark:text-white">{t.firstName}</p>
                 <InputField 
-                  placeholder='Имя' 
+                  placeholder={t.firstName}
                   className="w-full text-lg" 
                   value={tempData.firstName}
                   onChange={(e) => handleInputChange(e as React.ChangeEvent<HTMLInputElement>)}
@@ -156,9 +185,9 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
                 />
               </div>
               <div>
-                <p className="text-lg px-4 text-dark-gray dark:text-white">Email</p>
+                <p className="text-lg px-4 text-dark-gray dark:text-white">{t.email}</p>
                 <InputField 
-                  placeholder='Email' 
+                  placeholder={t.email}
                   className="w-full text-lg" 
                   value={tempData.email}
                   onChange={(e) => handleInputChange(e as React.ChangeEvent<HTMLInputElement>)}
@@ -169,9 +198,9 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
             </div>
             <div className='flex flex-col gap-4'>
               <div>
-                <p className="text-lg px-4 text-dark-gray dark:text-white">Фамилия</p>
+                <p className="text-lg px-4 text-dark-gray dark:text-white">{t.lastName}</p>
                 <InputField 
-                  placeholder='Фамилия' 
+                  placeholder={t.lastName}
                   className="w-full text-lg" 
                   value={tempData.lastName}
                   onChange={(e) => handleInputChange(e as React.ChangeEvent<HTMLInputElement>)}
@@ -180,9 +209,9 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
                 />
               </div>
               <div>
-                <p className="text-lg px-4 text-dark-gray dark:text-white">Телефон</p>
+                <p className="text-lg px-4 text-dark-gray dark:text-white">{t.phone}</p>
                 <InputField 
-                  placeholder='Телефон' 
+                  placeholder={t.phone}
                   className="w-full text-lg" 
                   value={tempData.phone}
                   onChange={(e) => handleInputChange(e as React.ChangeEvent<HTMLInputElement>)}
@@ -200,13 +229,13 @@ export default function AdminProfile({ userId, onSave }: AdminProfileProps) {
                 onClick={handleSave}
                 disabled={updateLoading}
               >
-                {updateLoading ? 'Сохранение...' : 'Сохранить'}
+                {updateLoading ? t.saving : t.save}
               </Button>
               <Button 
                 className='bg-gray text-white hover:bg-dark-gray px-8' 
                 onClick={handleEditClick}
               >
-                Отменить
+                {t.cancel}
               </Button>
             </div>
           )}

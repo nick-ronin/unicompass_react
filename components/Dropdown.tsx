@@ -9,11 +9,19 @@ interface DropdownProps {
     onSelect?: (option: string) => void;
     className?: string;
     defaultValue?: string;
+    placeholder?: string;
+    lang?: 'ru' | 'en';
 }
 
 //TODO: add fixed width to dropdown and add keyboard input support
 
-export default function Dropdown({ label, options, onSelect, className, defaultValue = '' }: DropdownProps) {
+export default function Dropdown({ label, options, onSelect, className, defaultValue = '', placeholder, lang = 'ru' }: DropdownProps) {
+    const translations = {
+        ru: { select: 'Выбрать...' },
+        en: { select: 'Select...' },
+    };
+
+    const t = translations[lang] || translations.ru;
     const [selected, setSelected] = useState(defaultValue);
     const [isOpen, setIsOpen] = useState(false);
 
@@ -31,7 +39,7 @@ export default function Dropdown({ label, options, onSelect, className, defaultV
                 onClick={() => setIsOpen(!isOpen)}
                 className='flex items-center justify-between px-4 py-3 rounded-2xl bg-light-blue-gray dark:bg-surface dark:text-white cursor-pointer'
             >
-                <span>{selected || 'Выберите...'}</span>
+                <span>{selected || placeholder || t.select}</span>
                 <span className={cn('material-symbols-outlined transition-transform duration-200', isOpen && 'rotate-180')}>
                     expand_more
                 </span>

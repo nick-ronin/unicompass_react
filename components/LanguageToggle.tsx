@@ -32,8 +32,8 @@ export default function LanguageToggle() {
       type='button'
       onClick={handleSwitch}
       className='flex items-center gap-1 cursor-pointer transition-colors duration-200 bg-orange text-white hover:bg-dark-orange px-6 py-3 rounded-2xl'
-      aria-label={`Сменить язык на ${nextLang.label}`}
-      title={`Сменить язык на ${nextLang.label}`}
+      aria-label={`Switch language to ${nextLang.label}`}
+      title={`Switch language to ${nextLang.label}`}
     >
       <span className='material-symbols-outlined'>language</span>
       <span className='text-sm font-medium'>{displayLang}</span>

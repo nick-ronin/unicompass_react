@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface ExaminationStatsProps {
@@ -9,6 +10,35 @@ interface ExaminationStatsProps {
 
 export default function ExaminationStats({ type = 'fingerprint' }: ExaminationStatsProps) {
   const [mounted, setMounted] = useState(false);
+  const params = useParams();
+  const lang = (params?.lang as 'ru' | 'en') || 'ru';
+
+  const translations = {
+    ru: {
+      titleFingerprint: 'Дактилоскопия',
+      titleMedical: 'Медосмотр',
+      subtitleFingerprint: 'Статус прохождения дактилоскопии студентами',
+      subtitleMedical: 'Статус прохождения медосмотра студентами',
+      completed: 'Выполнено',
+      inProgress: 'В процессе',
+      notStarted: 'Не начато',
+      replay: 'Требуется повтор',
+      assigned: 'Назначено',
+    },
+    en: {
+      titleFingerprint: 'Fingerprinting',
+      titleMedical: 'Medical examination',
+      subtitleFingerprint: 'Status of students undergoing fingerprinting',
+      subtitleMedical: 'Status of students passing a medical exam',
+      completed: 'Completed',
+      inProgress: 'In progress',
+      notStarted: 'Not started',
+      replay: 'Replay required',
+      assigned: 'Assigned',
+    },
+  };
+
+  const t = translations[lang] || translations.ru;
 
   useEffect(() => {
     setMounted(true);
@@ -16,20 +46,20 @@ export default function ExaminationStats({ type = 'fingerprint' }: ExaminationSt
 
   // Mock data for fingerprinting
   const fingerprintData = [
-    { name: 'Завершено', value: 72, color: '#06B6D4' }, // cyan
-    { name: 'В процессе', value: 18, color: '#F59E0B' }, // yellow
-    { name: 'Не начато', value: 10, color: '#EF6B42' }, // orange
+    { name: t.completed, value: 72, color: '#06B6D4' },
+    { name: t.inProgress, value: 18, color: '#F59E0B' },
+    { name: t.notStarted, value: 10, color: '#EF6B42' },
   ];
 
-  // Mock data for medical examination
   const medicalData = [
-    { name: 'Завершено', value: 65, color: '#06B6D4' }, // cyan
-    { name: 'Требуется повтор', value: 22, color: '#F59E0B' }, // yellow
-    { name: 'Назначено', value: 13, color: '#EF6B42' }, // orange
+    { name: t.completed, value: 65, color: '#06B6D4' },
+    { name: t.replay, value: 22, color: '#F59E0B' },
+    { name: t.assigned, value: 13, color: '#EF6B42' },
   ];
 
   const data = type === 'fingerprint' ? fingerprintData : medicalData;
-  const title = type === 'fingerprint' ? 'Дактилоскопия' : 'Медосмотр';
+  const title = type === 'fingerprint' ? t.titleFingerprint : t.titleMedical;
+  const subtitle = type === 'fingerprint' ? t.subtitleFingerprint : t.subtitleMedical;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -48,11 +78,9 @@ export default function ExaminationStats({ type = 'fingerprint' }: ExaminationSt
   return (
     <div className='bg-white dark:bg-surface rounded-2xl p-8 shadow-lg w-full overflow-hidden'>
       <div className='mb-6'>
-        <h2 className='text-2xl font-bold text-black dark:text-white mb-2'>Статистика {title.toLowerCase()}</h2>
+        <h2 className='text-2xl font-bold text-black dark:text-white mb-2'>{title}</h2>
         <p className='text-gray dark:text-medium-warm-gray text-sm'>
-          {type === 'fingerprint'
-            ? 'Статус прохождения дактилоскопии студентами'
-            : 'Статус прохождения медицинского осмотра студентами'}
+          {subtitle}
         </p>
       </div>
 

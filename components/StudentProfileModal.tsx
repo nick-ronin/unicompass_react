@@ -58,7 +58,7 @@ export default function StudentProfileModal({
       // Fetch student info
       const studentResponse = await fetch(`/api/student/${studentId}`);
       if (!studentResponse.ok) {
-        throw new Error('Ошибка при загрузке профиля студента');
+        throw new Error('Error at loading profile student');
       }
 
       const student = await studentResponse.json();
@@ -73,12 +73,12 @@ export default function StudentProfileModal({
           setTasks(taskList);
         }
       } catch (err) {
-        console.error('Ошибка при загрузке задач студента:', err);
+        console.error('Error at loading tasks student:', err);
         setTasks([]);
       }
     } catch (err) {
-      console.error('Ошибка при загрузке профиля:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      console.error('Error loading profile:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -86,9 +86,9 @@ export default function StudentProfileModal({
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-      completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', label: 'Завершено' },
-      'in-progress': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', label: 'В процессе' },
-      'not completed': { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-300', label: 'Не выполнено' },
+      completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', label: 'Completed' },
+      'in-progress': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', label: 'In progress' },
+      'not completed': { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-300', label: 'Not completed' },
     };
 
     const config = statusConfig[status] || statusConfig['not completed'];
@@ -107,7 +107,7 @@ export default function StudentProfileModal({
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto'>
         {/* Header */}
         <div className='sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
-          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>Профиль студента</h2>
+          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>Profile student</h2>
           <button
             onClick={onClose}
             className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl'
@@ -120,7 +120,7 @@ export default function StudentProfileModal({
         <div className='p-6'>
           {loading ? (
             <div className='text-center py-12'>
-              <p className='text-gray-600 dark:text-gray-400'>Загрузка данных...</p>
+              <p className='text-gray-600 dark:text-gray-400'>Loading data...</p>
             </div>
           ) : error ? (
             <div className='bg-red-50 dark:bg-red-900/20 p-4 rounded-lg'>
@@ -131,11 +131,11 @@ export default function StudentProfileModal({
               {/* Student Info */}
               <div>
                 <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4'>
-                  Личная информация
+                  Personal information
                 </h3>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg'>
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>ФИО</p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>Full name</p>
                     <p className='text-base font-medium text-gray-900 dark:text-white'>
                       {studentData.last_name} {studentData.first_name}
                       {studentData.patronymic && ` ${studentData.patronymic}`}
@@ -150,28 +150,28 @@ export default function StudentProfileModal({
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Телефон</p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>Phone</p>
                     <p className='text-base font-medium text-gray-900 dark:text-white'>
                       {studentData.phone_number || '—'}
                     </p>
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Возраст</p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>Age</p>
                     <p className='text-base font-medium text-gray-900 dark:text-white'>
                       {studentData.age || '—'}
                     </p>
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Гражданство</p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>Citizenship</p>
                     <p className='text-base font-medium text-gray-900 dark:text-white'>
                       {studentData.citizenship || '—'}
                     </p>
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Дата рождения</p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>Date of birth</p>
                     <p className='text-base font-medium text-gray-900 dark:text-white'>
                       {studentData.date_of_birth || '—'}
                     </p>
@@ -179,7 +179,7 @@ export default function StudentProfileModal({
 
                   {studentData.address && (
                     <div className='md:col-span-2'>
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>Адрес</p>
+                      <p className='text-sm text-gray-600 dark:text-gray-400'>Address</p>
                       <p className='text-base font-medium text-gray-900 dark:text-white'>
                         {studentData.address}
                       </p>
@@ -188,7 +188,7 @@ export default function StudentProfileModal({
 
                   {studentData.passport && (
                     <div className='md:col-span-2'>
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>Паспорт</p>
+                      <p className='text-sm text-gray-600 dark:text-gray-400'>Passport</p>
                       <p className='text-base font-medium text-gray-900 dark:text-white'>
                         {studentData.passport}
                       </p>
@@ -200,13 +200,13 @@ export default function StudentProfileModal({
               {/* Tasks Section */}
               <div>
                 <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4'>
-                  Назначенные задачи ({tasks.length})
+                  Nominated tasksи ({tasks.length})
                 </h3>
 
                 {tasks.length === 0 ? (
                   <div className='bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg text-center'>
                     <p className='text-gray-600 dark:text-gray-400'>
-                      Студенту еще не назначены задачи
+                      Student more Not appointed tasksи
                     </p>
                   </div>
                 ) : (
@@ -226,7 +226,7 @@ export default function StudentProfileModal({
                             </p>
 
                             <div className='flex items-center gap-4 mt-2 text-xs text-gray-600 dark:text-gray-400'>
-                              <span>📅 Крайний срок: {new Date(task.deadline).toLocaleDateString('ru-RU')}</span>
+                              <span>📅 Extreme term: {new Date(task.deadline).toLocaleDateString('ru-RU')}</span>
                               {task.completionPercent !== undefined && (
                                 <span>📊 {task.completionPercent}%</span>
                               )}
@@ -261,7 +261,7 @@ export default function StudentProfileModal({
             onClick={onClose}
             className='flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium'
           >
-            Закрыть
+            Close
           </button>
         </div>
       </div>

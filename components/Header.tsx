@@ -12,25 +12,47 @@ interface HeaderProps {
   role?: string;
 }
 
+const navigationCopy = {
+  ru: {
+    home: 'Главная',
+    tables: 'Таблицы',
+    analytics: 'Аналитика',
+    tasks: 'Задачи',
+    chat: 'Чат',
+    calendar: 'Календарь',
+    knowledgeBase: 'База знаний',
+  },
+  en: {
+    home: 'Home',
+    tables: 'Tables',
+    analytics: 'Analytics',
+    tasks: 'Tasks',
+    chat: 'Chat',
+    calendar: 'Calendar',
+    knowledgeBase: 'Knowledge base',
+  },
+};
+
 export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
+  const t = navigationCopy[(lang as keyof typeof navigationCopy) ?? 'ru'] || navigationCopy.ru;
   const base = `/${lang}/${role}`;
   const pathname = usePathname();
   const isProfilePage = pathname === `${base}/profile`;
 
   const navigationLinks = role === 'admin' 
     ? [
-        { label: 'Главная', href: base },
-        { label: 'Таблицы', href: `${base}/tables` },
-        { label: 'Аналитика', href: `${base}/analytics` },
-        { label: 'Задачи', href: `${base}/tasks` },
-        { label: 'Чат', href: `${base}/chat` },
+        { label: t.home, href: base },
+        { label: t.tables, href: `${base}/tables` },
+        { label: t.analytics, href: `${base}/analytics` },
+        { label: t.tasks, href: `${base}/tasks` },
+        { label: t.chat, href: `${base}/chat` },
       ]
     : [
-        { label: 'Главная', href: base },
-        { label: 'Календарь', href: `${base}/calendar` },
-        { label: 'База знаний', href: `${base}/knowledge-base` },
-        { label: 'Задачи', href: `${base}/tasks` },
-        { label: 'Чат', href: `${base}/chat` },
+        { label: t.home, href: base },
+        { label: t.calendar, href: `${base}/calendar` },
+        { label: t.knowledgeBase, href: `${base}/knowledge-base` },
+        { label: t.tasks, href: `${base}/tasks` },
+        { label: t.chat, href: `${base}/chat` },
       ];
 
   return (
@@ -50,7 +72,7 @@ export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
         ))}
       </div>
       <div className='flex gap-6 justify-end items-center'>
-        <ThemeToggle />
+        <ThemeToggle lang={lang} />
         <Link className='hover:text-dark-orange flex items-center' href={`${base}/notifications`}><span className='material-symbols-outlined'>notifications</span></Link>
         <LanguageToggle />
         <Link 

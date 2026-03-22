@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import Dropdown from './Dropdown';
 import Button from './Button';
@@ -16,19 +16,8 @@ interface TaskCardProps {
     className?: string;
     id?: string;
     onStatusChange?: (newStatus: string) => void;
+    lang?: 'ru' | 'en';
 }
-
-const statusMap: Record<string, string> = {
-    'Выполнена': 'completed',
-    'В процессе': 'in-progress',
-    'Не выполнена': 'not completed',
-};
-
-const statusLabelMap: Record<string, string> = {
-    'completed': 'Выполнена',
-    'in-progress': 'В процессе',
-    'not completed': 'Не выполнена',
-};
 
 const statusConfigMap: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
     'completed': { 
@@ -59,25 +48,72 @@ export default function TaskCard({
     color, 
     className,
     id,
-    onStatusChange
+    onStatusChange,
+    lang = 'ru'
 }: TaskCardProps) {
+    const translations = {
+        ru: {
+            labels: {
+                completed: 'Выполнено',
+                inProgress: 'В процессе',
+                notCompleted: 'Не выполнено',
+            },
+            deadline: {
+                overdue: 'Просрочено',
+                today: 'Сегодня',
+                tomorrow: 'Завтра',
+                days: (n: number) => `${n} дн.`,
+            },
+            confirm: 'Подтвердить',
+        },
+        en: {
+            labels: {
+                completed: 'Completed',
+                inProgress: 'In progress',
+                notCompleted: 'Not completed',
+            },
+            deadline: {
+                overdue: 'Overdue',
+                today: 'Today',
+                tomorrow: 'Tomorrow',
+                days: (n: number) => `${n} days`,
+            },
+            confirm: 'Confirm',
+        },
+    };
+
+    const t = translations[lang] || translations.ru;
     const [currentStatus, setCurrentStatus] = useState(status);
     const [isHovered, setIsHovered] = useState(false);
     const { updateTask } = useUpdateTask(id || '');
 
+    const statusLabelMap: Record<string, string> = {
+        'completed': t.labels.completed,
+        'in-progress': t.labels.inProgress,
+        'not completed': t.labels.notCompleted,
+    };
+
+    const toStatusValue = (option: string): TaskCardProps['status'] => {
+        const normalized = option.trim().toLowerCase();
+        if (normalized === t.labels.completed.toLowerCase()) return 'completed';
+        if (normalized === t.labels.inProgress.toLowerCase()) return 'in-progress';
+        return 'not completed';
+    };
+
+    useEffect(() => {
+        setCurrentStatus(status);
+    }, [status]);
+
     const handleStatusChange = async (option: string) => {
-        const mapped = statusMap[option];
-        if (mapped) {
-            setCurrentStatus(mapped as TaskCardProps['status'] & string);
-            // Update backend if id is provided
-            if (id) {
-                try {
-                    await updateTask({ status: mapped as Task['status'] });
-                    onStatusChange?.(mapped);
-                } catch (err) {
-                    console.error('Failed to update task status:', err);
-                    setCurrentStatus(status); // Revert on error
-                }
+        const mapped = toStatusValue(option);
+        setCurrentStatus(mapped as TaskCardProps['status'] & string);
+        if (id) {
+            try {
+                await updateTask({ status: mapped as Task['status'] });
+                onStatusChange?.(mapped);
+            } catch (err) {
+                console.error('Failed to update task status:', err);
+                setCurrentStatus(status);
             }
         }
     };
@@ -89,11 +125,11 @@ export default function TaskCard({
         const timeDiff = deadlineDate.getTime() - today.getTime();
         const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
         
-        if (daysDiff < 0) return { text: 'Просрочено', badge: 'bg-dark-red text-white' };
-        if (daysDiff === 0) return { text: 'Сегодня', badge: 'bg-orange text-white' };
-        if (daysDiff === 1) return { text: 'Завтра', badge: 'bg-yellow text-white' };
-        if (daysDiff <= 7) return { text: `${daysDiff} дней`, badge: 'bg-orange text-white' };
-        return { text: `${daysDiff} дней`, badge: 'bg-white bg-opacity-30 text-white' };
+        if (daysDiff < 0) return { text: t.deadline.overdue, badge: 'bg-dark-red text-white' };
+        if (daysDiff === 0) return { text: t.deadline.today, badge: 'bg-orange text-white' };
+        if (daysDiff === 1) return { text: t.deadline.tomorrow, badge: 'bg-yellow text-white' };
+        if (daysDiff <= 7) return { text: t.deadline.days(daysDiff), badge: 'bg-orange text-white' };
+        return { text: t.deadline.days(daysDiff), badge: 'bg-white bg-opacity-30 text-white' };
     };
 
     const deadlineInfo = getDeadlineInfo();
@@ -102,7 +138,7 @@ export default function TaskCard({
     return (
         <div 
             className={cn(
-                'relative group overflow-hidden rounded-2xl shadow-lg transition-all duration-300 cursor-pointer h-80 flex flex-col',
+                'relative group rounded-2xl shadow-lg transition-all duration-300 cursor-pointer h-100 flex flex-col',
                 'hover:shadow-2xl hover:scale-105 dark:hover:shadow-xl',
                 config.bg,
                 config.border,
@@ -113,7 +149,7 @@ export default function TaskCard({
             style={color ? { borderLeftColor: color } : undefined}
         >
             {/* Background Pattern */}
-            <div className='absolute inset-0 opacity-10'>
+            <div className='absolute inset-0 opacity-10 overflow-hidden rounded-2xl'>
                 <div className='absolute top-0 right-0 w-40 h-40 bg-white rounded-full -mr-20 -mt-20'></div>
                 <div className='absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full -ml-16 -mb-16'></div>
             </div>
@@ -138,12 +174,12 @@ export default function TaskCard({
                 </div>
 
                 {/* Description */}
-                <p className='text-sm text-white opacity-90 mb-4 line-clamp-2 flex-grow'>
+                <p className='text-sm text-white opacity-90 mb-4 line-clamp-2 grow'>
                     {description}
                 </p>
 
                 {/* Spacer */}
-                <div className='flex-grow'></div>
+                <div className='grow'></div>
 
                 {/* Deadline Info */}
                 <div className='flex items-center justify-between mb-4 px-3 py-2'>
@@ -158,9 +194,10 @@ export default function TaskCard({
 
                 {/* Status Dropdown */}
                 <Dropdown
-                    options={["Выполнена", "В процессе", "Не выполнена"]}
+                    options={[t.labels.completed, t.labels.inProgress, t.labels.notCompleted]}
                     onSelect={handleStatusChange}
                     defaultValue={statusLabelMap[currentStatus]}
+                    lang={lang}
                     className='w-full text-black text-sm mb-3'
                 />
 
@@ -170,7 +207,7 @@ export default function TaskCard({
                         className='bg-white text-dark-gray hover:bg-light-blue-gray self-start w-full font-semibold shadow-lg transition-all' 
                         icon={<span className='material-symbols-outlined'>check</span>}
                     >
-                        Подтвердить
+                        {t.confirm}
                     </Button>
                 )}
             </div>

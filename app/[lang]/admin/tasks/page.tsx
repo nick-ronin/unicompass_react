@@ -5,6 +5,7 @@ import InputField from '@/components/Input Field';
 import AdminTaskItem from '@/components/AdminTaskItem';
 import TaskAssignmentModal from '@/components/TaskAssignmentModal';
 import TaskReassignmentModal from '@/components/TaskReassignmentModal';
+import { useParams } from 'next/navigation';
 
 interface Task {
   id: string;
@@ -23,6 +24,59 @@ interface TaskAssignmentFormData {
 }
 
 export default function AdminTasksPage() {
+  const params = useParams();
+  const lang = (params?.lang as string) || 'ru';
+  const translations = {
+    ru: {
+      title: 'Задачи адаптации',
+      subtitle: (count: number, loading: boolean) => (loading ? 'Загрузка...' : `Всего задач: ${count}`),
+      search: 'Поиск по названию...',
+      create: '+ Создать новую задачу',
+      assignExisting: '➤ Назначить существующую задачу',
+      loadingData: 'Загрузка данных...',
+      list: 'Список',
+      grid: 'Сетка',
+      fillAll: 'Заполните все поля',
+      updated: 'Задача обновлена!',
+      created: 'Задача создана и назначена студентам!',
+      assignDone: (n: number) => `Задача назначена ${n} студентам!`,
+      errorPrefix: 'Ошибка:',
+      empty: 'Задачи не найдены',
+      editTitle: 'Редактирование задачи',
+      nameLabel: 'Название задачи *',
+      descriptionLabel: 'Описание задачи *',
+      namePlaceholder: 'Введите название задачи',
+      descriptionPlaceholder: 'Введите подробное описание задачи',
+      cancel: 'Отмена',
+      save: 'Сохранить',
+      saving: 'Сохранение...'
+    },
+    en: {
+      title: 'Adaptation tasks',
+      subtitle: (count: number, loading: boolean) => (loading ? 'Loading...' : `All tasks: ${count}`),
+      search: 'Search by name...',
+      create: '+ Create a new task',
+      assignExisting: '➤ Assign existing task',
+      loadingData: 'Loading data...',
+      list: 'List',
+      grid: 'Grid',
+      fillAll: 'Fill in all fields',
+      updated: 'Task successfully updated!',
+      created: 'Task successfully created and assigned to students!',
+      assignDone: (n: number) => `Task assigned to ${n} students!`,
+      errorPrefix: 'Error:',
+      empty: 'No tasks found',
+      editTitle: 'Edit task',
+      nameLabel: 'Task name *',
+      descriptionLabel: 'Task description *',
+      namePlaceholder: 'Enter task name',
+      descriptionPlaceholder: 'Enter a detailed task description',
+      cancel: 'Cancel',
+      save: 'Save',
+      saving: 'Saving...'
+    },
+  };
+  const t = translations[lang as keyof typeof translations] || translations.ru;
   const [view, setView] = useState<'list' | 'grid'>('list');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +97,7 @@ export default function AdminTasksPage() {
         const response = await fetch('/api/task');
         
         if (!response.ok) {
-          throw new Error(`Ошибка при загрузке: ${response.status}`);
+          throw new Error(`Error loading: ${response.status}`);
         }
         
         const data = await response.json();
@@ -51,7 +105,7 @@ export default function AdminTasksPage() {
         const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
           (task: any, index: number) => ({
             id: task.id?.toString() || (index + 1).toString(),
-            name: task.name || task.title || 'Без названия',
+            name: task.name || task.title || 'Untitled',
             description: task.description || '',
             completionPercent: task.completion_percent || task.completionPercent || 0,
             status: task.status || 'not completed',
@@ -61,8 +115,8 @@ export default function AdminTasksPage() {
         setTasks(formattedTasks);
         setError(null);
       } catch (err) {
-        console.error('Ошибка при загрузке задач:', err);
-        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+        console.error('Error loading tasks:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -71,7 +125,7 @@ export default function AdminTasksPage() {
     fetchTasks();
   }, []);
 
-  // Фильтрация по поиску
+  // Filtersearch function
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,7 +152,7 @@ export default function AdminTasksPage() {
 
   const handleTaskEdit = async () => {
     if (!editingTask || !editFormData.name.trim() || !editFormData.description.trim()) {
-      alert('Заполните все поля');
+      alert(t.fillAll);
       return;
     }
 
@@ -117,7 +171,7 @@ export default function AdminTasksPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при обновлении задачи');
+        throw new Error('Error updating task');
       }
 
       // Update task in local state
@@ -129,10 +183,10 @@ export default function AdminTasksPage() {
 
       setIsEditModalOpen(false);
       setEditingTask(null);
-      alert('Задача успешно обновлена!');
+      alert(t.updated);
     } catch (err) {
-      console.error('Ошибка при редактировании задачи:', err);
-      alert(err instanceof Error ? err.message : 'Ошибка при редактировании задачи');
+      console.error('Error editing task:', err);
+      alert(err instanceof Error ? err.message : 'Error editing task');
     } finally {
       setIsSubmitting(false);
     }
@@ -155,7 +209,7 @@ export default function AdminTasksPage() {
       });
 
       if (!taskResponse.ok) {
-        throw new Error('Ошибка при создании задачи');
+        throw new Error('Error creating task');
       }
 
       const taskData = await taskResponse.json();
@@ -176,7 +230,7 @@ export default function AdminTasksPage() {
         });
 
         if (!assignResponse.ok) {
-          throw new Error(`Ошибка при назначении задачи студенту ${studentId}`);
+          throw new Error(`Error when assigning a task to a student ${studentId}`);
         }
       }
 
@@ -188,7 +242,7 @@ export default function AdminTasksPage() {
         const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
           (task: any, index: number) => ({
             id: task.id?.toString() || (index + 1).toString(),
-            name: task.name || task.title || 'Без названия',
+            name: task.name || task.title || 'Untitled',
             description: task.description || '',
             completionPercent: task.completion_percent || task.completionPercent || 0,
             status: task.status || 'not completed',
@@ -197,10 +251,10 @@ export default function AdminTasksPage() {
         setTasks(formattedTasks);
       }
 
-      alert('Задача успешно создана и назначена студентам!');
+      alert(t.created);
     } catch (err) {
-      console.error('Ошибка при создании и назначении задачи:', err);
-      alert(err instanceof Error ? err.message : 'Ошибка при создании задачи');
+      console.error('Error when creating and assigning a task:', err);
+      alert(err instanceof Error ? err.message : 'Error creating task');
     } finally {
       setIsSubmitting(false);
     }
@@ -228,17 +282,17 @@ export default function AdminTasksPage() {
         });
 
         if (!assignResponse.ok) {
-          throw new Error(`Ошибка при назначении задачи студенту ${studentId}`);
+          throw new Error(`Error when assigning a task to a student ${studentId}`);
         }
       }
 
       // Close modal
       setIsReassignModalOpen(false);
       setSelectedTaskForAssign(null);
-      alert(`Задача успешно назначена ${studentIds.length} студентам!`);
+      alert(t.assignDone(studentIds.length));
     } catch (err) {
-      console.error('Ошибка при назначении задачи:', err);
-      alert(err instanceof Error ? err.message : 'Ошибка при назначении задачи');
+      console.error('Error when assigning a task:', err);
+      alert(err instanceof Error ? err.message : 'Error when assigning a task');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,23 +302,23 @@ export default function AdminTasksPage() {
     <div className='px-6 md:px-12 lg:px-48 py-8'>
       <div className='mb-8'>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Адаптационные задачи
+          {t.title}
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          {loading ? 'Загрузка...' : `Всего задач: ${filteredTasks.length}`}
+          {t.subtitle(filteredTasks.length, loading)}
         </p>
       </div>
 
       {error && (
         <div className='mb-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded-lg'>
-          ⚠️ Ошибка: {error}
+          ⚠️ {t.errorPrefix} {error}
         </div>
       )}
 
       <div className='mb-6'>
         <InputField
           icon={<span className='material-symbols-outlined'>search</span>}
-          placeholder='Поиск по названию...'
+          placeholder={t.search}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -275,19 +329,19 @@ export default function AdminTasksPage() {
           onClick={() => setIsCreateModalOpen(true)}
           className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors'
         >
-          + Создать новую задачу
+          {t.create}
         </button>
         <button
           onClick={() => setIsReassignModalOpen(true)}
           className='px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors'
         >
-          ➤ Назначить существующую задачу
+          {t.assignExisting}
         </button>
       </div>
 
       {loading ? (
         <div className='text-center py-12'>
-          <p className='text-gray-600 dark:text-gray-300'>Загрузка данных...</p>
+          <p className='text-gray-600 dark:text-gray-300'>{t.loadingData}</p>
         </div>
       ) : (
         <>
@@ -301,7 +355,7 @@ export default function AdminTasksPage() {
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
               }`}
             >
-              Список
+              {t.list}
             </button>
             <button
               onClick={() => setView('grid')}
@@ -311,7 +365,7 @@ export default function AdminTasksPage() {
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
               }`}
             >
-              Сетка
+              {t.grid}
             </button>
           </div>
 
@@ -327,6 +381,7 @@ export default function AdminTasksPage() {
                   onEdit={() => handleEditTask(task.id)}
                   onAssign={() => handleTaskAssignFromCard(task.id)}
                   view='list'
+                  lang={lang}
                 />
               ))}
             </div>
@@ -342,6 +397,7 @@ export default function AdminTasksPage() {
                   onEdit={() => handleEditTask(task.id)}
                   onAssign={() => handleTaskAssignFromCard(task.id)}
                   view='grid'
+                  lang={lang}
                 />
               ))}
             </div>
@@ -354,7 +410,7 @@ export default function AdminTasksPage() {
                   task_alt
                 </span>
                 <p className='text-xl text-gray-600 dark:text-gray-400'>
-                  Задачи не найдены
+                  {t.empty}
                 </p>
               </div>
             </div>
@@ -367,6 +423,7 @@ export default function AdminTasksPage() {
         isLoading={isSubmitting}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleTaskAssignment}
+        lang={lang}
       />
 
       <TaskReassignmentModal
@@ -375,6 +432,7 @@ export default function AdminTasksPage() {
         onClose={() => setIsReassignModalOpen(false)}
         onSubmit={handleTaskReassignment}
         preSelectedTaskId={selectedTaskForAssign}
+        lang={lang}
       />
 
       {/* Edit Modal */}
@@ -384,7 +442,7 @@ export default function AdminTasksPage() {
             {/* Header */}
             <div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700'>
               <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-                Редактировать задачу
+                {t.editTitle}
               </h2>
               <button
                 onClick={() => setIsEditModalOpen(false)}
@@ -399,28 +457,28 @@ export default function AdminTasksPage() {
               {/* Task Name */}
               <div>
                 <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                  Название задачи *
+                  {t.nameLabel}
                 </label>
                 <input
                   type='text'
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                   className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
-                  placeholder='Введите название задачи'
+                  placeholder={t.namePlaceholder}
                 />
               </div>
 
               {/* Description */}
               <div>
                 <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                  Описание задачи *
+                  {t.descriptionLabel}
                 </label>
                 <textarea
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                   rows={4}
                   className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
-                  placeholder='Введите подробное описание задачи'
+                  placeholder={t.descriptionPlaceholder}
                 />
               </div>
 
@@ -432,7 +490,7 @@ export default function AdminTasksPage() {
                   disabled={isSubmitting}
                   className='flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 font-medium'
                 >
-                  Отмена
+                  {t.cancel}
                 </button>
                 <button
                   type='button'
@@ -440,7 +498,7 @@ export default function AdminTasksPage() {
                   disabled={isSubmitting}
                   className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium'
                 >
-                  {isSubmitting ? 'Сохранение...' : 'Сохранить'}
+                  {isSubmitting ? t.saving : t.save}
                 </button>
               </div>
             </div>

@@ -16,23 +16,23 @@ interface TaskModalProps {
 
 // Mock data for selections
 const GROUPS = [
-  { id: '1', label: 'Группа 1' },
-  { id: '2', label: 'Группа 2' },
-  { id: '3', label: 'Группа 3' },
-  { id: '4', label: 'Группа 4' },
+  { id: '1', label: 'Group 1' },
+  { id: '2', label: 'Group 2' },
+  { id: '3', label: 'Group 3' },
+  { id: '4', label: 'Group 4' },
 ];
 
 const COUNTRIES = [
-  { id: 'cn', label: 'Китай' },
-  { id: 'vn', label: 'Вьетнам' },
-  { id: 'kz', label: 'Казахстан' },
-  { id: 'kg', label: 'Киргизия' },
-  { id: 'tj', label: 'Таджикистан' },
+  { id: 'cn', label: 'China' },
+  { id: 'vn', label: 'Vietnam' },
+  { id: 'kz', label: 'Kazakhstan' },
+  { id: 'kg', label: 'Kyrgyzstan' },
+  { id: 'tj', label: 'Tajikistan' },
 ];
 
 const GENDERS = [
-  { id: 'm', label: 'Мужской' },
-  { id: 'f', label: 'Женский' },
+  { id: 'm', label: 'Male' },
+  { id: 'f', label: 'Female' },
 ];
 
 export default function TaskModal({
@@ -128,7 +128,7 @@ export default function TaskModal({
 
           {/* Title */}
           <h2 className="text-3xl font-bold text-black dark:text-white mb-8 mt-2">
-            {isEditMode ? 'Редактирование задачи' : 'Новая задача'}
+            {isEditMode ? 'Edit task' : 'New task'}
           </h2>
 
           {/* Scrollable fields (before dropdown) */}
@@ -136,13 +136,13 @@ export default function TaskModal({
             {/* Name field */}
             <div>
               <label className="block text-base font-medium text-black dark:text-white mb-2">
-                Название
+                Name
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={handleNameChange}
-                placeholder="Введите название задачи"
+                placeholder="Enter task name"
                 className="w-full px-4 py-3 border border-light-blue-gray rounded-lg text-base focus:outline-none focus:border-orange transition-colors bg-white dark:bg-surface-secondary dark:text-white dark:border-gray text-black"
               />
             </div>
@@ -150,7 +150,7 @@ export default function TaskModal({
             {/* Description field */}
             <div>
               <label className="block text-base font-medium text-black dark:text-white mb-2">
-                Описание
+                Description
               </label>
               <textarea
                 value={formData.description}
@@ -165,28 +165,28 @@ export default function TaskModal({
           {/* Assignment section (outside scrollable area to allow dropdown to expand) */}
           <div className="mt-6 relative z-20">
             <label className="block text-base font-medium text-black dark:text-white mb-3">
-              Назначение задачи
+              Task assignment
             </label>
 
             {/* Assignment type dropdown */}
             <Dropdown
               key={formData.assignmentType}
-              options={['Всем студентам', 'По группам', 'По странам', 'По полу']}
+              options={['Allм студентам', 'By groups', 'By countries', 'By gender']}
               defaultValue={
                 formData.assignmentType === 'all' 
-                  ? 'Всем студентам'
+                  ? 'Allм студентам'
                   : formData.assignmentType === 'group'
-                  ? 'По группам'
+                  ? 'By groups'
                   : formData.assignmentType === 'country'
-                  ? 'По странам'
-                  : 'По полу'
+                  ? 'By countries'
+                  : 'By gender'
               }
               onSelect={(option) => {
                 const typeMap: Record<string, 'all' | 'group' | 'country' | 'gender'> = {
-                  'Всем студентам': 'all',
-                  'По группам': 'group',
-                  'По странам': 'country',
-                  'По полу': 'gender',
+                  'Allм студентам': 'all',
+                  'By groups': 'group',
+                  'By countries': 'country',
+                  'By gender': 'gender',
                 };
                 handleAssignmentTypeChange(typeMap[option]);
               }}
@@ -197,9 +197,9 @@ export default function TaskModal({
             {formData.assignmentType !== 'all' && (
               <div className="mt-4">
                 <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                  {formData.assignmentType === 'group' && 'Выберите группы:'}
-                  {formData.assignmentType === 'country' && 'Выберите страны:'}
-                  {formData.assignmentType === 'gender' && 'Выберите пол:'}
+                  {formData.assignmentType === 'group' && 'Select groups:'}
+                  {formData.assignmentType === 'country' && 'Select countries:'}
+                  {formData.assignmentType === 'gender' && 'Select gender:'}
                 </label>
                 <div className="flex flex-col gap-2 max-h-40 overflow-y-auto bg-light-blue-gray dark:bg-surface-secondary rounded-lg p-3">
                   {getSubOptions().map((item) => (
@@ -219,7 +219,7 @@ export default function TaskModal({
                 </div>
                 {selectedItems.length > 0 && (
                   <p className="text-sm text-dark-gray dark:text-white mt-2">
-                    Выбрано: {selectedItems.length}
+                    Selected: {selectedItems.length}
                   </p>
                 )}
               </div>
@@ -232,7 +232,7 @@ export default function TaskModal({
             disabled={!formData.name.trim() || !formData.description.trim()}
             className="w-full mt-8 px-6 py-4 bg-orange dark:bg-orange text-white text-base font-medium rounded-lg hover:bg-dark-orange dark:hover:bg-dark-orange disabled:bg-gray dark:disabled:bg-gray disabled:cursor-not-allowed transition-colors"
           >
-            {isEditMode ? 'Сохранить изменения' : 'Создать задачу'}
+            {isEditMode ? 'Save изменения' : 'Create task'}
           </button>
         </div>
       </div>

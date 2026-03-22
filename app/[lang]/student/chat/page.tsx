@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import InputField from '@/components/Input Field';
 import ChatUserCard from '@/components/ChatUserCard';
 import ChatMessage from '@/components/ChatMessage';
@@ -30,39 +31,56 @@ interface Message {
   userId: string;
 }
 
+const translations = {
+  ru: {
+    searchPlaceholder: 'Поиск по чатам...',
+    noChats: 'Чаты не найдены',
+    startConversation: 'Начните переписку!',
+    selectChat: 'Выберите чат, чтобы начать общение',
+    online: 'онлайн',
+  },
+  en: {
+    searchPlaceholder: 'Search chat...',
+    noChats: 'No chats found',
+    startConversation: 'Start a conversation!',
+    selectChat: 'Select a chat to start messaging',
+    online: 'online',
+  },
+};
+
 // Mock data
 const mockUsers: User[] = [
   {
     id: '1',
-    name: 'Иван Петров',
-    fullName: 'Иван Сергеевич Петров',
-    lastMessage: 'Как насчет встречи в пятницу?',
+    name: 'Ivan Petrov',
+    fullName: 'Ivan Sergeevich Petrov',
+    lastMessage: 'How about meeting on Friday?',
     avatar: '/NoAvatarDefault.svg',
-    lastOnline: 'в сети',
+    lastOnline: 'online',
   },
   {
     id: '2',
-    name: 'Мария Сидорова',
-    fullName: 'Мария Ивановна Сидорова',
-    lastMessage: 'Спасибо за помощь!',
+    name: 'Maria Sidorova',
+    fullName: 'Maria Ivanovna Sidorova',
+    lastMessage: 'Thanks for your help!',
     avatar: '/NoAvatarDefault.svg',
-    lastOnline: '5 минут назад',
+    lastOnline: '5 minutes ago',
   },
   {
     id: '3',
-    name: 'Сергей Иванов',
-    fullName: 'Сергей Петрович Иванов',
-    lastMessage: 'Отправил тебе файл',
+    name: 'Sergey Ivanov',
+    fullName: 'Sergei Petrovich Ivanov',
+    lastMessage: 'Sent you a file',
     avatar: '/NoAvatarDefault.svg',
-    lastOnline: '1 час назад',
+    lastOnline: '1 an hour ago',
   },
   {
     id: '4',
-    name: 'Алексей Козлов',
-    fullName: 'Алексей Викторович Козлов',
-    lastMessage: 'До встречи!',
+    name: 'Alexey Kozlov',
+    fullName: 'Alexey Viktorovich Kozlov',
+    lastMessage: 'See you!',
     avatar: '/NoAvatarDefault.svg',
-    lastOnline: 'вчера',
+    lastOnline: 'yesterday',
   },
 ];
 
@@ -70,7 +88,7 @@ const mockMessages: Record<string, Message[]> = {
   '1': [
     {
       id: '1',
-      text: 'Привет! Как дела?',
+      text: 'Hello! How are you?',
       timestamp: '10:30',
       status: 'read',
       isOwn: false,
@@ -78,7 +96,7 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: '2',
-      text: 'Привет! Спасибо, хорошо! А у тебя?',
+      text: 'Hello! OK, thank you! And you?',
       timestamp: '10:31',
       status: 'read',
       isOwn: true,
@@ -86,7 +104,7 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: '3',
-      text: 'Тоже хорошо! Как насчет встречи в пятницу?',
+      text: 'Same Fine! How about meeting on Friday?',
       timestamp: '10:32',
       status: 'received',
       isOwn: false,
@@ -96,7 +114,7 @@ const mockMessages: Record<string, Message[]> = {
   '2': [
     {
       id: '1',
-      text: 'Привет, можешь помочь с заданием?',
+      text: 'Hello, can you help with the task?',
       timestamp: '09:15',
       status: 'read',
       isOwn: false,
@@ -104,7 +122,7 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: '2',
-      text: 'Конечно, помогу!',
+      text: 'Of course I will help!',
       timestamp: '09:16',
       status: 'read',
       isOwn: true,
@@ -112,7 +130,7 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: '3',
-      text: 'Спасибо за помощь!',
+      text: 'Thanks for your help!',
       timestamp: '09:20',
       status: 'received',
       isOwn: false,
@@ -122,7 +140,7 @@ const mockMessages: Record<string, Message[]> = {
   '3': [
     {
       id: '1',
-      text: 'Посмотри файл, который я отправил',
+      text: 'Look at the file I sent',
       timestamp: '11:00',
       status: 'read',
       isOwn: false,
@@ -134,7 +152,7 @@ const mockMessages: Record<string, Message[]> = {
         name: 'presentation.pdf',
         size: '2.5 MB',
       },
-      caption: 'Вот презентация',
+      caption: 'Here is the presentation',
       timestamp: '11:01',
       status: 'sent',
       isOwn: true,
@@ -144,7 +162,7 @@ const mockMessages: Record<string, Message[]> = {
   '4': [
     {
       id: '1',
-      text: 'Увидимся в пятницу!',
+      text: 'See you on Friday!',
       timestamp: '14:45',
       status: 'read',
       isOwn: false,
@@ -152,7 +170,7 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: '2',
-      text: 'Да, до встречи!',
+      text: 'Yes, see you later!',
       timestamp: '14:46',
       status: 'read',
       isOwn: true,
@@ -166,6 +184,9 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [messages, setMessages] = useState<Record<string, Message[]>>(mockMessages);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const params = useParams();
+  const langParam = typeof params.lang === 'string' ? params.lang : Array.isArray(params.lang) ? params.lang[0] : 'ru';
+  const t = translations[langParam as keyof typeof translations] || translations.ru;
 
   const activeUser = mockUsers.find((u) => u.id === activeUserId);
   const filteredUsers = mockUsers.filter((user) =>
@@ -186,7 +207,7 @@ export default function ChatPage() {
     const newMessage: Message = {
       id: Date.now().toString(),
       text: text || undefined,
-      timestamp: new Date().toLocaleTimeString('ru-RU', {
+      timestamp: new Date().toLocaleTimeString(langParam === 'en' ? 'en-US' : 'ru-RU', {
         hour: '2-digit',
         minute: '2-digit',
       }),
@@ -235,7 +256,7 @@ export default function ChatPage() {
         <div className='p-4 border-b border-light-blue-gray dark:border-dark-gray'>
           <InputField
             icon={<span className='material-symbols-outlined'>search</span>}
-            placeholder='Найти чат...'
+            placeholder={t.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
             className='w-full text-lg dark:bg-dark-gray'
@@ -260,7 +281,7 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className='flex items-center justify-center h-full text-gray dark:text-white'>
-              <p className='text-lg'>Чаты не найдены</p>
+              <p className='text-lg'>{t.noChats}</p>
             </div>
           )}
         </div>
@@ -299,7 +320,7 @@ export default function ChatPage() {
                 </>
               ) : (
                 <div className='flex items-center justify-center h-full'>
-                  <p className='text-lg text-gray dark:text-white'>Начните разговор!</p>
+                  <p className='text-lg text-gray dark:text-white'>{t.startConversation}</p>
                 </div>
               )}
             </div>
@@ -314,7 +335,7 @@ export default function ChatPage() {
               <span className='material-symbols-outlined text-6xl text-light-blue-gray dark:text-cyan mb-4 block'>
                 chat
               </span>
-              <p className='text-gray dark:text-white text-2xl'>Выберите чат для начала общения</p>
+              <p className='text-gray dark:text-white text-2xl'>{t.selectChat}</p>
             </div>
           </div>
         )}

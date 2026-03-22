@@ -19,48 +19,48 @@ interface Group {
 const sampleGroups: Group[] = [
   {
     id: '1',
-    name: 'МИ-101',
-    specialization: 'Информатика',
+    name: 'MI-101',
+    specialization: 'Informatics',
     year: '1',
     students: '25',
-    curator: 'Профессор Петров И.И.',
-    status: 'Активна',
+    curator: 'Professor Petrov I.I..',
+    status: 'Active',
   },
   {
     id: '2',
-    name: 'МИ-102',
-    specialization: 'Информатика',
+    name: 'MI-102',
+    specialization: 'Informatics',
     year: '1',
     students: '22',
-    curator: 'Доцент Сидорова М.В.',
-    status: 'Активна',
+    curator: 'Associate Professor Sidorova M.V..',
+    status: 'Active',
   },
   {
     id: '3',
-    name: 'ПМ-101',
-    specialization: 'Прикладная математика',
+    name: 'PM-101',
+    specialization: 'Applied Mathematics',
     year: '1',
     students: '20',
-    curator: 'Ассистент Иванов А.А.',
-    status: 'Активна',
+    curator: 'Assistant Ivanov A.A..',
+    status: 'Active',
   },
   {
     id: '4',
-    name: 'МИ-201',
-    specialization: 'Информатика',
+    name: 'MI-201',
+    specialization: 'Informatics',
     year: '2',
     students: '23',
-    curator: 'Профессор Смирнова Е.П.',
-    status: 'Активна',
+    curator: 'Professor Smirnova E.P..',
+    status: 'Active',
   },
   {
     id: '5',
-    name: 'МИ-301',
-    specialization: 'Информатика',
+    name: 'MI-301',
+    specialization: 'Informatics',
     year: '3',
     students: '18',
-    curator: 'Доцент Козлов Д.Е.',
-    status: 'Активна',
+    curator: 'Associate Professor Kozlov D.E..',
+    status: 'Active',
   },
 ];
 
@@ -69,13 +69,13 @@ export default function GroupsTablePage() {
   const lang = params.lang as string;
   const [groups] = useState<Group[]>(sampleGroups);
 
-  // Поиск, сортировка и фильтрация
+  // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  // Получение уникальных значений для фильтров
+  // Getting unique values ​​for filters
   const uniqueSpecializations = useMemo(
     () => [...new Set(groups.map(g => g.specialization))].sort(),
     [groups]
@@ -91,11 +91,11 @@ export default function GroupsTablePage() {
     [groups]
   );
 
-  // Фильтрованные и отсортированные данные
+  // Filtercurated and sorted data
   const filteredAndSortedData = useMemo(() => {
     let result = [...groups];
 
-    // Поиск - ищем по названию, специализации и куратору
+    // Search - search by title, specialization and curator
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -106,22 +106,22 @@ export default function GroupsTablePage() {
       );
     }
 
-    // Фильтрация по специализации
+    // Filteration by specialization
     if (filters.specialization) {
       result = result.filter(g => g.specialization === filters.specialization);
     }
 
-    // Фильтрация по курсу
+    // Filteration at the rate
     if (filters.year) {
       result = result.filter(g => g.year === filters.year);
     }
 
-    // Фильтрация по статусу
+    // Filteration by status
     if (filters.status) {
       result = result.filter(g => g.status === filters.status);
     }
 
-    // Сортировка
+    // Sorting
     if (sortColumn) {
       result.sort((a, b) => {
         const aValue = a[sortColumn as keyof Group] || '';
@@ -150,28 +150,28 @@ export default function GroupsTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'name', label: 'Название' },
-    { key: 'specialization', label: 'Специализация' },
-    { key: 'year', label: 'Курс' },
-    { key: 'students', label: 'Студентов' },
-    { key: 'curator', label: 'Куратор' },
-    { key: 'status', label: 'Статус' },
+    { key: 'name', label: 'Name' },
+    { key: 'specialization', label: 'Specialization' },
+    { key: 'year', label: 'Well' },
+    { key: 'students', label: 'Students' },
+    { key: 'curator', label: 'Curator' },
+    { key: 'status', label: 'Status' },
   ];
 
   const filterOptions = [
     {
       name: 'specialization',
-      label: 'Специализация',
+      label: 'Specialization',
       options: uniqueSpecializations.map(s => ({ label: s, value: s })),
     },
     {
       name: 'year',
-      label: 'Курс',
+      label: 'Well',
       options: uniqueYears.map(y => ({ label: y, value: y })),
     },
     {
       name: 'status',
-      label: 'Статус',
+      label: 'Status',
       options: uniqueStatuses.map(s => ({ label: s, value: s })),
     },
   ];
@@ -183,24 +183,24 @@ export default function GroupsTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Вернуться к таблицам
+          ← Return to tables
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Группы
+          Groups
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Всего групп: {groups.length}
+          Allth groups: {groups.length}
         </p>
       </div>
 
       <div className='mb-6'>
         <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Добавить группу
+          + Add a group
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Поиск по названию, специализации, куратору...'
+        searchPlaceholder='Search by title, specialization, curator...'
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -215,12 +215,12 @@ export default function GroupsTablePage() {
       <Table<Group>
         columns={[
           { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'name', label: 'Название', sortable: true },
-          { key: 'specialization', label: 'Специализация', sortable: true },
-          { key: 'year', label: 'Курс', sortable: true },
-          { key: 'students', label: 'Студентов', sortable: true },
-          { key: 'curator', label: 'Куратор', sortable: true },
-          { key: 'status', label: 'Статус', sortable: true },
+          { key: 'name', label: 'Name', sortable: true },
+          { key: 'specialization', label: 'Specialization', sortable: true },
+          { key: 'year', label: 'Well', sortable: true },
+          { key: 'students', label: 'Students', sortable: true },
+          { key: 'curator', label: 'Curator', sortable: true },
+          { key: 'status', label: 'Status', sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}
