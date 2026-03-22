@@ -7,19 +7,21 @@ import Button from './Button';
 import { useUpdateTask } from '@/lib/hooks';
 import { Task } from '@/lib/types';
 
+type TaskStatus = Task['status'];
+
 interface TaskCardProps {
     name: string;
     description: string;
     deadline: string;
-    status?: 'completed' | 'in-progress' | 'not completed';
+    status?: TaskStatus;
     color?: string;
     className?: string;
     id?: string;
-    onStatusChange?: (newStatus: string) => void;
+    onStatusChange?: (newStatus: TaskStatus) => void;
     lang?: 'ru' | 'en';
 }
 
-const statusConfigMap: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
+const statusConfigMap: Record<TaskStatus, { bg: string; border: string; icon: string; accent: string }> = {
     'completed': { 
         bg: 'bg-gradient-to-br from-light-green via-cyan to-dark-cyan', 
         border: 'border-l-4 border-light-green',
@@ -83,17 +85,17 @@ export default function TaskCard({
     };
 
     const t = translations[lang] || translations.ru;
-    const [currentStatus, setCurrentStatus] = useState(status);
+    const [currentStatus, setCurrentStatus] = useState<TaskStatus>(status);
     const [isHovered, setIsHovered] = useState(false);
     const { updateTask } = useUpdateTask(id || '');
 
-    const statusLabelMap: Record<string, string> = {
+    const statusLabelMap: Record<TaskStatus, string> = {
         'completed': t.labels.completed,
         'in-progress': t.labels.inProgress,
         'not completed': t.labels.notCompleted,
     };
 
-    const toStatusValue = (option: string): TaskCardProps['status'] => {
+    const toStatusValue = (option: string): TaskStatus => {
         const normalized = option.trim().toLowerCase();
         if (normalized === t.labels.completed.toLowerCase()) return 'completed';
         if (normalized === t.labels.inProgress.toLowerCase()) return 'in-progress';
@@ -106,7 +108,7 @@ export default function TaskCard({
 
     const handleStatusChange = async (option: string) => {
         const mapped = toStatusValue(option);
-        setCurrentStatus(mapped as TaskCardProps['status'] & string);
+        setCurrentStatus(mapped);
         if (id) {
             try {
                 await updateTask({ status: mapped as Task['status'] });
