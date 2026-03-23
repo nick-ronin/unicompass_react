@@ -11,17 +11,15 @@ const themeCopy = {
     ru: {
         dark: 'Темная тема',
         light: 'Светлая тема',
-        system: 'Системная тема',
     },
     en: {
         dark: 'Dark theme',
         light: 'Light theme',
-        system: 'System theme',
     },
 };
 
 export default function ThemeToggle({ lang = 'ru' }: ThemeToggleProps) {
-    const { theme, setTheme } = useTheme();
+    const { theme, resolvedTheme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => setMounted(true), []);
@@ -29,9 +27,10 @@ export default function ThemeToggle({ lang = 'ru' }: ThemeToggleProps) {
     if (!mounted) return null;
 
     const copy = themeCopy[(lang as keyof typeof themeCopy) ?? 'ru'] || themeCopy.ru;
-    const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
-    const icon = theme === 'dark' ? 'light_mode' : theme === 'light' ? 'dark_mode' : 'computer';
-    const label = theme === 'light' ? copy.dark : theme === 'dark' ? copy.system : copy.light;
+    const effectiveTheme = (theme === 'system' ? resolvedTheme : theme) ?? 'light';
+    const nextTheme = effectiveTheme === 'light' ? 'dark' : 'light';
+    const icon = effectiveTheme === 'dark' ? 'light_mode' : 'dark_mode';
+    const label = effectiveTheme === 'light' ? copy.dark : copy.light;
 
     return (
         <button

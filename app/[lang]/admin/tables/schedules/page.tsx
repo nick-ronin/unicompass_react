@@ -6,6 +6,57 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState, useMemo } from 'react';
 
+const translations = {
+  en: {
+    backToTables: '← Back to tables',
+    title: 'Schedules',
+    total: (count: number) => `Total schedule entries: ${count}`,
+    addSchedule: '+ Add schedule',
+    searchPlaceholder: 'Search by course, group, teacher...',
+    filters: 'Filters',
+    reset: 'Reset',
+    all: 'All',
+    resultCount: (count: number) => `Results: ${count}`,
+    columns: {
+      id: 'ID',
+      day: 'Day',
+      time: 'Time',
+      course: 'Course',
+      group: 'Group',
+      room: 'Room',
+      teacher: 'Teacher',
+    },
+    filterLabels: {
+      day: 'Day of week',
+      room: 'Room',
+    },
+  },
+  ru: {
+    backToTables: '← Назад к таблицам',
+    title: 'Расписания',
+    total: (count: number) => `Всего записей в расписании: ${count}`,
+    addSchedule: '+ Добавить расписание',
+    searchPlaceholder: 'Поиск по курсу, группе, преподавателю...',
+    filters: 'Фильтры',
+    reset: 'Сбросить',
+    all: 'Все',
+    resultCount: (count: number) => `Найдено: ${count}`,
+    columns: {
+      id: 'ID',
+      day: 'День',
+      time: 'Время',
+      course: 'Курс',
+      group: 'Группа',
+      room: 'Аудитория',
+      teacher: 'Преподаватель',
+    },
+    filterLabels: {
+      day: 'День недели',
+      room: 'Аудитория',
+    },
+  },
+};
+
 interface Schedule {
   id: string;
   day: string;
@@ -76,6 +127,7 @@ const sampleSchedules: Schedule[] = [
 export default function SchedulesTablePage() {
   const params = useParams();
   const lang = params.lang as string;
+  const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
   const [schedules] = useState<Schedule[]>(sampleSchedules);
 
   // Search, sort and filter
@@ -143,23 +195,23 @@ export default function SchedulesTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'day', label: 'Day' },
-    { key: 'time', label: 'Time' },
-    { key: 'course', label: 'Well' },
-    { key: 'group', label: 'Group' },
-    { key: 'room', label: 'Audience' },
-    { key: 'teacher', label: 'Teacher' },
+    { key: 'day', label: t.columns.day },
+    { key: 'time', label: t.columns.time },
+    { key: 'course', label: t.columns.course },
+    { key: 'group', label: t.columns.group },
+    { key: 'room', label: t.columns.room },
+    { key: 'teacher', label: t.columns.teacher },
   ];
 
   const filterOptions = [
     {
       name: 'day',
-      label: 'Day weeks',
+      label: t.filterLabels.day,
       options: uniqueDays.map(d => ({ label: d, value: d })),
     },
     {
       name: 'room',
-      label: 'Audience',
+      label: t.filterLabels.room,
       options: uniqueRooms.map(r => ({ label: r, value: r })),
     },
   ];
@@ -171,24 +223,24 @@ export default function SchedulesTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Return to tables
+          {t.backToTables}
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Schedules
+          {t.title}
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Allth entries in the schedule: {schedules.length}
+          {t.total(schedules.length)}
         </p>
       </div>
 
       <div className='mb-6'>
-        <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Add schedule
+        <button className='bg-cyan hover:bg-cyan/80 dark:bg-dark-cyan dark:hover:bg-dark-cyan/80 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
+          {t.addSchedule}
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Search by course, group, teacher...'
+        searchPlaceholder={t.searchPlaceholder}
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -198,17 +250,23 @@ export default function SchedulesTablePage() {
         }}
         onFilter={setFilters}
         resultCount={filteredAndSortedData.length}
+        labels={{
+          filters: t.filters,
+          reset: t.reset,
+          found: t.resultCount,
+          all: t.all,
+        }}
       />
 
       <Table<Schedule>
         columns={[
-          { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'day', label: 'Day', sortable: true },
-          { key: 'time', label: 'Time', sortable: true },
-          { key: 'course', label: 'Well', sortable: true },
-          { key: 'group', label: 'Group', sortable: true },
-          { key: 'room', label: 'Audience', sortable: true },
-          { key: 'teacher', label: 'Teacher', sortable: true },
+          { key: 'id', label: t.columns.id, width: '60px', sortable: true },
+          { key: 'day', label: t.columns.day, sortable: true },
+          { key: 'time', label: t.columns.time, sortable: true },
+          { key: 'course', label: t.columns.course, sortable: true },
+          { key: 'group', label: t.columns.group, sortable: true },
+          { key: 'room', label: t.columns.room, sortable: true },
+          { key: 'teacher', label: t.columns.teacher, sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}

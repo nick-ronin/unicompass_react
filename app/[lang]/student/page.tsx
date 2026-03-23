@@ -42,7 +42,7 @@ const translations = {
   },
   ru: {
     heroTitle: 'С возвращением!',
-    heroSubtitle: 'Вы на правильном пути к успеху. Посмотрим, что ждёт вас на этой неделе.',
+    heroSubtitle: 'Вы на верном пути к успеху. Посмотрим, что ждёт вас на этой неделе.',
     heroCta: 'Мои задачи',
     stats: [
       { label: 'Требует внимания', value: '5', icon: 'priority_high' },
@@ -82,8 +82,8 @@ export default function StudentHome() {
   const upcomingTasks = t.tasks;
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-background to-surface-secondary/30'>
-      {/* Heroic banner */}
+    <div className='min-h-screen'>
+      {/* Hero banner */}
       <div className='relative overflow-hidden mb-8'>
         <div className='absolute inset-0 bg-linear-to-r from-cyan to-dark-cyan opacity-90'></div>
         <div className='absolute inset-0 opacity-10'>

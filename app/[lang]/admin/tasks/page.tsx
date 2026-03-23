@@ -196,6 +196,8 @@ export default function AdminTasksPage() {
     try {
       setIsSubmitting(true);
 
+      const deadlineIso = formData.deadline ? new Date(formData.deadline).toISOString() : null;
+
       // Create task using backend API
       const taskResponse = await fetch('/api/task', {
         method: 'POST',
@@ -225,6 +227,7 @@ export default function AdminTasksPage() {
           body: JSON.stringify({
             student_id: parseInt(studentId),
             task_id: taskId,
+            deadline: deadlineIso,
             completed: false,
           }),
         });
@@ -262,10 +265,13 @@ export default function AdminTasksPage() {
 
   const handleTaskReassignment = async (
     taskId: string | number,
-    studentIds: (string | number)[]
+    studentIds: (string | number)[],
+    deadline: string
   ) => {
     try {
       setIsSubmitting(true);
+
+      const deadlineIso = deadline ? new Date(deadline).toISOString() : null;
 
       // Assign existing task to students
       for (const studentId of studentIds) {
@@ -277,6 +283,7 @@ export default function AdminTasksPage() {
           body: JSON.stringify({
             student_id: parseInt(studentId.toString()),
             task_id: parseInt(taskId.toString()),
+            deadline: deadlineIso,
             completed: false,
           }),
         });
@@ -301,16 +308,16 @@ export default function AdminTasksPage() {
   return (
     <div className='px-6 md:px-12 lg:px-48 py-8'>
       <div className='mb-8'>
-        <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
+        <h1 className='text-4xl font-extrabold text-dark-gray dark:text-white mb-2'>
           {t.title}
         </h1>
-        <p className='text-gray-600 dark:text-gray-300'>
+        <p className='text-medium-blue-gray dark:text-light-blue-gray'>
           {t.subtitle(filteredTasks.length, loading)}
         </p>
       </div>
 
       {error && (
-        <div className='mb-6 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded-lg'>
+        <div className='mb-6 p-4 bg-light-orange dark:bg-dark-red text-dark-gray dark:text-white rounded-lg'>
           ⚠️ {t.errorPrefix} {error}
         </div>
       )}
@@ -327,13 +334,13 @@ export default function AdminTasksPage() {
       <div className='mb-6 flex gap-3'>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors'
+          className='px-6 py-2 bg-dark-cyan hover:bg-cyan text-white font-medium rounded-lg transition-colors cursor-pointer'
         >
           {t.create}
         </button>
         <button
           onClick={() => setIsReassignModalOpen(true)}
-          className='px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors'
+          className='px-6 py-2 bg-orange hover:bg-dark-orange text-white font-medium rounded-lg transition-colors cursor-pointer'
         >
           {t.assignExisting}
         </button>
@@ -341,7 +348,7 @@ export default function AdminTasksPage() {
 
       {loading ? (
         <div className='text-center py-12'>
-          <p className='text-gray-600 dark:text-gray-300'>{t.loadingData}</p>
+          <p className='text-medium-blue-gray dark:text-light-blue-gray'>{t.loadingData}</p>
         </div>
       ) : (
         <>
@@ -351,9 +358,11 @@ export default function AdminTasksPage() {
               onClick={() => setView('list')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 view === 'list'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-              }`}
+                  ? 'bg-dark-cyan text-white'
+                  : 'bg-light-blue-gray dark:bg-surface text-dark-gray dark:text-white'
+              } cursor-pointer`}
+              aria-pressed={view === 'list'}
+              type='button'
             >
               {t.list}
             </button>
@@ -361,9 +370,11 @@ export default function AdminTasksPage() {
               onClick={() => setView('grid')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 view === 'grid'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-              }`}
+                  ? 'bg-dark-cyan text-white'
+                  : 'bg-light-blue-gray dark:bg-surface text-dark-gray dark:text-white'
+              } cursor-pointer`}
+              aria-pressed={view === 'grid'}
+              type='button'
             >
               {t.grid}
             </button>
@@ -406,10 +417,10 @@ export default function AdminTasksPage() {
           {filteredTasks.length === 0 && !loading && (
             <div className='flex items-center justify-center py-16'>
               <div className='text-center'>
-                <span className='material-symbols-outlined text-6xl text-gray-400 mb-4 block'>
+                <span className='material-symbols-outlined text-6xl text-light-blue-gray mb-4 block'>
                   task_alt
                 </span>
-                <p className='text-xl text-gray-600 dark:text-gray-400'>
+                <p className='text-xl text-medium-blue-gray dark:text-light-blue-gray'>
                   {t.empty}
                 </p>
               </div>
@@ -438,15 +449,15 @@ export default function AdminTasksPage() {
       {/* Edit Modal */}
       {isEditModalOpen && editingTask && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70'>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl'>
+          <div className='bg-white dark:bg-surface rounded-lg shadow-xl w-full max-w-2xl'>
             {/* Header */}
-            <div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700'>
-              <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
+            <div className='flex items-center justify-between p-6 border-b border-light-blue-gray dark:border-medium-blue-gray'>
+              <h2 className='text-2xl font-bold text-dark-gray dark:text-white'>
                 {t.editTitle}
               </h2>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl'
+                className='text-medium-blue-gray hover:text-dark-gray dark:text-light-blue-gray dark:hover:text-white text-2xl cursor-pointer'
               >
                 ✕
               </button>
@@ -456,39 +467,39 @@ export default function AdminTasksPage() {
             <div className='p-6 space-y-6'>
               {/* Task Name */}
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
                   {t.nameLabel}
                 </label>
                 <input
                   type='text'
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray rounded-lg bg-white dark:bg-gray-700 text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
                   placeholder={t.namePlaceholder}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
                   {t.descriptionLabel}
                 </label>
                 <textarea
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                   rows={4}
-                  className='w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray rounded-lg bg-white dark:bg-gray-700 text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
                   placeholder={t.descriptionPlaceholder}
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className='flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700'>
+              <div className='flex gap-3 pt-4 border-t border-light-blue-gray dark:border-medium-blue-gray'>
                 <button
                   type='button'
                   onClick={() => setIsEditModalOpen(false)}
                   disabled={isSubmitting}
-                  className='flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 font-medium'
+                  className='flex-1 px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray text-dark-gray dark:text-light-blue-gray rounded-lg hover:bg-light-blue-gray dark:hover:bg-dark-gray transition-colors disabled:opacity-50 font-medium cursor-pointer'
                 >
                   {t.cancel}
                 </button>
@@ -496,7 +507,7 @@ export default function AdminTasksPage() {
                   type='button'
                   onClick={handleTaskEdit}
                   disabled={isSubmitting}
-                  className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium'
+                  className='flex-1 px-4 py-2 bg-dark-cyan text-white rounded-lg hover:bg-cyan transition-colors disabled:opacity-50 font-medium cursor-pointer'
                 >
                   {isSubmitting ? t.saving : t.save}
                 </button>

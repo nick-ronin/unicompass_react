@@ -70,9 +70,9 @@ export default function AdminTaskItem({
         'bg-white dark:bg-surface rounded-2xl p-6 animate-pulse',
         view === 'grid' ? 'shadow-md' : 'shadow-sm'
       )}>
-        <div className='h-12 bg-gray-300 rounded mb-4'></div>
-        <div className='h-6 bg-gray-300 rounded mb-4'></div>
-        <div className='h-3 bg-gray-300 rounded'></div>
+        <div className='h-12 bg-light-blue-gray rounded mb-4'></div>
+        <div className='h-6 bg-light-blue-gray rounded mb-4'></div>
+        <div className='h-3 bg-light-blue-gray rounded'></div>
       </div>
     );
   }
@@ -87,14 +87,14 @@ export default function AdminTaskItem({
           <div className='ml-auto flex gap-2'>
             <button
               onClick={() => onAssign?.(id)}
-              className='shrink-0 text-purple-600 hover:text-purple-700 transition-colors p-2 hover:bg-purple-100 rounded-lg dark:hover:bg-dark-gray dark:text-purple-400 dark:hover:text-purple-300'
+              className='shrink-0 text-dark-cyan hover:text-cyan transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray dark:text-cyan dark:hover:text-cyan cursor-pointer'
               aria-label={t.assign}
             >
               <span className='material-symbols-outlined text-2xl'>person_add</span>
             </button>
             <button
               onClick={() => onEdit?.(id)}
-              className='shrink-0 text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray'
+              className='shrink-0 text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray cursor-pointer'
               aria-label={t.edit}
             >
               <span className='material-symbols-outlined text-2xl'>edit</span>
@@ -163,14 +163,14 @@ export default function AdminTaskItem({
         </div>
         <button
           onClick={() => onAssign?.(id)}
-          className='text-purple-600 hover:text-purple-700 transition-colors p-2 hover:bg-purple-100 rounded-lg dark:hover:bg-dark-gray dark:text-purple-400 dark:hover:text-purple-300 shrink-0'
+          className='text-dark-cyan hover:text-cyan transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray dark:text-cyan dark:hover:text-cyan shrink-0 cursor-pointer'
           aria-label={t.assign}
         >
           <span className='material-symbols-outlined'>person_add</span>
         </button>
         <button
           onClick={() => onEdit?.(id)}
-          className='text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray shrink-0'
+          className='text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray shrink-0 cursor-pointer'
           aria-label={t.edit}
         >
           <span className='material-symbols-outlined'>edit</span>

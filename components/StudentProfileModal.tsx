@@ -1,6 +1,83 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Button from './Button';
+import InputField from './Input Field';
+
+const translations = {
+  ru: {
+    title: 'Профиль студента',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    deleting: 'Удаляем...',
+    save: 'Сохранить',
+    saving: 'Сохранение...',
+    cancel: 'Отмена',
+    close: 'Закрыть',
+    loading: 'Загрузка данных...',
+    errorPrefix: 'Ошибка',
+    personalInfo: 'Личные данные',
+    labels: {
+      lastName: 'Фамилия',
+      firstName: 'Имя',
+      patronymic: 'Отчество',
+      email: 'Email',
+      phone: 'Телефон',
+      citizenship: 'Гражданство',
+      dob: 'Дата рождения',
+      address: 'Адрес',
+      passport: 'Паспорт',
+      snils: 'СНИЛС',
+      inn: 'ИНН',
+      sfuEmail: 'Почта СФУ',
+    },
+    tasksTitle: (count: number) => `Назначенные задачи (${count})`,
+    noTasks: 'У студента нет назначенных задач',
+    deadline: 'Крайний срок',
+    completion: 'Прогресс',
+    statuses: {
+      completed: 'Выполнено',
+      'in-progress': 'В процессе',
+      'not completed': 'Не выполнено',
+    },
+  },
+  en: {
+    title: 'Student profile',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleting: 'Deleting...',
+    save: 'Save',
+    saving: 'Saving...',
+    cancel: 'Cancel',
+    close: 'Close',
+    loading: 'Loading data...',
+    errorPrefix: 'Error',
+    personalInfo: 'Personal information',
+    labels: {
+      lastName: 'Last name',
+      firstName: 'First name',
+      patronymic: 'Middle name',
+      email: 'Email',
+      phone: 'Phone',
+      citizenship: 'Citizenship',
+      dob: 'Date of birth',
+      address: 'Address',
+      passport: 'Passport',
+      snils: 'SNILS',
+      inn: 'INN',
+      sfuEmail: 'SFU email',
+    },
+    tasksTitle: (count: number) => `Appointed tasks (${count})`,
+    noTasks: 'Student has no appointed tasks',
+    deadline: 'Deadline',
+    completion: 'Progress',
+    statuses: {
+      completed: 'Completed',
+      'in-progress': 'In progress',
+      'not completed': 'Not completed',
+    },
+  },
+};
 
 interface StudentTask {
   id: string;
@@ -23,6 +100,9 @@ interface StudentProfileData {
   date_of_birth: string;
   address: string;
   passport: string;
+  snils?: string;
+  inn?: string;
+  sfu_email?: string;
   tasks?: StudentTask[];
 }
 
@@ -30,23 +110,47 @@ interface StudentProfileModalProps {
   isOpen: boolean;
   studentId?: string;
   onClose: () => void;
+  lang?: 'ru' | 'en';
+  onDeleted?: (id: string) => void;
+  onSaved?: (student: StudentProfileData) => void | Promise<void>;
 }
 
 export default function StudentProfileModal({
   isOpen,
   studentId,
   onClose,
+  lang = 'ru',
+  onDeleted,
+  onSaved,
 }: StudentProfileModalProps) {
+  const t = translations[lang] || translations.ru;
   const [studentData, setStudentData] = useState<StudentProfileData | null>(null);
   const [tasks, setTasks] = useState<StudentTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableStudent, setEditableStudent] = useState<StudentProfileData | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && studentId) {
       fetchStudentProfile();
     }
   }, [isOpen, studentId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const fetchStudentProfile = async () => {
     if (!studentId) return;
@@ -58,11 +162,28 @@ export default function StudentProfileModal({
       // Fetch student info
       const studentResponse = await fetch(`/api/student/${studentId}`);
       if (!studentResponse.ok) {
-        throw new Error('Error at loading profile student');
+        throw new Error(t.errorPrefix);
       }
 
       const student = await studentResponse.json();
-      setStudentData(student);
+      const normalized: StudentProfileData = {
+        id: student.id?.toString() || studentId,
+        first_name: student.first_name || '',
+        last_name: student.last_name || '',
+        patronymic: student.patronymic || '',
+        age: student.age?.toString() || '',
+        citizenship: student.citizenship || '',
+        email: student.email || '',
+        phone_number: student.phone_number || student.phone_rf || '',
+        date_of_birth: student.date_of_birth || '',
+        address: student.address || '',
+        passport: student.passport || '',
+        snils: student.snils || '',
+        inn: student.inn || '',
+        sfu_email: student.sfu_email || '',
+      };
+      setStudentData(normalized);
+      setEditableStudent(normalized);
 
       // Fetch student tasks
       try {
@@ -78,17 +199,84 @@ export default function StudentProfileModal({
       }
     } catch (err) {
       console.error('Error loading profile:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : t.errorPrefix);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleFieldChange = (field: keyof StudentProfileData, value: string) => {
+    if (!editableStudent) return;
+    setEditableStudent({ ...editableStudent, [field]: value });
+  };
+
+  const handleEditClick = () => {
+    setEditableStudent(studentData);
+    setIsEditing(true);
+    setSaveError(null);
+  };
+
+  const handleCancel = () => {
+    setEditableStudent(studentData);
+    setIsEditing(false);
+    setSaveError(null);
+  };
+
+  const handleSave = async () => {
+    if (!editableStudent || !studentId) return;
+
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+
+      const payload = {
+        first_name: editableStudent.first_name,
+        last_name: editableStudent.last_name,
+        patronymic: editableStudent.patronymic,
+        citizenship: editableStudent.citizenship,
+        address: editableStudent.address,
+        date_of_birth: editableStudent.date_of_birth,
+        passport: editableStudent.passport,
+        email: editableStudent.email,
+        phone_number: editableStudent.phone_number,
+      };
+
+      const response = await fetch(`/api/student/full_patch/${studentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.detail ||
+          errorData.message ||
+          `Error while saving: ${response.status}`
+        );
+      }
+
+      setStudentData(editableStudent);
+      if (onSaved) {
+        await onSaved(editableStudent);
+      }
+      setIsEditing(false);
+      onClose();
+    } catch (err) {
+      console.error('Error while saving profile:', err);
+      setSaveError(err instanceof Error ? err.message : 'Failed to save profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-      completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', label: 'Completed' },
-      'in-progress': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', label: 'In progress' },
-      'not completed': { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-300', label: 'Not completed' },
+      completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', label: t.statuses.completed },
+      'in-progress': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', label: t.statuses['in-progress'] },
+      'not completed': { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-300', label: t.statuses['not completed'] },
     };
 
     const config = statusConfig[status] || statusConfig['not completed'];
@@ -104,23 +292,85 @@ export default function StudentProfileModal({
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70'>
-      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto'>
+      <div className='bg-white dark:bg-dark-gray rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col'>
         {/* Header */}
-        <div className='sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
-          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>Profile student</h2>
-          <button
-            onClick={onClose}
-            className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl'
-          >
-            ✕
-          </button>
+        <div className='sticky top-0 z-10 flex items-center justify-between p-6 bg-white dark:bg-surface'>
+          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>{t.title}</h2>
+          <div className='flex flex-row justify-center gap-5'>
+            <Button
+              onClick={async () => {
+                if (!studentId) return;
+                try {
+                  setIsDeleting(true);
+                  setDeleteError(null);
+                  const resp = await fetch(`/api/student/${studentId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_deleted: true }),
+                  });
+                  if (!resp.ok) {
+                    const errorData = await resp.json().catch(() => ({}));
+                    throw new Error(errorData.detail || errorData.message || `Error while deleting: ${resp.status}`);
+                  }
+                  if (studentId) {
+                    onDeleted?.(studentId.toString());
+                  }
+                  onClose();
+                } catch (err) {
+                  console.error('Error deleting student:', err);
+                  setDeleteError(err instanceof Error ? err.message : t.errorPrefix);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className='bg-red-600 text-white hover:bg-red-700 text-sm cursor-pointer'
+              icon={<span className='material-symbols-outlined text-base'>delete</span>}
+              disabled={isSaving || isDeleting}
+            >
+              {isDeleting ? t.deleting : t.delete}
+            </Button>
+            {!isEditing ? (
+              <Button
+                onClick={handleEditClick}
+                className='bg-orange text-white hover:bg-dark-orange text-sm cursor-pointer'
+                icon={<span className='material-symbols-outlined text-base'>edit</span>}
+              >
+                {t.edit}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className='bg-light-green text-white hover:bg-dark-green text-sm cursor-pointer'
+                  icon={<span className='material-symbols-outlined text-base'>check</span>}
+                >
+                  {isSaving ? t.saving : t.save}
+                </Button>
+                <Button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className='bg-light-blue-gray dark:bg-surface-secondary text-white hover:bg-dark-gray text-sm cursor-pointer'
+                  icon={<span className='material-symbols-outlined text-base'>close</span>}
+                >
+                  {t.cancel}
+                </Button>
+              </>
+            )}
+            <button
+              onClick={onClose}
+              className='text-gray hover:text-light-blue-gray dark:text-gray-400 dark:hover:text-gray-200 text-2xl cursor-pointer'
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Content */}
-        <div className='p-6'>
+        <div className='flex-1 overflow-y-auto p-6 space-y-8'>
           {loading ? (
             <div className='text-center py-12'>
-              <p className='text-gray-600 dark:text-gray-400'>Loading data...</p>
+              <p className='text-gray-600 dark:text-gray-400'>{t.loading}</p>
             </div>
           ) : error ? (
             <div className='bg-red-50 dark:bg-red-900/20 p-4 rounded-lg'>
@@ -128,85 +378,155 @@ export default function StudentProfileModal({
             </div>
           ) : studentData ? (
             <div className='space-y-8'>
+              {deleteError && (
+                <div className='bg-red-50 dark:bg-red-900/20 p-4 rounded-lg'>
+                  <p className='text-red-600 dark:text-red-400'>⚠️ {deleteError}</p>
+                </div>
+              )}
+              {saveError && (
+                <div className='bg-red-50 dark:bg-red-900/20 p-4 rounded-lg'>
+                  <p className='text-red-600 dark:text-red-400'>⚠️ {saveError}</p>
+                </div>
+              )}
+
               {/* Student Info */}
               <div>
                 <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4'>
-                  Personal information
+                  {t.personalInfo}
                 </h3>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-surface-secondary p-4 rounded-lg'>
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Full name</p>
-                    <p className='text-base font-medium text-gray-900 dark:text-white'>
-                      {studentData.last_name} {studentData.first_name}
-                      {studentData.patronymic && ` ${studentData.patronymic}`}
-                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.lastName}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.last_name || ''}
+                      onChange={(e) => isEditing && handleFieldChange('last_name', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.lastName}
+                    />
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Email</p>
-                    <p className='text-base font-medium text-gray-900 dark:text-white'>
-                      {studentData.email}
-                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.firstName}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.first_name || ''}
+                      onChange={(e) => isEditing && handleFieldChange('first_name', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.firstName}
+                    />
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Phone</p>
-                    <p className='text-base font-medium text-gray-900 dark:text-white'>
-                      {studentData.phone_number || '—'}
-                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.patronymic}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.patronymic || ''}
+                      onChange={(e) => isEditing && handleFieldChange('patronymic', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.patronymic}
+                    />
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Age</p>
-                    <p className='text-base font-medium text-gray-900 dark:text-white'>
-                      {studentData.age || '—'}
-                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.email}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.email || ''}
+                      onChange={(e) => isEditing && handleFieldChange('email', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.email}
+                    />
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Citizenship</p>
-                    <p className='text-base font-medium text-gray-900 dark:text-white'>
-                      {studentData.citizenship || '—'}
-                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.phone}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.phone_number || ''}
+                      onChange={(e) => isEditing && handleFieldChange('phone_number', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.phone}
+                    />
                   </div>
 
                   <div>
-                    <p className='text-sm text-gray-600 dark:text-gray-400'>Date of birth</p>
-                    <p className='text-base font-medium text-gray-900 dark:text-white'>
-                      {studentData.date_of_birth || '—'}
-                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.citizenship}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.citizenship || ''}
+                      onChange={(e) => isEditing && handleFieldChange('citizenship', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.citizenship}
+                    />
                   </div>
 
-                  {studentData.address && (
-                    <div className='md:col-span-2'>
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>Address</p>
-                      <p className='text-base font-medium text-gray-900 dark:text-white'>
-                        {studentData.address}
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.dob}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.date_of_birth || ''}
+                      onChange={(e) => isEditing && handleFieldChange('date_of_birth', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder='YYYY-MM-DD'
+                    />
+                  </div>
 
-                  {studentData.passport && (
-                    <div className='md:col-span-2'>
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>Passport</p>
-                      <p className='text-base font-medium text-gray-900 dark:text-white'>
-                        {studentData.passport}
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.address}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.address || ''}
+                      onChange={(e) => isEditing && handleFieldChange('address', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.address}
+                    />
+                  </div>
+
+                  <div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.passport}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.passport || ''}
+                      onChange={(e) => isEditing && handleFieldChange('passport', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.passport}
+                    />
+                  </div>
+
+                  <div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.snils}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.snils || ''}
+                      onChange={(e) => isEditing && handleFieldChange('snils', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.snils}
+                    />
+                  </div>
+
+                  <div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.inn}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.inn || ''}
+                      onChange={(e) => isEditing && handleFieldChange('inn', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.inn}
+                    />
+                  </div>
+
+                  <div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>{t.labels.sfuEmail}</p>
+                    <InputField
+                      value={(isEditing ? editableStudent : studentData)?.sfu_email || ''}
+                      onChange={(e) => isEditing && handleFieldChange('sfu_email', e.target.value)}
+                      readOnly={!isEditing}
+                      placeholder={t.labels.sfuEmail}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Tasks Section */}
               <div>
                 <h3 className='text-lg font-bold text-gray-900 dark:text-white mb-4'>
-                  Nominated tasksи ({tasks.length})
+                  {t.tasksTitle(tasks.length)}
                 </h3>
 
                 {tasks.length === 0 ? (
-                  <div className='bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg text-center'>
+                  <div className='bg-gray-50 dark:bg-surface-secondary p-6 rounded-lg text-center'>
                     <p className='text-gray-600 dark:text-gray-400'>
-                      Student more Not appointed tasksи
+                      {t.noTasks}
                     </p>
                   </div>
                 ) : (
@@ -214,7 +534,7 @@ export default function StudentProfileModal({
                     {tasks.map((task) => (
                       <div
                         key={task.id}
-                        className='bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-colors'
+                        className='bg-gray-50 dark:bg-surface-secondary p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-colors'
                       >
                         <div className='flex items-start justify-between gap-4'>
                           <div className='flex-1 min-w-0'>
@@ -226,9 +546,9 @@ export default function StudentProfileModal({
                             </p>
 
                             <div className='flex items-center gap-4 mt-2 text-xs text-gray-600 dark:text-gray-400'>
-                              <span>📅 Extreme term: {new Date(task.deadline).toLocaleDateString('ru-RU')}</span>
+                              <span>📅 {t.deadline}: {new Date(task.deadline).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}</span>
                               {task.completionPercent !== undefined && (
-                                <span>📊 {task.completionPercent}%</span>
+                                <span>📊 {t.completion}: {task.completionPercent}%</span>
                               )}
                             </div>
                           </div>
@@ -253,16 +573,6 @@ export default function StudentProfileModal({
               </div>
             </div>
           ) : null}
-        </div>
-
-        {/* Footer */}
-        <div className='sticky bottom-0 flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
-          <button
-            onClick={onClose}
-            className='flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium'
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

@@ -11,10 +11,10 @@
 }
 
 .dark {
-  --background: var(--dark-gray-bg);
+  --background: var(--color-dark-gray);
   --foreground: var(--color-white);
   --surface: #2D2D2D;
-  --surface-secondary: #25253e;
+  --surface-secondary: #3d3c3c;
   --logo: var(--color-white);
 }
 

@@ -17,46 +17,93 @@ interface ScheduleProps {
     items?: ScheduleItem[];
     className?: string;
     useApiData?: boolean; // If true, fetch data from API
+    lang?: 'ru' | 'en';
 }
 
-export default function Schedule({ date, items, className = '', useApiData = false }: ScheduleProps) {
+export default function Schedule({ date, items, className = '', useApiData = false, lang = 'ru' }: ScheduleProps) {
     const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
     const { data: apiSchedule, loading, error } = useApiData ? useScheduleByDate(dateStr) : { data: null, loading: false, error: null };
 
-    const defaultItems: ScheduleItem[] = [
-        {
-            id: '1',
-            time: '09:00-10:30',
-            subject: 'Mathematical Analysis',
-            type: 'lecture',
-            location: 'Building 1, room 101',
-            isCurrent: true,
-        },
-        {
-            id: '2',
-            time: '10:40-12:10',
-            subject: 'English Language',
-            type: 'practical class',
-            location: 'Building 2, room 205',
-            isCurrent: false,
-        },
-        {
-            id: '3',
-            time: '13:00-14:30',
-            subject: 'Programming Fundamentals',
-            type: 'lab work',
-            location: 'Building 3, computer lab 301',
-            isCurrent: false,
-        },
-        {
-            id: '4',
-            time: '14:40-16:10',
-            subject: 'History',
-            type: 'LMS',
-            location: 'Online',
-            isCurrent: false,
-        },
-    ];
+    const translateType = (type: ScheduleItem['type'], currentLang: 'ru' | 'en') => {
+        const map: Record<ScheduleItem['type'], { ru: string; en: string }> = {
+            'lecture': { ru: 'Лекция', en: 'Lecture' },
+            'practical class': { ru: 'Практическое занятие', en: 'Practical class' },
+            'lab work': { ru: 'Лабораторная работа', en: 'Lab work' },
+            'LMS': { ru: 'ЭИОС', en: 'Online (LMS)' },
+        };
+        return map[type]?.[currentLang] || type;
+    };
+
+    const defaultItems: Record<'ru' | 'en', ScheduleItem[]> = {
+        en: [
+            {
+                id: '1',
+                time: '08:30-10:05',
+                subject: 'Mathematical Analysis',
+                type: 'lecture',
+                location: 'Building 1, room 101',
+                isCurrent: true,
+            },
+            {
+                id: '2',
+                time: '10:15-11:50',
+                subject: 'English Language',
+                type: 'practical class',
+                location: 'Building 2, room 205',
+                isCurrent: false,
+            },
+            {
+                id: '3',
+                time: '12:00-13:35',
+                subject: 'Programming Fundamentals',
+                type: 'lab work',
+                location: 'Building 3, computer lab 301',
+                isCurrent: false,
+            },
+            {
+                id: '4',
+                time: '14:10-15:45',
+                subject: 'History',
+                type: 'LMS',
+                location: 'Online',
+                isCurrent: false,
+            },
+        ],
+        ru: [
+            {
+                id: '1',
+                time: '08:30-10:05',
+                subject: 'Математический анализ',
+                type: 'lecture',
+                location: 'Корпус 1, аудитория 101',
+                isCurrent: true,
+            },
+            {
+                id: '2',
+                time: '10:15-11:50',
+                subject: 'Английский язык',
+                type: 'practical class',
+                location: 'Корпус 2, аудитория 205',
+                isCurrent: false,
+            },
+            {
+                id: '3',
+                time: '12:00-13:35',
+                subject: 'Основы программирования',
+                type: 'lab work',
+                location: 'Корпус 3, компьютерный класс 301',
+                isCurrent: false,
+            },
+            {
+                id: '4',
+                time: '14:10-15:45',
+                subject: 'История',
+                type: 'LMS',
+                location: 'Онлайн',
+                isCurrent: false,
+            },
+        ],
+    };
 
     // Use provided items, API data, or defaults
     let displayItems: ScheduleItem[] = [];
@@ -65,7 +112,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
     } else if (useApiData && apiSchedule?.items) {
         displayItems = apiSchedule.items;
     } else {
-        displayItems = defaultItems;
+        displayItems = defaultItems[lang] || defaultItems.ru;
     }
 
     if (loading) {
@@ -83,10 +130,25 @@ export default function Schedule({ date, items, className = '', useApiData = fal
         );
     }
 
+    const copy = {
+        title: {
+            ru: 'Расписание на',
+            en: 'Schedule for',
+        },
+        empty: {
+            ru: 'На этот день нет занятий',
+            en: 'No classes for this day',
+        },
+        error: {
+            ru: 'Ошибка загрузки расписания',
+            en: 'Error loading schedule',
+        },
+    };
+
     if (error) {
         return (
             <div className={cn('p-4 bg-red-50 dark:bg-red-900/20 rounded-lg', className)}>
-                <p className='text-red-600 dark:text-red-400'>Error loading schedule: {error}</p>
+                <p className='text-red-600 dark:text-red-400'>{copy.error[lang]}: {error}</p>
             </div>
         );
     }
@@ -95,7 +157,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
         <div className={cn('p-4', className)}>
             <div className='mb-4'>
                 <h3 className='text-2xl text-dark-gray dark:text-white'>
-                    Schedule for {date.toLocaleDateString('ru-RU', {
+                    {copy.title[lang]} {date.toLocaleDateString(lang === 'en' ? 'en-US' : 'ru-RU', {
                         weekday: 'long',
                         day: 'numeric',
                         month: 'long',
@@ -120,7 +182,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
                                     {item.subject}
                                 </h4>
                                 <p className='text-lg opacity-90'>
-                                    {item.type}
+                                    {translateType(item.type, lang)}
                                 </p>
                                 <p className='text-lg opacity-90'>
                                     {item.location}
@@ -133,7 +195,7 @@ export default function Schedule({ date, items, className = '', useApiData = fal
                     ))
                 ) : (
                     <div className='text-center py-8 text-medium-blue-gray dark:text-gray'>
-                        <p>No classes for this day</p>
+                        <p>{copy.empty[lang]}</p>
                     </div>
                 )}
             </div>

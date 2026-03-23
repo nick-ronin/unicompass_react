@@ -26,7 +26,7 @@ interface TaskReassignmentModalProps {
   isOpen: boolean;
   isLoading?: boolean;
   onClose: () => void;
-  onSubmit: (taskId: string | number, studentIds: (string | number)[]) => void;
+  onSubmit: (taskId: string | number, studentIds: (string | number)[], deadline: string) => void;
   preSelectedTaskId?: string | null;
   lang?: string;
 }
@@ -47,6 +47,7 @@ const copy = {
     selectGroup: 'Select group *',
     selectGender: 'Select gender *',
     selectPlaceholder: 'Select...',
+    deadlineLabel: 'Deadline *',
     studentsLabel: (count: number) => `Students for assignment (${count}) *`,
     clearAll: 'Clear all',
     selectAll: 'Select all',
@@ -61,6 +62,7 @@ const copy = {
       task: 'Select task',
       filter: 'Select a filter',
       students: 'Select at least one student',
+      deadline: 'Deadline is required',
     },
   },
   ru: {
@@ -78,6 +80,7 @@ const copy = {
     selectGroup: 'Выберите группу *',
     selectGender: 'Выберите пол *',
     selectPlaceholder: 'Выберите...',
+    deadlineLabel: 'Дедлайн *',
     studentsLabel: (count: number) => `Студенты для назначения (${count}) *`,
     clearAll: 'Сбросить выбор',
     selectAll: 'Выбрать всех',
@@ -92,6 +95,7 @@ const copy = {
       task: 'Выберите задачу',
       filter: 'Выберите фильтр',
       students: 'Выберите хотя бы одного студента',
+      deadline: 'Укажите дедлайн',
     },
   },
 };
@@ -112,6 +116,11 @@ export default function TaskReassignmentModal({
   const [selectedTaskId, setSelectedTaskId] = useState<string | number | ''>(preSelectedTaskId || '');
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('all');
   const [selectedFilter, setSelectedFilter] = useState<string>('');
+  const [deadline, setDeadline] = useState<string>(
+    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
+  const [preAssignedStudents, setPreAssignedStudents] = useState<(string | number)[]>([]);
+  const [assignedLoading, setAssignedLoading] = useState(false);
 
   // UI states
   const [loadingData, setLoadingData] = useState(false);
@@ -124,10 +133,20 @@ export default function TaskReassignmentModal({
       fetchData();
       setSelectedTaskId(preSelectedTaskId || '');
       setSelectedStudents([]);
+      setPreAssignedStudents([]);
       setAssignmentType('all');
       setSelectedFilter('');
+      setDeadline(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
     }
   }, [isOpen, preSelectedTaskId]);
+
+  useEffect(() => {
+    if (isOpen && selectedTaskId) {
+      fetchAssignedStudents(selectedTaskId);
+    } else {
+      setPreAssignedStudents([]);
+    }
+  }, [isOpen, selectedTaskId]);
 
   const fetchData = async () => {
     try {
@@ -170,6 +189,30 @@ export default function TaskReassignmentModal({
     }
   };
 
+  const fetchAssignedStudents = async (taskId: string | number) => {
+    try {
+      setAssignedLoading(true);
+      const response = await fetch(`/student_task/task/${taskId}`);
+      if (!response.ok) {
+        setPreAssignedStudents([]);
+        setSelectedStudents([]);
+        return;
+      }
+
+      const data = await response.json();
+      const assignedIds = (Array.isArray(data) ? data : data.results || [])
+        .map((item: any) => item.student_id || item.studentId || item.student?.id || item.id)
+        .filter(Boolean);
+
+      setPreAssignedStudents(assignedIds);
+      setSelectedStudents(assignedIds);
+    } catch (err) {
+      console.error('Error loading assigned students:', err);
+    } finally {
+      setAssignedLoading(false);
+    }
+  };
+
   // Get unique values for filters
   const uniqueCitizenships = useMemo(
     () => [...new Set(students.map(s => s.citizenship))].filter(Boolean).sort(),
@@ -208,6 +251,10 @@ export default function TaskReassignmentModal({
       newErrors.taskId = t.errors.task;
     }
 
+    if (!deadline) {
+      newErrors.deadline = t.errors.deadline;
+    }
+
     if (assignmentType !== 'all' && !selectedFilter) {
       newErrors.filter = t.errors.filter;
     }
@@ -227,13 +274,13 @@ export default function TaskReassignmentModal({
       return;
     }
 
-    await onSubmit(selectedTaskId, selectedStudents);
+    await onSubmit(selectedTaskId, selectedStudents, deadline);
   };
 
   const handleAssignmentTypeChange = (type: AssignmentType) => {
     setAssignmentType(type);
     setSelectedFilter('');
-    setSelectedStudents([]);
+    setSelectedStudents(preAssignedStudents);
   };
 
   const toggleStudent = (studentId: string | number) => {
@@ -243,10 +290,12 @@ export default function TaskReassignmentModal({
   };
 
   const selectAllFiltered = () => {
-    if (selectedStudents.length === filteredStudents.length) {
-      setSelectedStudents([]);
+    const filteredIds = filteredStudents.map((s) => s.id);
+    const hasAll = filteredIds.every((id) => selectedStudents.includes(id));
+    if (hasAll) {
+      setSelectedStudents(preAssignedStudents);
     } else {
-      setSelectedStudents(filteredStudents.map((s) => s.id));
+      setSelectedStudents(Array.from(new Set([...preAssignedStudents, ...filteredIds])));
     }
   };
 
@@ -254,15 +303,15 @@ export default function TaskReassignmentModal({
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70'>
-      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto'>
+      <div className='bg-white dark:bg-surface rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto'>
         {/* Header */}
-        <div className='sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
-          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
+        <div className='sticky top-0 flex items-center justify-between p-6 border-b border-light-blue-gray dark:border-medium-blue-gray bg-white dark:bg-surface'>
+          <h2 className='text-2xl font-bold text-dark-gray dark:text-white'>
             {t.title}
           </h2>
           <button
             onClick={onClose}
-            className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl'
+            className='text-medium-blue-gray hover:text-dark-gray dark:text-light-blue-gray dark:hover:text-white text-2xl cursor-pointer'
           >
             ✕
           </button>
@@ -272,14 +321,14 @@ export default function TaskReassignmentModal({
         <form onSubmit={handleSubmit} className='p-6 space-y-6'>
           {/* Task Selection */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
               {t.selectTask}
             </label>
             <select
               value={selectedTaskId}
               onChange={(e) => setSelectedTaskId(e.target.value)}
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
-                errors.taskId ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white focus:outline-none focus:ring-2 ${
+                errors.taskId ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
               }`}
             >
               <option value=''>{t.selectTaskPlaceholder}</option>
@@ -289,12 +338,12 @@ export default function TaskReassignmentModal({
                 </option>
               ))}
             </select>
-            {errors.taskId && <p className='text-red-500 text-sm mt-1'>{errors.taskId}</p>}
+            {errors.taskId && <p className='text-dark-orange text-sm mt-1'>{errors.taskId}</p>}
           </div>
 
           {/* Assignment Type Selection */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-3'>
               {t.assignmentTypeLabel}
             </label>
             <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
@@ -310,9 +359,10 @@ export default function TaskReassignmentModal({
                   onClick={() => handleAssignmentTypeChange(option.value as AssignmentType)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     assignmentType === option.value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
+                      ? 'bg-dark-cyan text-white'
+                      : 'bg-light-blue-gray dark:bg-medium-blue-gray text-dark-gray dark:text-white hover:bg-cyan/20 dark:hover:bg-dark-cyan/30'
+                  } cursor-pointer`}
+                  aria-pressed={assignmentType === option.value}
                 >
                   {option.label}
                 </button>
@@ -320,10 +370,26 @@ export default function TaskReassignmentModal({
             </div>
           </div>
 
+          {/* Deadline */}
+          <div>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
+              {t.deadlineLabel}
+            </label>
+            <input
+              type='date'
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white focus:outline-none focus:ring-2 ${
+                errors.deadline ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
+              }`}
+            />
+            {errors.deadline && <p className='text-dark-orange text-sm mt-1'>{errors.deadline}</p>}
+          </div>
+
           {/* Filter Selection */}
           {assignmentType !== 'all' && (
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
                 {assignmentType === 'citizenship' && t.selectCitizenship}
                 {assignmentType === 'group' && t.selectGroup}
                 {assignmentType === 'gender' && t.selectGender}
@@ -332,10 +398,10 @@ export default function TaskReassignmentModal({
                 value={selectedFilter}
                 onChange={(e) => {
                   setSelectedFilter(e.target.value);
-                  setSelectedStudents([]);
+                  setSelectedStudents(preAssignedStudents);
                 }}
-                className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
-                  errors.filter ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white focus:outline-none focus:ring-2 ${
+                  errors.filter ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
                 }`}
               >
                 <option value=''>{t.selectPlaceholder}</option>
@@ -358,58 +424,61 @@ export default function TaskReassignmentModal({
                     </option>
                   ))}
               </select>
-              {errors.filter && <p className='text-red-500 text-sm mt-1'>{errors.filter}</p>}
+              {errors.filter && <p className='text-dark-orange text-sm mt-1'>{errors.filter}</p>}
             </div>
           )}
 
           {/* Students Selection */}
           <div>
             <div className='flex justify-between items-center mb-2'>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
+              <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray'>
                 {t.studentsLabel(filteredStudents.length)}
               </label>
               <button
                 type='button'
                 onClick={selectAllFiltered}
-                className='text-sm text-blue-600 dark:text-blue-400 hover:underline'
+                className='text-sm text-dark-cyan hover:underline cursor-pointer'
               >
                 {selectedStudents.length === filteredStudents.length ? t.clearAll : t.selectAll}
               </button>
             </div>
 
-            {errors.students && <p className='text-red-500 text-sm mb-2'>{errors.students}</p>}
+            {errors.students && <p className='text-dark-orange text-sm mb-2'>{errors.students}</p>}
 
             {loadingData ? (
               <div className='text-center py-4'>
-                <p className='text-gray-600 dark:text-gray-400'>{t.loading}</p>
+                <p className='text-medium-blue-gray dark:text-light-blue-gray'>{t.loading}</p>
               </div>
             ) : filteredStudents.length === 0 ? (
-              <div className='bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg text-center'>
-                <p className='text-gray-600 dark:text-gray-400'>
+              <div className='bg-light-blue-gray dark:bg-dark-gray/60 p-6 rounded-lg text-center'>
+                <p className='text-medium-blue-gray dark:text-light-blue-gray'>
                   {assignmentType === 'all'
                     ? t.studentsNotFound
                     : t.studentsNotFoundFiltered}
                 </p>
               </div>
             ) : (
-              <div className='border border-gray-300 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-gray-700 max-h-64 overflow-y-auto'>
+              <div className='border border-light-blue-gray dark:border-medium-blue-gray rounded-lg divide-y divide-light-blue-gray dark:divide-medium-blue-gray max-h-64 overflow-y-auto'>
                 {filteredStudents.map((student) => (
                   <label
                     key={student.id}
-                    className='flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors'
+                    className='flex items-center p-3 hover:bg-light-blue-gray dark:hover:bg-dark-gray cursor-pointer transition-colors'
                   >
                     <input
                       type='checkbox'
                       checked={selectedStudents.includes(student.id)}
                       onChange={() => toggleStudent(student.id)}
-                      className='w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500'
+                      className='w-4 h-4 text-dark-cyan border-light-blue-gray dark:border-medium-blue-gray rounded focus:ring-2 focus:ring-dark-cyan cursor-pointer'
                     />
                     <div className='ml-3 flex-1'>
-                      <div className='text-sm font-medium text-gray-900 dark:text-white'>
+                      <div className='text-sm font-medium text-dark-gray dark:text-white flex items-center gap-2'>
                         {student.last_name} {student.first_name}
                         {student.patronymic && ` ${student.patronymic}`}
+                        {preAssignedStudents.includes(student.id) && (
+                          <span className='text-xs font-semibold text-dark-cyan'>• уже назначена</span>
+                        )}
                       </div>
-                      <div className='text-xs text-gray-500 dark:text-gray-400'>
+                      <div className='text-xs text-medium-blue-gray dark:text-light-blue-gray'>
                         {student.email}
                         {student.citizenship && ` • ${student.citizenship}`}
                         {student.group && ` • ${student.group}`}
@@ -421,26 +490,31 @@ export default function TaskReassignmentModal({
             )}
 
             {selectedStudents.length > 0 && (
-              <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
+              <p className='text-sm text-medium-blue-gray dark:text-light-blue-gray mt-2'>
                 {t.selectedCount(selectedStudents.length)}
+              </p>
+            )}
+            {assignedLoading && (
+              <p className='text-sm text-medium-blue-gray dark:text-light-blue-gray mt-1'>
+                {t.loading}
               </p>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className='flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700'>
+          <div className='flex gap-3 pt-4 border-t border-light-blue-gray dark:border-medium-blue-gray'>
             <button
               type='button'
               onClick={onClose}
               disabled={isLoading}
-              className='flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 font-medium'
+              className='flex-1 px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray text-dark-gray dark:text-light-blue-gray rounded-lg hover:bg-light-blue-gray dark:hover:bg-dark-gray transition-colors disabled:opacity-50 font-medium cursor-pointer'
             >
               {t.cancel}
             </button>
             <button
               type='submit'
               disabled={isLoading}
-              className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium'
+              className='flex-1 px-4 py-2 bg-dark-cyan text-white rounded-lg hover:bg-cyan transition-colors disabled:opacity-50 font-medium cursor-pointer'
             >
               {isLoading ? t.submitting : t.submit}
             </button>

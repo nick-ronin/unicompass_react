@@ -265,15 +265,15 @@ export default function TaskAssignmentModal({
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70'>
-      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
+      <div className='bg-white dark:bg-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
         {/* Header */}
-        <div className='sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
-          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
+        <div className='sticky top-0 flex items-center justify-between p-6 border-b border-light-blue-gray dark:border-medium-blue-gray bg-white dark:bg-surface'>
+          <h2 className='text-2xl font-bold text-dark-gray dark:text-white'>
             {t.title}
           </h2>
           <button
             onClick={onClose}
-            className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl'
+            className='text-medium-blue-gray hover:text-dark-gray dark:text-light-blue-gray dark:hover:text-white text-2xl cursor-pointer'
           >
             ✕
           </button>
@@ -283,57 +283,57 @@ export default function TaskAssignmentModal({
         <form onSubmit={handleSubmit} className='p-6 space-y-6'>
           {/* Task Name */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
               {t.nameLabel}
             </label>
             <input
               type='text'
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 ${
-                errors.name ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 ${
+                errors.name ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
               }`}
               placeholder={t.namePlaceholder}
             />
-            {errors.name && <p className='text-red-500 text-sm mt-1'>{errors.name}</p>}
+            {errors.name && <p className='text-dark-orange text-sm mt-1'>{errors.name}</p>}
           </div>
 
           {/* Description */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
               {t.descriptionLabel}
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 ${
-                errors.description ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 ${
+                errors.description ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
               }`}
               placeholder={t.descriptionPlaceholder}
             />
-            {errors.description && <p className='text-red-500 text-sm mt-1'>{errors.description}</p>}
+            {errors.description && <p className='text-dark-orange text-sm mt-1'>{errors.description}</p>}
           </div>
 
           {/* Deadline */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
               {t.deadlineLabel}
             </label>
             <input
               type='date'
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
-                errors.deadline ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white focus:outline-none focus:ring-2 ${
+                errors.deadline ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
               }`}
             />
-            {errors.deadline && <p className='text-red-500 text-sm mt-1'>{errors.deadline}</p>}
+            {errors.deadline && <p className='text-dark-orange text-sm mt-1'>{errors.deadline}</p>}
           </div>
 
           {/* Assignment Type Selection */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
+            <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-3'>
               {t.assignmentTypeLabel}
             </label>
             <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
@@ -349,9 +349,10 @@ export default function TaskAssignmentModal({
                   onClick={() => handleAssignmentTypeChange(option.value as AssignmentType)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     assignmentType === option.value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
+                      ? 'bg-dark-cyan text-white'
+                      : 'bg-light-blue-gray dark:bg-medium-blue-gray text-dark-gray dark:text-white hover:bg-cyan/20 dark:hover:bg-dark-cyan/30'
+                  } cursor-pointer`}
+                  aria-pressed={assignmentType === option.value}
                 >
                   {option.label}
                 </button>
@@ -362,7 +363,7 @@ export default function TaskAssignmentModal({
           {/* Filter Selection */}
           {assignmentType !== 'all' && (
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
                 {assignmentType === 'citizenship' && t.selectCitizenship}
                 {assignmentType === 'group' && t.selectGroup}
                 {assignmentType === 'gender' && t.selectGender}
@@ -373,8 +374,8 @@ export default function TaskAssignmentModal({
                   setSelectedFilter(e.target.value);
                   setSelectedStudents([]);
                 }}
-                className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
-                  errors.filter ? 'border-red-500 ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white focus:outline-none focus:ring-2 ${
+                  errors.filter ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'
                 }`}
               >
                 <option value=''>{t.selectPlaceholder}</option>
@@ -397,58 +398,58 @@ export default function TaskAssignmentModal({
                     </option>
                   ))}
               </select>
-              {errors.filter && <p className='text-red-500 text-sm mt-1'>{errors.filter}</p>}
+              {errors.filter && <p className='text-dark-orange text-sm mt-1'>{errors.filter}</p>}
             </div>
           )}
 
           {/* Students Selection */}
           <div>
             <div className='flex justify-between items-center mb-2'>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
+              <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray'>
                 {t.selectLabel(filteredStudents.length)}
               </label>
               <button
                 type='button'
                 onClick={selectAllFiltered}
-                className='text-sm text-blue-600 dark:text-blue-400 hover:underline'
+                className='text-sm text-dark-cyan hover:underline cursor-pointer'
               >
                 {selectedStudents.length === filteredStudents.length ? t.clearAll : t.selectAll}
               </button>
             </div>
 
-            {errors.students && <p className='text-red-500 text-sm mb-2'>{errors.students}</p>}
+            {errors.students && <p className='text-dark-orange text-sm mb-2'>{errors.students}</p>}
 
             {loadingStudents ? (
               <div className='text-center py-4'>
-                <p className='text-gray-600 dark:text-gray-400'>{t.loadingStudents}</p>
+                <p className='text-medium-blue-gray dark:text-light-blue-gray'>{t.loadingStudents}</p>
               </div>
             ) : filteredStudents.length === 0 ? (
-              <div className='text-center py-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg'>
-                <p className='text-gray-600 dark:text-gray-400'>
+              <div className='text-center py-4 border border-dashed border-light-blue-gray dark:border-medium-blue-gray rounded-lg'>
+                <p className='text-medium-blue-gray dark:text-light-blue-gray'>
                   {assignmentType === 'all'
                     ? t.studentsNotFound
                     : t.studentsNotFoundFiltered}
                 </p>
               </div>
             ) : (
-              <div className='border border-gray-300 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-gray-700 max-h-48 overflow-y-auto'>
+              <div className='border border-light-blue-gray dark:border-medium-blue-gray rounded-lg divide-y divide-light-blue-gray dark:divide-medium-blue-gray max-h-48 overflow-y-auto'>
                 {filteredStudents.map((student) => (
                   <label
                     key={student.id}
-                    className='flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors'
+                    className='flex items-center p-3 hover:bg-light-blue-gray dark:hover:bg-dark-gray cursor-pointer transition-colors'
                   >
                     <input
                       type='checkbox'
                       checked={selectedStudents.includes(student.id)}
                       onChange={() => toggleStudent(student.id)}
-                      className='w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500'
+                      className='w-4 h-4 text-dark-cyan border-light-blue-gray dark:border-medium-blue-gray rounded focus:ring-2 focus:ring-dark-cyan cursor-pointer'
                     />
                     <div className='ml-3 flex-1'>
-                      <div className='text-sm font-medium text-gray-900 dark:text-white'>
+                      <div className='text-sm font-medium text-dark-gray dark:text-white'>
                         {student.last_name} {student.first_name}
                         {student.patronymic && ` ${student.patronymic}`}
                       </div>
-                      <div className='text-xs text-gray-500 dark:text-gray-400'>
+                      <div className='text-xs text-medium-blue-gray dark:text-light-blue-gray'>
                         {student.email}
                         {student.citizenship && ` • ${student.citizenship}`}
                         {student.group && ` • ${student.group}`}
@@ -460,26 +461,26 @@ export default function TaskAssignmentModal({
             )}
 
             {selectedStudents.length > 0 && (
-              <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
+              <p className='text-sm text-medium-blue-gray dark:text-light-blue-gray mt-2'>
                 {t.selectedCount(selectedStudents.length)}
               </p>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className='flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700'>
+          <div className='flex gap-3 pt-4 border-t border-light-blue-gray dark:border-medium-blue-gray'>
             <button
               type='button'
               onClick={onClose}
               disabled={isLoading}
-              className='flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 font-medium'
+              className='flex-1 px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray text-dark-gray dark:text-light-blue-gray rounded-lg hover:bg-light-blue-gray dark:hover:bg-dark-gray transition-colors disabled:opacity-50 font-medium cursor-pointer'
             >
               {t.cancel}
             </button>
             <button
               type='submit'
               disabled={isLoading}
-              className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium'
+              className='flex-1 px-4 py-2 bg-dark-cyan text-white rounded-lg hover:bg-cyan transition-colors disabled:opacity-50 font-medium cursor-pointer'
             >
               {isLoading ? `${t.submit}...` : t.submit}
             </button>

@@ -76,6 +76,7 @@ const mapTask = (entry: any, index: number): StudentTask => {
     taskSource?.name ||
     taskSource?.title ||
     entry?.task_name ||
+    entry?.task_title ||
     'Untitled';
 
   const description =
@@ -83,12 +84,14 @@ const mapTask = (entry: any, index: number): StudentTask => {
     entry?.description ||
     '';
 
-  const deadline =
-    taskSource?.deadline ||
-    taskSource?.due_date ||
-    entry?.deadline ||
-    entry?.due_date ||
-    '';
+  const rawDeadline =
+    taskSource?.deadline ??
+    taskSource?.due_date ??
+    entry?.deadline ??
+    entry?.due_date ??
+    null;
+
+  const deadline = rawDeadline ? String(rawDeadline) : '';
 
   const status = normalizeStatus(
     entry?.status ?? taskSource?.status ?? entry?.completed ?? taskSource?.completed

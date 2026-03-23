@@ -9,8 +9,10 @@ import MessageInput from '@/components/MessageInput';
 
 interface User {
   id: string;
-  name: string;
-  fullName: string;
+  nameRu: string;
+  nameEn: string;
+  fullNameRu: string;
+  fullNameEn: string;
   lastMessage: string;
   avatar?: string;
   lastOnline: string;
@@ -50,32 +52,40 @@ const translations = {
 const mockUsers: User[] = [
   {
     id: '1',
-    name: 'Ivan Petrov',
-    fullName: 'Ivan Sergeevich Petrov',
+    nameRu: 'Иван Петров',
+    nameEn: 'Ivan Petrov',
+    fullNameRu: 'Иван Сергеевич Петров',
+    fullNameEn: 'Ivan Sergeevich Petrov',
     lastMessage: 'How about meeting on Friday?',
     avatar: '/NoAvatarDefault.svg',
     lastOnline: 'online',
   },
   {
     id: '2',
-    name: 'Maria Sidorova',
-    fullName: 'Maria Ivanovna Sidorova',
+    nameRu: 'Мария Сидорова',
+    nameEn: 'Maria Sidorova',
+    fullNameRu: 'Мария Ивановна Сидорова',
+    fullNameEn: 'Maria Ivanovna Sidorova',
     lastMessage: 'Thanks for your help!',
     avatar: '/NoAvatarDefault.svg',
     lastOnline: '5 minutes ago',
   },
   {
     id: '3',
-    name: 'Sergey Ivanov',
-    fullName: 'Sergei Petrovich Ivanov',
+    nameRu: 'Сергей Иванов',
+    nameEn: 'Sergey Ivanov',
+    fullNameRu: 'Сергей Петрович Иванов',
+    fullNameEn: 'Sergei Petrovich Ivanov',
     lastMessage: 'Sent you a file',
     avatar: '/NoAvatarDefault.svg',
     lastOnline: '1 an hour ago',
   },
   {
     id: '4',
-    name: 'Alexey Kozlov',
-    fullName: 'Alexey Viktorovich Kozlov',
+    nameRu: 'Алексей Козлов',
+    nameEn: 'Alexey Kozlov',
+    fullNameRu: 'Алексей Викторович Козлов',
+    fullNameEn: 'Alexey Viktorovich Kozlov',
     lastMessage: 'See you!',
     avatar: '/NoAvatarDefault.svg',
     lastOnline: 'yesterday',
@@ -186,9 +196,15 @@ export default function ChatPage() {
   const lang = typeof params.lang === 'string' ? params.lang : Array.isArray(params.lang) ? params.lang[0] : 'ru';
   const t = translations[lang as keyof typeof translations] || translations.ru;
 
-  const activeUser = mockUsers.find((u) => u.id === activeUserId);
-  const filteredUsers = mockUsers.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const localizedUsers = mockUsers.map((user) => ({
+    ...user,
+    displayName: lang === 'ru' ? user.nameRu : user.nameEn,
+    displayFullName: lang === 'ru' ? user.fullNameRu : user.fullNameEn,
+  }));
+
+  const activeUser = localizedUsers.find((u) => u.id === activeUserId);
+  const filteredUsers = localizedUsers.filter((user) =>
+    user.displayName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const scrollToBottom = () => {
@@ -269,7 +285,7 @@ export default function ChatPage() {
                 <ChatUserCard
                   key={user.id}
                   id={user.id}
-                  name={user.name}
+                  name={user.displayName}
                   lastMessage={user.lastMessage}
                   avatar={user.avatar}
                   isActive={activeUserId === user.id}
@@ -292,7 +308,7 @@ export default function ChatPage() {
             {/* Header with user info */}
             <div className='border-b border-light-blue-gray dark:border-dark-gray py-3 px-4 bg-white dark:bg-surface text-start'>
               <h2 className='text-2xl font-semibold text-dark-gray dark:text-white'>
-                {activeUser.fullName}
+                {activeUser.displayFullName}
               </h2>
               <p className='text-base text-gray dark:text-white mt-1'>{activeUser.lastOnline}</p>
             </div>

@@ -6,6 +6,49 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState, useMemo } from 'react';
 
+const translations = {
+  en: {
+    backToTables: '← Back to tables',
+    title: 'Courses',
+    total: (count: number) => `Total courses: ${count}`,
+    addCourse: '+ Add course',
+    searchPlaceholder: 'Search by name, code, teacher...',
+    filters: 'Filters',
+    reset: 'Reset',
+    all: 'All',
+    resultCount: (count: number) => `Results: ${count}`,
+    columns: {
+      id: 'ID',
+      name: 'Name',
+      code: 'Code',
+      teacher: 'Teacher',
+      semester: 'Semester',
+      students: 'Students',
+      status: 'Status',
+    },
+  },
+  ru: {
+    backToTables: '← Назад к таблицам',
+    title: 'Курсы',
+    total: (count: number) => `Всего курсов: ${count}`,
+    addCourse: '+ Добавить курс',
+    searchPlaceholder: 'Поиск по названию, коду, преподавателю...',
+    filters: 'Фильтры',
+    reset: 'Сбросить',
+    all: 'Все',
+    resultCount: (count: number) => `Найдено: ${count}`,
+    columns: {
+      id: 'ID',
+      name: 'Название',
+      code: 'Код',
+      teacher: 'Преподаватель',
+      semester: 'Семестр',
+      students: 'Студентов',
+      status: 'Статус',
+    },
+  },
+};
+
 interface Course {
   id: string;
   name: string;
@@ -76,6 +119,7 @@ const sampleCourses: Course[] = [
 export default function CoursesTablePage() {
   const params = useParams();
   const lang = params.lang as string;
+  const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
   const [courses] = useState<Course[]>(sampleCourses);
 
   // Search, sort and filter
@@ -149,23 +193,23 @@ export default function CoursesTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'name', label: 'Name' },
-    { key: 'code', label: 'Code' },
-    { key: 'teacher', label: 'Teacher' },
-    { key: 'semester', label: 'Semester' },
-    { key: 'students', label: 'Students' },
-    { key: 'status', label: 'Status' },
+    { key: 'name', label: t.columns.name },
+    { key: 'code', label: t.columns.code },
+    { key: 'teacher', label: t.columns.teacher },
+    { key: 'semester', label: t.columns.semester },
+    { key: 'students', label: t.columns.students },
+    { key: 'status', label: t.columns.status },
   ];
 
   const filterOptions = [
     {
       name: 'semester',
-      label: 'Semester',
+      label: t.columns.semester,
       options: uniqueSemesters.map(s => ({ label: s, value: s })),
     },
     {
       name: 'status',
-      label: 'Status',
+      label: t.columns.status,
       options: uniqueStatuses.map(s => ({ label: s, value: s })),
     },
   ];
@@ -177,24 +221,24 @@ export default function CoursesTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Return to tables
+          {t.backToTables}
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Courses
+          {t.title}
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Allth courses: {courses.length}
+          {t.total(courses.length)}
         </p>
       </div>
 
       <div className='mb-6'>
-        <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Add a course
+        <button className='bg-cyan hover:bg-cyan/80 dark:bg-dark-cyan dark:hover:bg-dark-cyan/80 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
+          {t.addCourse}
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Search by name, code, teacher...'
+        searchPlaceholder={t.searchPlaceholder}
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -204,17 +248,23 @@ export default function CoursesTablePage() {
         }}
         onFilter={setFilters}
         resultCount={filteredAndSortedData.length}
+        labels={{
+          filters: t.filters,
+          reset: t.reset,
+          found: t.resultCount,
+          all: t.all,
+        }}
       />
 
       <Table<Course>
         columns={[
-          { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'name', label: 'Name', sortable: true },
-          { key: 'code', label: 'Code', sortable: true },
-          { key: 'teacher', label: 'Teacher', sortable: true },
-          { key: 'semester', label: 'Semester', sortable: true },
-          { key: 'students', label: 'Students', sortable: true },
-          { key: 'status', label: 'Status', sortable: true },
+          { key: 'id', label: t.columns.id, width: '60px', sortable: true },
+          { key: 'name', label: t.columns.name, sortable: true },
+          { key: 'code', label: t.columns.code, sortable: true },
+          { key: 'teacher', label: t.columns.teacher, sortable: true },
+          { key: 'semester', label: t.columns.semester, sortable: true },
+          { key: 'students', label: t.columns.students, sortable: true },
+          { key: 'status', label: t.columns.status, sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}

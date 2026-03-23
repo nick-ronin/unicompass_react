@@ -6,6 +6,49 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState, useMemo } from 'react';
 
+const translations = {
+  en: {
+    backToTables: '← Back to tables',
+    title: 'Groups',
+    total: (count: number) => `Total groups: ${count}`,
+    addGroup: '+ Add group',
+    searchPlaceholder: 'Search by name, specialization, curator...',
+    filters: 'Filters',
+    reset: 'Reset',
+    all: 'All',
+    resultCount: (count: number) => `Results: ${count}`,
+    columns: {
+      id: 'ID',
+      name: 'Name',
+      specialization: 'Specialization',
+      year: 'Year',
+      students: 'Students',
+      curator: 'Curator',
+      status: 'Status',
+    },
+  },
+  ru: {
+    backToTables: '← Назад к таблицам',
+    title: 'Группы',
+    total: (count: number) => `Всего групп: ${count}`,
+    addGroup: '+ Добавить группу',
+    searchPlaceholder: 'Поиск по названию, специализации, куратору...',
+    filters: 'Фильтры',
+    reset: 'Сбросить',
+    all: 'Все',
+    resultCount: (count: number) => `Найдено: ${count}`,
+    columns: {
+      id: 'ID',
+      name: 'Название',
+      specialization: 'Специализация',
+      year: 'Курс',
+      students: 'Студентов',
+      curator: 'Куратор',
+      status: 'Статус',
+    },
+  },
+};
+
 interface Group {
   id: string;
   name: string;
@@ -67,6 +110,7 @@ const sampleGroups: Group[] = [
 export default function GroupsTablePage() {
   const params = useParams();
   const lang = params.lang as string;
+  const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
   const [groups] = useState<Group[]>(sampleGroups);
 
   // Search, sort and filter
@@ -150,28 +194,28 @@ export default function GroupsTablePage() {
   };
 
   const sortOptions: SortOption[] = [
-    { key: 'name', label: 'Name' },
-    { key: 'specialization', label: 'Specialization' },
-    { key: 'year', label: 'Well' },
-    { key: 'students', label: 'Students' },
-    { key: 'curator', label: 'Curator' },
-    { key: 'status', label: 'Status' },
+    { key: 'name', label: t.columns.name },
+    { key: 'specialization', label: t.columns.specialization },
+    { key: 'year', label: t.columns.year },
+    { key: 'students', label: t.columns.students },
+    { key: 'curator', label: t.columns.curator },
+    { key: 'status', label: t.columns.status },
   ];
 
   const filterOptions = [
     {
       name: 'specialization',
-      label: 'Specialization',
+      label: t.columns.specialization,
       options: uniqueSpecializations.map(s => ({ label: s, value: s })),
     },
     {
       name: 'year',
-      label: 'Well',
+      label: t.columns.year,
       options: uniqueYears.map(y => ({ label: y, value: y })),
     },
     {
       name: 'status',
-      label: 'Status',
+      label: t.columns.status,
       options: uniqueStatuses.map(s => ({ label: s, value: s })),
     },
   ];
@@ -183,24 +227,24 @@ export default function GroupsTablePage() {
           href={`/${lang}/admin/tables`}
           className='text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block'
         >
-          ← Return to tables
+          {t.backToTables}
         </Link>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
-          Groups
+          {t.title}
         </h1>
         <p className='text-gray-600 dark:text-gray-300'>
-          Allth groups: {groups.length}
+          {t.total(groups.length)}
         </p>
       </div>
 
       <div className='mb-6'>
-        <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
-          + Add a group
+        <button className='bg-cyan hover:bg-cyan/80 dark:bg-dark-cyan dark:hover:bg-dark-cyan/80 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
+          {t.addGroup}
         </button>
       </div>
 
       <TableControls
-        searchPlaceholder='Search by title, specialization, curator...'
+        searchPlaceholder={t.searchPlaceholder}
         sortOptions={sortOptions}
         filterOptions={filterOptions}
         onSearch={setSearchQuery}
@@ -210,17 +254,23 @@ export default function GroupsTablePage() {
         }}
         onFilter={setFilters}
         resultCount={filteredAndSortedData.length}
+        labels={{
+          filters: t.filters,
+          reset: t.reset,
+          found: t.resultCount,
+          all: t.all,
+        }}
       />
 
       <Table<Group>
         columns={[
-          { key: 'id', label: 'ID', width: '60px', sortable: true },
-          { key: 'name', label: 'Name', sortable: true },
-          { key: 'specialization', label: 'Specialization', sortable: true },
-          { key: 'year', label: 'Well', sortable: true },
-          { key: 'students', label: 'Students', sortable: true },
-          { key: 'curator', label: 'Curator', sortable: true },
-          { key: 'status', label: 'Status', sortable: true },
+          { key: 'id', label: t.columns.id, width: '60px', sortable: true },
+          { key: 'name', label: t.columns.name, sortable: true },
+          { key: 'specialization', label: t.columns.specialization, sortable: true },
+          { key: 'year', label: t.columns.year, sortable: true },
+          { key: 'students', label: t.columns.students, sortable: true },
+          { key: 'curator', label: t.columns.curator, sortable: true },
+          { key: 'status', label: t.columns.status, sortable: true },
         ]}
         data={filteredAndSortedData}
         onEdit={handleEdit}

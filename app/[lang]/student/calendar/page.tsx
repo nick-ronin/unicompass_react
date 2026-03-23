@@ -121,6 +121,7 @@ export default function CalendarPage() {
                 <div>
                     <Schedule 
                         date={selectedDate}
+                        lang={lang}
                     />
                 </div>
             </div>

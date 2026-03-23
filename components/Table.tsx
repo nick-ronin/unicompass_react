@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface TableProps<T> {
   columns: Array<{
@@ -19,6 +19,9 @@ interface TableProps<T> {
   sortDirection?: 'asc' | 'desc';
   onSort?: (column: string, direction: 'asc' | 'desc') => void;
   lang?: 'ru' | 'en';
+  onRowClick?: (item: T) => void;
+  enableSelection?: boolean;
+  onSelectionChange?: (selectedIds: Array<string | number>) => void;
 }
 
 export default function Table<T extends { id: string | number }>({
@@ -34,6 +37,9 @@ export default function Table<T extends { id: string | number }>({
   sortDirection = 'asc',
   onSort,
   lang = 'ru',
+  onRowClick,
+  enableSelection = false,
+  onSelectionChange,
 }: TableProps<T>) {
   const translations = {
     ru: {
@@ -58,6 +64,10 @@ export default function Table<T extends { id: string | number }>({
 
   const t = translations[lang] || translations.ru;
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
+
+  useEffect(() => {
+    onSelectionChange?.(selectedRows);
+  }, [selectedRows, onSelectionChange]);
 
   const handleColumnSort = (columnKey: string, sortable?: boolean) => {
     if (!sortable || !onSort) return;
@@ -85,10 +95,10 @@ export default function Table<T extends { id: string | number }>({
 
   if (isLoading) {
     return (
-      <div className='overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700'>
+      <div className='overflow-x-auto rounded-lg'>
         <div className='p-6 space-y-3 animate-pulse'>
           {[1, 2, 3].map(i => (
-            <div key={i} className='h-12 bg-gray-300 dark:bg-gray-700 rounded'></div>
+            <div key={i} className='h-12 bg-light-blue-gray dark:bg-medium-blue-gray rounded'></div>
           ))}
         </div>
       </div>
@@ -97,12 +107,12 @@ export default function Table<T extends { id: string | number }>({
 
   if (error) {
     return (
-      <div className='overflow-x-auto rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20 p-6'>
-        <p className='text-red-600 dark:text-red-400 mb-4'>{t.error} {error}</p>
+      <div className='overflow-x-auto rounded-lg border border-dark-orange dark:border-dark-red bg-light-orange dark:bg-dark-red/30 p-6'>
+        <p className='text-dark-gray dark:text-white mb-4'>{t.error} {error}</p>
         {onRetry && (
           <button
             onClick={onRetry}
-            className='px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors'
+            className='px-4 py-2 bg-dark-orange text-white rounded hover:bg-orange transition-colors cursor-pointer'
           >
             {t.retry}
           </button>
@@ -113,32 +123,32 @@ export default function Table<T extends { id: string | number }>({
 
   if (data.length === 0) {
     return (
-      <div className='overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-6 text-center'>
-        <p className='text-gray-500 dark:text-gray-400'>{t.empty}</p>
+      <div className='overflow-x-auto rounded-lg bg-light-blue-gray dark:bg-dark-gray p-6 text-center'>
+        <p className='text-medium-blue-gray dark:text-light-blue-gray'>{t.empty}</p>
       </div>
     );
   }
 
   return (
-    <div className={`overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`overflow-x-auto rounded-lg ${className}`}>
       <table className='w-full'>
-        <thead className='bg-gray-50 dark:bg-gray-900'>
+        <thead className='bg-light-blue-gray dark:bg-dark-gray'>
           <tr>
-            {(onEdit || onDelete) && (
-              <th className='px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 w-8'>
+            {(onEdit || onDelete || enableSelection) && (
+              <th className='px-6 py-3 text-left text-sm font-semibold text-dark-gray dark:text-white w-8'>
                 <input
                   type='checkbox'
                   onChange={handleSelectAll}
                   checked={selectedRows.length === data.length && data.length > 0}
-                  className='w-4 h-4 rounded border-gray-300 dark:border-gray-600'
+                  className='w-4 h-4 rounded cursor-pointer'
                 />
               </th>
             )}
             {columns.map((column) => (
               <th
                 key={String(column.key)}
-                className={`px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 ${
-                  column.sortable && onSort ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' : ''
+                className={`px-6 py-3 text-left text-sm font-semibold text-dark-gray dark:text-white ${
+                  column.sortable && onSort ? 'cursor-pointer hover:bg-light-blue-gray dark:hover:bg-dark-gray' : ''
                 }`}
                 style={{ width: column.width }}
                 onClick={() => handleColumnSort(String(column.key), column.sortable)}
@@ -146,7 +156,7 @@ export default function Table<T extends { id: string | number }>({
                 <div className='flex items-center gap-2'>
                   {column.label}
                   {column.sortable && onSort && (
-                    <span className='text-gray-400 dark:text-gray-500 text-xs'>
+                    <span className='text-medium-blue-gray dark:text-light-blue-gray text-xs'>
                       {sortColumn === String(column.key) ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅'}
                     </span>
                   )}
@@ -154,34 +164,38 @@ export default function Table<T extends { id: string | number }>({
               </th>
             ))}
             {(onEdit || onDelete) && (
-              <th className='px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700'>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-dark-gray dark:text-white'>
                 {t.actions}
               </th>
             )}
           </tr>
         </thead>
-        <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
+        <tbody className=''>
           {data.map((item, index) => (
             <tr
               key={item.id}
-              className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'
-              } ${selectedRows.includes(item.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+              className={`hover:bg-light-blue-gray dark:hover:bg-dark-gray transition-colors ${
+                index % 2 === 0 ? 'bg-white dark:bg-surface' : 'bg-light-blue-gray dark:bg-dark-gray/70'
+              } ${selectedRows.includes(item.id) ? 'bg-light-blue-gray dark:bg-dark-cyan/30' : ''}`}
             >
-              {(onEdit || onDelete) && (
+              {(onEdit || onDelete || enableSelection) && (
                 <td className='px-6 py-3 text-sm'>
                   <input
                     type='checkbox'
                     checked={selectedRows.includes(item.id)}
-                    onChange={() => handleSelectRow(item.id)}
-                    className='w-4 h-4 rounded border-gray-300 dark:border-gray-600'
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleSelectRow(item.id);
+                    }}
+                    className='w-4 h-4 rounded cursor-pointer'
                   />
                 </td>
               )}
               {columns.map((column) => (
                 <td
                   key={String(column.key)}
-                  className='px-6 py-3 text-sm text-gray-700 dark:text-gray-300'
+                  onClick={onRowClick ? () => onRowClick(item) : undefined}
+                  className={`px-6 py-3 text-sm text-dark-gray dark:text-light-blue-gray ${onRowClick ? 'cursor-pointer' : ''}`}
                   style={{ width: column.width }}
                 >
                   {column.render ? column.render(item[column.key], item) : String(item[column.key])}
@@ -191,16 +205,22 @@ export default function Table<T extends { id: string | number }>({
                 <td className='px-6 py-3 text-sm flex gap-2'>
                   {onEdit && (
                     <button
-                      onClick={() => onEdit(item)}
-                      className='text-blue-600 dark:text-blue-400 hover:underline font-medium'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                      }}
+                      className='text-dark-cyan dark:text-cyan hover:underline font-medium cursor-pointer'
                     >
                       {t.edit}
                     </button>
                   )}
                   {onDelete && (
                     <button
-                      onClick={() => onDelete(item)}
-                      className='text-red-600 dark:text-red-400 hover:underline font-medium'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item);
+                      }}
+                      className='text-dark-orange dark:text-orange hover:underline font-medium cursor-pointer'
                     >
                       {t.delete}
                     </button>

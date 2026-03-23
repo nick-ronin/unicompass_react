@@ -65,6 +65,7 @@ export default function TaskCard({
                 today: 'Сегодня',
                 tomorrow: 'Завтра',
                 days: (n: number) => `${n} дн.`,
+                none: 'Без дедлайна',
             },
             confirm: 'Подтвердить',
         },
@@ -79,6 +80,7 @@ export default function TaskCard({
                 today: 'Today',
                 tomorrow: 'Tomorrow',
                 days: (n: number) => `${n} days`,
+                none: 'No deadline',
             },
             confirm: 'Confirm',
         },
@@ -122,7 +124,15 @@ export default function TaskCard({
 
     // Calculate days until deadline
     const getDeadlineInfo = () => {
+        if (!deadline) {
+            return { text: t.deadline.none, badge: 'bg-white bg-opacity-30 text-white' };
+        }
+
         const deadlineDate = new Date(deadline);
+        if (Number.isNaN(deadlineDate.getTime())) {
+            return { text: t.deadline.none, badge: 'bg-white bg-opacity-30 text-white' };
+        }
+
         const today = new Date();
         const timeDiff = deadlineDate.getTime() - today.getTime();
         const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
@@ -133,6 +143,20 @@ export default function TaskCard({
         if (daysDiff <= 7) return { text: t.deadline.days(daysDiff), badge: 'bg-orange text-white' };
         return { text: t.deadline.days(daysDiff), badge: 'bg-white bg-opacity-30 text-white' };
     };
+
+    const formattedDeadline = (() => {
+        if (!deadline) return t.deadline.none;
+
+        const date = new Date(deadline);
+        if (Number.isNaN(date.getTime())) return deadline;
+
+        const locale = lang === 'en' ? 'en-US' : 'ru-RU';
+        return date.toLocaleDateString(locale, {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    })();
 
     const deadlineInfo = getDeadlineInfo();
     const config = statusConfigMap[currentStatus];
@@ -187,7 +211,7 @@ export default function TaskCard({
                 <div className='flex items-center justify-between mb-4 px-3 py-2'>
                     <div className='flex items-center gap-2'>
                         <span className='material-symbols-outlined text-base text-white'>calendar_today</span>
-                        <span className='text-xs text-white opacity-80'>{deadline}</span>
+                        <span className='text-xs text-white opacity-80'>{formattedDeadline}</span>
                     </div>
                     <span className={cn('text-xs font-bold px-3 py-1 rounded-full', deadlineInfo.badge)}>
                         {deadlineInfo.text}

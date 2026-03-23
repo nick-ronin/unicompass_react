@@ -129,7 +129,7 @@ export default function AdminHomePage() {
   const recentActivity = t.recentActivity;
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-background to-surface-secondary/30'>
+    <div className='min-h-screen'>
       {/* Heroic Banner */}
       <div className='relative overflow-hidden mb-8'>
         <div className='absolute inset-0 bg-linear-to-r from-dark-cyan via-cyan to-light-green opacity-95'></div>

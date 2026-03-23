@@ -1,11 +1,11 @@
 'use client';
 
 import Table from '@/components/Table';
-import TableControls, { SortOption, FilterOption } from '@/components/TableControls';
+import TableControls from '@/components/TableControls';
 import StudentProfileModal from '@/components/StudentProfileModal';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 
 const translations = {
   en: {
@@ -20,6 +20,13 @@ const translations = {
     loadingData: 'Loading data...',
     errorPrefix: '⚠️ Error',
     studentsNotFound: 'Students not found',
+    filters: 'Filters',
+    reset: 'Reset',
+    sortingBy: 'Sorting by...',
+    all: 'All',
+    deleteSelected: 'Delete selected',
+    deleting: 'Deleting...',
+    updated: 'Student data refreshed',
     columns: {
       id: 'ID',
       firstName: 'First name',
@@ -46,6 +53,13 @@ const translations = {
     loadingData: 'Загрузка данных...',
     errorPrefix: '⚠️ Ошибка',
     studentsNotFound: 'Студенты не найдены',
+    filters: 'Фильтры',
+    reset: 'Сбросить',
+    sortingBy: 'Сортировать по...',
+    all: 'Все',
+    deleteSelected: 'Удалить выбранных',
+    deleting: 'Удаляем...',
+    updated: 'Данные студента обновлены',
     columns: {
       id: 'ID',
       firstName: 'Имя',
@@ -91,55 +105,68 @@ export default function StudentsTablePage() {
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [selectedIds, setSelectedIds] = useState<Array<string | number>>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // ПрофAndль student
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/student/full_info_list');
-        
-        if (!response.ok) {
-          throw new Error(t.fetchError(response.status));
-        }
-        
-        const data = await response.json();
-        
-        const formattedStudents = (Array.isArray(data) ? data : data.results || []).map(
-          (student: any, index: number) => ({
-            id: student.id?.toString() || (index + 1).toString(),
-            first_name: student.first_name || '',
-            last_name: student.last_name || '',
-            patronymic: student.patronymic || '',
-            age: student.age?.toString() || '',
-            citizenship: student.citizenship || '',
-            login: student.login || '',
-            password: '••••••••',
-            date_of_birth: student.date_of_birth || '',
-            passport: student.passport || '',
-            address: student.address || '',
-            email: student.email || '',
-            phone_number: student.phone_number || '',
-          })
-        );
-        
-        setStudents(formattedStudents);
-        setError(null);
-      } catch (err) {
-        console.error('ОшAndбToа прAnd loading students:', err);
-        setError(err instanceof Error ? err.message : t.unknownError);
-      } finally {
-        setLoading(false);
+  const fetchStudents = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/student/full_info_list');
+
+      if (!response.ok) {
+        throw new Error(t.fetchError(response.status));
       }
-    };
 
+      const data = await response.json();
+
+      const formattedStudents = (Array.isArray(data) ? data : data.results || []).map(
+        (student: any, index: number) => ({
+          id: student.id?.toString() || (index + 1).toString(),
+          first_name: student.first_name || '',
+          last_name: student.last_name || '',
+          patronymic: student.patronymic || '',
+          age: student.age?.toString() || '',
+          citizenship: student.citizenship || '',
+          login: student.login || '',
+          password: '••••••••',
+          date_of_birth: student.date_of_birth || '',
+          passport: student.passport || '',
+          address: student.address || '',
+          email: student.email || '',
+          phone_number: student.phone_number || '',
+        })
+      );
+
+      setStudents(formattedStudents);
+      setError(null);
+    } catch (err) {
+      console.error('ОшAndбToа прAnd loading students:', err);
+      setError(err instanceof Error ? err.message : t.unknownError);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [fetchStudents]);
 
-  // ПолученAndе унAndToальных значенAndй For фAndльтров
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+  };
+
+  // Получение унAndToальных значенAndй For фAndльтров
   const uniqueCitizenships = useMemo(
     () => [...new Set(students.map(s => s.citizenship))].filter(Boolean).sort(),
     [students]
@@ -202,18 +229,6 @@ export default function StudentsTablePage() {
     setIsProfileModalOpen(true);
   };
 
-  const handleDelete = (student: Student) => {
-    console.log('Delete student:', student);
-  };
-
-  const sortOptions: SortOption[] = [
-    { key: 'first_name', label: t.columns.firstName },
-    { key: 'last_name', label: t.columns.lastName },
-    { key: 'age', label: t.columns.age },
-    { key: 'citizenship', label: t.columns.citizenship },
-    { key: 'email', label: t.columns.email },
-  ];
-
   const filterOptions = [
     {
       name: 'citizenship',
@@ -258,22 +273,53 @@ export default function StudentsTablePage() {
       ) : (
         <>
           <div className='mb-6'>
-            <button className='bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors'>
+            <button className='bg-cyan hover:bg-cyan/80 dark:bg-dark-cyan dark:hover:bg-dark-cyan/80 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer'>
               {t.addStudent}
             </button>
+            {selectedIds.length > 0 && (
+              <button
+                className='ml-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-60'
+                disabled={isDeleting}
+                onClick={async () => {
+                  try {
+                    setIsDeleting(true);
+                      const requests = selectedIds.map((id) => fetch(`/api/student/${id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_deleted: true }),
+                      }));
+                    const results = await Promise.all(requests);
+                    const failed = results.find(r => !r.ok);
+                    if (failed) {
+                      throw new Error(`${t.errorPrefix} ${failed.status}`);
+                    }
+                    setStudents(prev => prev.filter(s => !selectedIds.includes(s.id)));
+                    setSelectedIds([]);
+                  } catch (err) {
+                    console.error('Bulk delete error:', err);
+                    setError(err instanceof Error ? err.message : t.unknownError);
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+              >
+                {isDeleting ? t.deleting : t.deleteSelected}
+              </button>
+            )}
           </div>
 
           <TableControls
             searchPlaceholder={t.searchPlaceholder}
-            sortOptions={sortOptions}
             filterOptions={filterOptions}
             onSearch={setSearchQuery}
-            onSort={(key, direction) => {
-              setSortColumn(key);
-              setSortDirection(direction);
-            }}
             onFilter={setFilters}
             resultCount={filteredAndSortedData.length}
+            labels={{
+              filters: t.filters,
+              reset: t.reset,
+              found: t.resultCount,
+              all: t.all,
+            }}
           />
 
           <Table<Student>
@@ -290,14 +336,16 @@ export default function StudentsTablePage() {
               { key: 'address', label: t.columns.address },
             ]}
             data={filteredAndSortedData}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={(column, direction) => {
               setSortColumn(column);
               setSortDirection(direction);
             }}
+            onRowClick={handleEdit}
+            lang={lang as 'ru' | 'en'}
+            enableSelection
+            onSelectionChange={setSelectedIds}
           />
         </>
       )}
@@ -306,7 +354,26 @@ export default function StudentsTablePage() {
         isOpen={isProfileModalOpen}
         studentId={selectedStudentId}
         onClose={() => setIsProfileModalOpen(false)}
+        lang={lang as 'ru' | 'en'}
+        onDeleted={(id) => {
+          setStudents((prev) => prev.filter((s) => s.id !== id));
+          setSelectedIds((prev) => prev.filter((sid) => sid !== id));
+        }}
+        onSaved={async () => {
+          await fetchStudents();
+          showToast(t.updated, 'success');
+        }}
       />
+
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

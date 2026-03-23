@@ -6,6 +6,8 @@ import LanguageToggle from './LanguageToggle';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
 
 interface HeaderProps {
   lang?: string;
@@ -38,6 +40,14 @@ export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
   const base = `/${lang}/${role}`;
   const pathname = usePathname();
   const isProfilePage = pathname === `${base}/profile`;
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const isDark = mounted && resolvedTheme === 'dark';
+  const aLogoSrc = isDark ? '/logo/a+white.png' : '/logo/a+black.png';
+  const rosmolLogoSrc = isDark ? '/rosmol-white.png' : '/rosmol-black.png';
 
   const navigationLinks = role === 'admin' 
     ? [
@@ -59,10 +69,10 @@ export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
     <header className='py-4 px-12 bg-white dark:bg-surface text-black dark:text-white flex flex-row justify-between items-center'>
       <div className='flex gap-11 flex-row items-center text-xl'>
         <Link href={base}>
-          <Image src='/logo/a+.png' alt='A+ Logo' width={120} height={40} />
+          <Image src={aLogoSrc} alt='A+ Logo' width={120} height={40} />
         </Link>
         <Link href='https://fadm.gov.ru/directions/grant/'>
-          <Image src='/rosmol-black.png' alt='rosmol-black' width={120} height={40} />
+          <Image src={rosmolLogoSrc} alt='Rosmol Logo' width={120} height={40} />
         </Link>
         <div className='inline-block h-8 w-px bg-medium-blue-gray'></div>
         {navigationLinks.map((link) => (

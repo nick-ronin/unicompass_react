@@ -83,10 +83,10 @@ export default function AdminTablesPage() {
   return (
     <div className='px-6 md:px-12 lg:px-48 py-8'>
       <div className='mb-8'>
-        <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white mb-2'>
+        <h1 className='text-4xl font-extrabold text-dark-gray dark:text-white mb-2'>
           {t.title}
         </h1>
-        <p className='text-gray-600 dark:text-gray-300'>
+        <p className='text-medium-blue-gray dark:text-light-blue-gray'>
           {t.subtitle}
         </p>
       </div>
