@@ -79,27 +79,12 @@ const translations = {
       { label: 'Новое событие', icon: 'event', color: 'from-yellow/10 to-orange/10', border: 'border-yellow/30 hover:border-yellow/60' },
       { label: 'Документы', icon: 'description', color: 'from-orange/10 to-dark-orange/10', border: 'border-orange/30 hover:border-orange/60' },
     ],
-    needHelpTitle: 'Нужна помощь',
-    allAppeals: 'Все обращения',
-    help: 'Помочь',
-    urgentIssues: [
-      { student: 'Мария Иванова', issue: 'Нужна помощь с жильём', priority: 'high', icon: 'apartment' },
-      { student: 'Али Мохаммед', issue: 'Проблема с постановкой на миграционный учёт', priority: 'high', icon: 'assignment' },
-      { student: 'Юлия Петрова', issue: 'Требуется социальная стипендия', priority: 'medium', icon: 'card_giftcard' },
-      { student: 'Томас Браун', issue: 'Продление визы — нужна справка из деканата', priority: 'high', icon: 'travel_explore' },
-    ],
     activeCuratorsTitle: 'Активные кураторы',
     studentsLabel: 'студентов',
     activeCurators: [
       { name: 'Елена Сергеевна Козлова', students: 68, rating: 4.9, icon: '👩‍🏫' },
       { name: 'Иван Николаевич Волков', students: 52, rating: 4.8, icon: '👨‍🏫' },
       { name: 'Ольга Петровна Смирнова', students: 45, rating: 4.7, icon: '👩‍🏫' },
-    ],
-    integrationEventsTitle: 'Интеграционные события',
-    events: [
-      { date: '22.03', event: 'Консультация по подготовке документов', time: '11:00' },
-      { date: '24.03', event: 'Знакомство с городом — экскурсия', time: '14:00' },
-      { date: '26.03', event: 'Встреча с иностранными студентами', time: '16:00' },
     ],
     todayStatsTitle: 'Статистика за сегодня',
     todayStats: [
@@ -123,9 +108,7 @@ export default function AdminHomePage() {
   const lang = (params?.lang as Lang) || 'ru';
   const t = translations[lang] || translations.ru;
   const analytics = t.analytics;
-  const urgentIssues = t.urgentIssues;
   const activeCurators = t.activeCurators;
-  const events = t.events;
   const recentActivity = t.recentActivity;
 
   return (
@@ -200,47 +183,6 @@ export default function AdminHomePage() {
                 ))}
               </div>
             </div>
-
-            {/* Urgent questions students */}
-            <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-md'>
-              <div className='flex items-center justify-between mb-6'>
-                <h2 className='text-2xl font-bold'>{t.needHelpTitle}</h2>
-                <Button className='text-cyan hover:text-dark-cyan transition-colors'>
-                  {t.allAppeals}
-                  <span className='material-symbols-outlined'>arrow_forward</span>
-                </Button>
-              </div>
-              
-              <div className='space-y-3'>
-                {urgentIssues.map((issue, index) => (
-                  <div 
-                    key={index}
-                    className={`flex items-center justify-between p-4 rounded-2xl border-l-4 ${
-                      issue.priority === 'high' 
-                        ? 'bg-orange/5 border-orange' 
-                        : 'bg-yellow/5 border-yellow'
-                    } hover:shadow-md transition-all cursor-pointer group`}
-                  >
-                    <div className='flex items-center gap-3 flex-1 min-w-0'>
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        issue.priority === 'high' ? 'bg-orange/20' : 'bg-yellow/20'
-                      }`}>
-                        <span className={`material-symbols-outlined text-sm ${
-                          issue.priority === 'high' ? 'text-orange' : 'text-yellow'
-                        }`}>{issue.icon}</span>
-                      </div>
-                      <div className='min-w-0'>
-                        <p className='font-semibold text-sm'>{issue.student}</p>
-                        <p className='text-xs text-foreground/60 truncate'>{issue.issue}</p>
-                      </div>
-                    </div>
-                    <Button className='text-xs bg-transparent hover:bg-foreground/10 text-foreground/70 px-3 py-1 transition-colors'>
-                      {t.help}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right column */}
@@ -267,22 +209,6 @@ export default function AdminHomePage() {
                         {curator.rating}
                       </span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Events and programs */}
-            <div className='bg-linear-to-br from-light-green/10 to-cyan/10 rounded-3xl p-6 border border-light-green/30'>
-              <h3 className='text-lg font-bold mb-4 flex items-center gap-2'>
-                <span className='material-symbols-outlined text-light-green'>event_note</span>
-                {t.integrationEventsTitle}
-              </h3>
-              <div className='space-y-3'>
-                {events.map((evt, index) => (
-                  <div key={index} className='p-3 bg-white/50 dark:bg-surface/50 rounded-xl'>
-                    <p className='text-sm font-bold text-cyan'>{evt.date} • {evt.time}</p>
-                    <p className='text-sm text-foreground mt-1'>{evt.event}</p>
                   </div>
                 ))}
               </div>

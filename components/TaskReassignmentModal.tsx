@@ -141,12 +141,16 @@ export default function TaskReassignmentModal({
   }, [isOpen, preSelectedTaskId]);
 
   useEffect(() => {
-    if (isOpen && selectedTaskId) {
-      fetchAssignedStudents(selectedTaskId);
-    } else {
-      setPreAssignedStudents([]);
-    }
-  }, [isOpen, selectedTaskId]);
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const fetchData = async () => {
     try {
@@ -195,7 +199,6 @@ export default function TaskReassignmentModal({
       const response = await fetch(`/student_task/task/${taskId}`);
       if (!response.ok) {
         setPreAssignedStudents([]);
-        setSelectedStudents([]);
         return;
       }
 
@@ -205,13 +208,20 @@ export default function TaskReassignmentModal({
         .filter(Boolean);
 
       setPreAssignedStudents(assignedIds);
-      setSelectedStudents(assignedIds);
     } catch (err) {
       console.error('Error loading assigned students:', err);
     } finally {
       setAssignedLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isOpen || !selectedTaskId) {
+      setPreAssignedStudents([]);
+      return;
+    }
+    fetchAssignedStudents(selectedTaskId);
+  }, [isOpen, selectedTaskId]);
 
   // Get unique values for filters
   const uniqueCitizenships = useMemo(
@@ -280,7 +290,6 @@ export default function TaskReassignmentModal({
   const handleAssignmentTypeChange = (type: AssignmentType) => {
     setAssignmentType(type);
     setSelectedFilter('');
-    setSelectedStudents(preAssignedStudents);
   };
 
   const toggleStudent = (studentId: string | number) => {
@@ -292,10 +301,11 @@ export default function TaskReassignmentModal({
   const selectAllFiltered = () => {
     const filteredIds = filteredStudents.map((s) => s.id);
     const hasAll = filteredIds.every((id) => selectedStudents.includes(id));
+
     if (hasAll) {
-      setSelectedStudents(preAssignedStudents);
+      setSelectedStudents((prev) => prev.filter((id) => !filteredIds.includes(id)));
     } else {
-      setSelectedStudents(Array.from(new Set([...preAssignedStudents, ...filteredIds])));
+      setSelectedStudents((prev) => Array.from(new Set([...prev, ...filteredIds])));
     }
   };
 
@@ -398,7 +408,6 @@ export default function TaskReassignmentModal({
                 value={selectedFilter}
                 onChange={(e) => {
                   setSelectedFilter(e.target.value);
-                  setSelectedStudents(preAssignedStudents);
                 }}
                 className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white focus:outline-none focus:ring-2 ${
                   errors.filter ? 'border-dark-orange ring-dark-orange' : 'border-light-blue-gray dark:border-medium-blue-gray focus:ring-dark-cyan'

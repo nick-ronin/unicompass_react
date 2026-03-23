@@ -28,7 +28,7 @@ export default function AdminTasksPage() {
   const lang = (params?.lang as string) || 'ru';
   const translations = {
     ru: {
-      title: 'Задачи адаптации',
+      title: 'Все задачи',
       subtitle: (count: number, loading: boolean) => (loading ? 'Загрузка...' : `Всего задач: ${count}`),
       search: 'Поиск по названию...',
       create: '+ Создать новую задачу',
@@ -52,7 +52,7 @@ export default function AdminTasksPage() {
       saving: 'Сохранение...'
     },
     en: {
-      title: 'Adaptation tasks',
+      title: 'All tasks',
       subtitle: (count: number, loading: boolean) => (loading ? 'Loading...' : `All tasks: ${count}`),
       search: 'Search by name...',
       create: '+ Create a new task',
@@ -89,6 +89,7 @@ export default function AdminTasksPage() {
   const [selectedTaskForAssign, setSelectedTaskForAssign] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editFormData, setEditFormData] = useState({ name: '', description: '' });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -125,6 +126,28 @@ export default function AdminTasksPage() {
     fetchTasks();
   }, []);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!isEditModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsEditModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isEditModalOpen]);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+  };
+
   // Filtersearch function
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
@@ -152,7 +175,7 @@ export default function AdminTasksPage() {
 
   const handleTaskEdit = async () => {
     if (!editingTask || !editFormData.name.trim() || !editFormData.description.trim()) {
-      alert(t.fillAll);
+      showToast(t.fillAll, 'error');
       return;
     }
 
@@ -183,10 +206,10 @@ export default function AdminTasksPage() {
 
       setIsEditModalOpen(false);
       setEditingTask(null);
-      alert(t.updated);
+      showToast(t.updated, 'success');
     } catch (err) {
       console.error('Error editing task:', err);
-      alert(err instanceof Error ? err.message : 'Error editing task');
+      showToast(err instanceof Error ? err.message : 'Error editing task', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -254,10 +277,10 @@ export default function AdminTasksPage() {
         setTasks(formattedTasks);
       }
 
-      alert(t.created);
+      showToast(t.created, 'success');
     } catch (err) {
       console.error('Error when creating and assigning a task:', err);
-      alert(err instanceof Error ? err.message : 'Error creating task');
+      showToast(err instanceof Error ? err.message : 'Error creating task', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -296,10 +319,10 @@ export default function AdminTasksPage() {
       // Close modal
       setIsReassignModalOpen(false);
       setSelectedTaskForAssign(null);
-      alert(t.assignDone(studentIds.length));
+      showToast(t.assignDone(studentIds.length), 'success');
     } catch (err) {
       console.error('Error when assigning a task:', err);
-      alert(err instanceof Error ? err.message : 'Error when assigning a task');
+      showToast(err instanceof Error ? err.message : 'Error when assigning a task', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -474,7 +497,7 @@ export default function AdminTasksPage() {
                   type='text'
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className='w-full px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray rounded-lg bg-white dark:bg-gray-700 text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
+                  className='w-full px-4 py-2 rounded-lg bg-white dark:bg-surface-secondary text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
                   placeholder={t.namePlaceholder}
                 />
               </div>
@@ -488,7 +511,7 @@ export default function AdminTasksPage() {
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                   rows={4}
-                  className='w-full px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray rounded-lg bg-white dark:bg-gray-700 text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
+                  className='w-full px-4 py-2 rounded-lg bg-white dark:bg-surface-secondary text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
                   placeholder={t.descriptionPlaceholder}
                 />
               </div>
@@ -514,6 +537,16 @@ export default function AdminTasksPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
+          {toast.message}
         </div>
       )}
     </div>

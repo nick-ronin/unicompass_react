@@ -18,9 +18,79 @@ interface ScheduleProps {
     className?: string;
     useApiData?: boolean; // If true, fetch data from API
     lang?: 'ru' | 'en';
+    timeZone?: 'Asia/Novosibirsk' | 'Europe/Moscow';
 }
 
-export default function Schedule({ date, items, className = '', useApiData = false, lang = 'ru' }: ScheduleProps) {
+const parseTimeRangeToMinutes = (range: string): { start: number; end: number } | null => {
+    const [startStr, endStr] = range.split('-').map((part) => part?.trim());
+    if (!startStr || !endStr) return null;
+
+    const parsePart = (value: string) => {
+        const [hoursStr, minutesStr] = value.split(':');
+        const hours = Number(hoursStr);
+        const minutes = Number(minutesStr);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+        return hours * 60 + minutes;
+    };
+
+    const start = parsePart(startStr);
+    const end = parsePart(endStr);
+    if (start == null || end == null) return null;
+    return { start, end };
+};
+
+const getNowMinutesInTimeZone = (timeZone: string): number | null => {
+    try {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone,
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        const parts = formatter.formatToParts(new Date());
+        const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '');
+        const minute = Number(parts.find((p) => p.type === 'minute')?.value ?? '');
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+        return hour * 60 + minute;
+    } catch (_err) {
+        return null;
+    }
+};
+
+const getDatePartsInTimeZone = (date: Date, timeZone: string): { year: number; month: number; day: number } | null => {
+    try {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+        const parts = formatter.formatToParts(date);
+        const year = Number(parts.find((p) => p.type === 'year')?.value ?? '');
+        const month = Number(parts.find((p) => p.type === 'month')?.value ?? '');
+        const day = Number(parts.find((p) => p.type === 'day')?.value ?? '');
+        if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return null;
+        return { year, month, day };
+    } catch (_err) {
+        return null;
+    }
+};
+
+const isSameDayInTimeZone = (a: Date, b: Date, timeZone: string): boolean => {
+    const aParts = getDatePartsInTimeZone(a, timeZone);
+    const bParts = getDatePartsInTimeZone(b, timeZone);
+    if (!aParts || !bParts) return false;
+    return aParts.year === bParts.year && aParts.month === bParts.month && aParts.day === bParts.day;
+};
+
+export default function Schedule({
+    date,
+    items,
+    className = '',
+    useApiData = false,
+    lang = 'ru',
+    timeZone = 'Asia/Novosibirsk',
+}: ScheduleProps) {
     const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
     const { data: apiSchedule, loading, error } = useApiData ? useScheduleByDate(dateStr) : { data: null, loading: false, error: null };
 
@@ -115,6 +185,25 @@ export default function Schedule({ date, items, className = '', useApiData = fal
         displayItems = defaultItems[lang] || defaultItems.ru;
     }
 
+    const effectiveTimeZone = timeZone || 'Asia/Novosibirsk';
+    const isTodayInTz =
+        isSameDayInTimeZone(new Date(), date, effectiveTimeZone) ||
+        isSameDayInTimeZone(new Date(), date, 'Europe/Moscow');
+
+    const nowMinutes = isTodayInTz
+        ? getNowMinutesInTimeZone(effectiveTimeZone) ?? getNowMinutesInTimeZone('Europe/Moscow')
+        : null;
+
+    const computedItems = displayItems.map((item) => {
+        if (nowMinutes == null) return { ...item, isCurrent: false };
+        const range = parseTimeRangeToMinutes(item.time);
+        const isCurrent = range ? nowMinutes >= range.start && nowMinutes <= range.end : false;
+        return { ...item, isCurrent };
+    });
+
+    const hasCurrent = computedItems.some((item) => item.isCurrent);
+    const itemsWithCurrent = hasCurrent ? computedItems : computedItems.map((item) => ({ ...item, isCurrent: false }));
+
     if (loading) {
         return (
             <div className={cn('p-4 bg-surface dark:bg-surface rounded-lg', className)}>
@@ -166,8 +255,8 @@ export default function Schedule({ date, items, className = '', useApiData = fal
             </div>
 
             <div className='flex flex-col gap-3'>
-                {displayItems.length > 0 ? (
-                    displayItems.map((item) => (
+                {itemsWithCurrent.length > 0 ? (
+                    itemsWithCurrent.map((item) => (
                         <div
                             key={item.id}
                             className={cn(

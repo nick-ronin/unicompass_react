@@ -157,6 +157,22 @@ export default function LoginPage() {
         })
       );
 
+      // Pull fresh avatar right after login so header has it immediately
+      if (studentId) {
+        try {
+          const avatarRes = await fetch(`/api/files/upload-avatar/${studentId}`);
+          if (avatarRes.ok) {
+            const avatarData = await avatarRes.json().catch(() => ({}));
+            const avatarUrl = avatarData.file_url || avatarData.url || null;
+            if (avatarUrl) {
+              localStorage.setItem('studentAvatarUrl', avatarUrl);
+            }
+          }
+        } catch (avatarErr) {
+          console.warn('Avatar fetch after login failed', avatarErr);
+        }
+      }
+
       router.push(`/${currentLang}/student`);
     } catch (err) {
       console.error('Login error:', err);

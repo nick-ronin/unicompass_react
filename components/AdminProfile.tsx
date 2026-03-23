@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from './Button';
 import InputField from './Input Field';
 import Image from 'next/image';
@@ -32,6 +33,8 @@ const translations = {
     lastName: 'Фамилия',
     email: 'Email',
     phone: 'Телефон',
+    logout: 'Выйти из аккаунта',
+    loggingOut: 'Выходим...',
     error: 'Ошибка:',
   },
   en: {
@@ -44,17 +47,23 @@ const translations = {
     lastName: 'Last name',
     email: 'Email',
     phone: 'Phone',
+    logout: 'Log out',
+    loggingOut: 'Signing out...',
     error: 'Error:',
   },
 };
 
 export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfileProps) {
   const t = translations[lang] || translations.ru;
+  const router = useRouter();
   const { data: currentUser, loading: userLoading } = useCurrentUser();
   const { updateUser, loading: updateLoading, error: updateError } = useUpdateUser(userId || currentUser?.id || '');
   
   const [isEditing, setIsEditing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   
   const [profileData, setProfileData] = useState<AdminProfileData>({
     firstName: 'Ivan',
@@ -66,6 +75,16 @@ export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfi
 
   const [tempData, setTempData] = useState<AdminProfileData>(profileData);
 
+  const avatarPreview = useMemo(() => {
+    if (avatarFile) return URL.createObjectURL(avatarFile);
+    return avatarUrl;
+  }, [avatarFile, avatarUrl]);
+
+  useEffect(() => {
+    const storedAvatar = localStorage.getItem('adminAvatarUrl');
+    if (storedAvatar) setAvatarUrl(storedAvatar);
+  }, []);
+
   // Load user data when it's fetched
   useEffect(() => {
     if (currentUser) {
@@ -75,18 +94,51 @@ export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfi
         email: currentUser.email,
         phone: currentUser.phone || '',
       });
+      if (currentUser.avatar) {
+        setAvatarUrl(currentUser.avatar);
+        localStorage.setItem('adminAvatarUrl', currentUser.avatar);
+      }
     }
   }, [currentUser]);
 
+  useEffect(() => () => {
+    if (avatarFile) URL.revokeObjectURL(avatarPreview || '');
+  }, [avatarFile, avatarPreview]);
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (!currentUser?.id) return;
+      try {
+        const response = await fetch(`/api/files/upload-avatar/${currentUser.id}`);
+        if (!response.ok) return;
+
+        const data = await response.json().catch(() => ({}));
+        const url = data.file_url || data.url || null;
+        if (url) {
+          setAvatarUrl(url);
+          localStorage.setItem('adminAvatarUrl', url);
+        }
+      } catch (err) {
+        console.warn('Admin avatar load skipped:', err);
+      }
+    };
+
+    fetchAvatar();
+  }, [currentUser?.id]);
+
   const handleEditClick = () => {
+    setTempData(profileData);
     if (isEditing) {
-      setTempData(profileData);
+      setAvatarFile(null);
     }
     setIsEditing(!isEditing);
   };
 
   const handleSave = async () => {
     try {
+      const targetUserId = userId || currentUser?.id;
+      if (!targetUserId) return;
+
       const updateData = {
         firstName: tempData.firstName,
         lastName: tempData.lastName,
@@ -94,11 +146,42 @@ export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfi
         phone: tempData.phone,
       };
       await updateUser(updateData as Partial<User>);
+
+      if (avatarFile) {
+        setAvatarUploading(true);
+        const formData = new FormData();
+        formData.append('file', avatarFile);
+
+        const uploadResponse = await fetch(`/api/files/upload-avatar/${targetUserId}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          throw new Error(
+            errorData.detail ||
+            errorData.message ||
+            `Error while uploading avatar: ${uploadResponse.status}`
+          );
+        }
+
+        const uploadData = await uploadResponse.json().catch(() => ({}));
+        const uploadedUrl = uploadData.file_url || uploadData.url || null;
+        if (uploadedUrl) {
+          setAvatarUrl(uploadedUrl);
+          localStorage.setItem('adminAvatarUrl', uploadedUrl);
+        }
+      }
+
       setProfileData(tempData);
       setIsEditing(false);
       onSave?.(tempData);
     } catch (err) {
       console.error('Failed to save profile:', err);
+    } finally {
+      setAvatarUploading(false);
+      setAvatarFile(null);
     }
   };
 
@@ -113,13 +196,40 @@ export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfi
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('File uploaded:', file.name);
-      // Here you can handle the file upload (e.g., send to server)
+      setAvatarFile(file);
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+
+      const storedToken =
+        localStorage.getItem('jwt') ||
+        localStorage.getItem('accessToken') ||
+        localStorage.getItem('token');
+
+      try {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: storedToken
+            ? { Authorization: `Bearer ${storedToken}` }
+            : undefined,
+        });
+      } catch (logoutErr) {
+        console.warn('Admin logout request failed, continuing cleanup', logoutErr);
+      }
+
+      localStorage.removeItem('studentAuth');
+      localStorage.removeItem('studentAvatarUrl');
+      localStorage.removeItem('adminAvatarUrl');
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+    } finally {
+      setIsLoggingOut(false);
+      router.replace(`/${lang}/login`);
+    }
   };
 
   if (userLoading) {
@@ -142,11 +252,27 @@ export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfi
       {/* Summary information */}
       <div>
         <div className='flex flex-row gap-4 items-center mt-8'>
-          <svg width="52" height="53" viewBox="0 0 52 53" fill="none" xmlns="http://www.w3.org/2000/svg" className='text-dark-gray dark:text-white'>
-            <circle cx="26" cy="26" r="24.5" stroke="currentColor" strokeWidth="3"/>
-            <path d="M15.5713 36.5402V48.7668C15.5713 48.7668 17.7959 51.6779 25.8601 51.6779C33.9242 51.6779 36.4269 48.7668 36.4269 48.7668V36.5402C36.4269 33.0469 34.8975 26.9336 25.8601 26.9336C16.8226 26.9336 15.5713 33.1925 15.5713 36.5402Z" fill="currentColor" stroke="currentColor"/>
-            <path d="M26.1396 12.2965C29.5279 12.2965 32.3133 15.1787 32.3135 18.7828C32.3135 22.3871 29.528 25.2701 26.1396 25.2701C22.7513 25.2701 19.9658 22.3871 19.9658 18.7828C19.966 15.1787 22.7514 12.2965 26.1396 12.2965Z" fill="currentColor" stroke="currentColor"/>
-          </svg>
+          <div className='relative w-16 h-16'>
+            <Image
+              src={avatarPreview || '/NoAvatarDefault.svg'}
+              alt='Avatar'
+              width={64}
+              height={64}
+              unoptimized
+              className='rounded-full object-cover'
+            />
+            {isEditing && (
+              <label className='absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-white text-xs cursor-pointer'>
+                <input
+                  type='file'
+                  accept='image/*'
+                  className='hidden'
+                  onChange={handleAvatarUpload}
+                />
+                {avatarUploading ? t.saving : t.edit}
+              </label>
+            )}
+          </div>
           <div className='flex flex-col'>
             <p className='text-2xl font-extrabold text-dark-gray dark:text-white'>{profileData.firstName} {profileData.lastName}</p>
             <p className='text-lg text-dark-gray dark:text-white'>{t.admin}</p>
@@ -155,13 +281,20 @@ export default function AdminProfile({ userId, onSave, lang = 'ru' }: AdminProfi
 
         {/* Editing fields */}
         <div className='flex flex-col'>
-          <div className='flex justify-end'>
+          <div className='flex justify-end gap-3'>
             <Button 
               className='bg-orange text-white hover:bg-dark-orange text-lg dark:bg-orange dark:hover:bg-dark-orange' 
               onClick={handleEditClick}
               disabled={updateLoading}
             >
               {isEditing ? t.cancel : t.edit}
+            </Button>
+            <Button
+              className='bg-red-500 text-white hover:bg-red-600 text-lg'
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? t.loggingOut : t.logout}
             </Button>
           </div>
 

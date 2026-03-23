@@ -59,21 +59,21 @@ interface Course {
   status: string;
 }
 
-const sampleCourses: Course[] = [
+const mockCourses: Course[] = [
   {
     id: '1',
     name: 'Introduction to Programming',
     code: 'CS-101',
-    teacher: 'Associate Professor Sidorova M.V..',
+    teacher: 'Assoc. Prof. Marina Sidorova',
     semester: '1',
     students: '45',
     status: 'Active',
   },
   {
     id: '2',
-    name: 'Object-oriented programming',
+    name: 'Object-Oriented Programming',
     code: 'CS-201',
-    teacher: 'Associate Professor Sidorova M.V..',
+    teacher: 'Assoc. Prof. Marina Sidorova',
     semester: '2',
     students: '38',
     status: 'Active',
@@ -82,37 +82,55 @@ const sampleCourses: Course[] = [
     id: '3',
     name: 'Databases',
     code: 'CS-301',
-    teacher: 'Associate Professor Sidorova M.V..',
+    teacher: 'Assoc. Prof. Diana Kozlova',
     semester: '3',
     students: '32',
     status: 'Active',
   },
   {
     id: '4',
-    name: 'Web development',
-    code: 'CS-302',
-    teacher: 'Assistant Ivanov A.A..',
+    name: 'Web Development',
+    code: 'CS-310',
+    teacher: 'Asst. Alex Ivanov',
     semester: '3',
     students: '40',
     status: 'Active',
   },
   {
     id: '5',
-    name: 'Machine learning',
+    name: 'Machine Learning',
     code: 'CS-401',
-    teacher: 'Professor Petrov I.I..',
+    teacher: 'Prof. Irina Petrova',
     semester: '4',
     students: '28',
     status: 'Planned',
   },
   {
     id: '6',
-    name: 'Computer networks',
-    code: 'CS-302',
-    teacher: 'Associate Professor Kozlov D.E..',
+    name: 'Computer Networks',
+    code: 'CS-320',
+    teacher: 'Assoc. Prof. Diana Kozlova',
     semester: '3',
     students: '35',
     status: 'Active',
+  },
+  {
+    id: '7',
+    name: 'Software Testing',
+    code: 'CS-330',
+    teacher: 'Asst. Pavel Smirnov',
+    semester: '3',
+    students: '30',
+    status: 'Active',
+  },
+  {
+    id: '8',
+    name: 'UI/UX Fundamentals',
+    code: 'DS-210',
+    teacher: 'Lecturer Anna Romanova',
+    semester: '2',
+    students: '42',
+    status: 'Planned',
   },
 ];
 
@@ -120,7 +138,7 @@ export default function CoursesTablePage() {
   const params = useParams();
   const lang = params.lang as string;
   const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
-  const [courses] = useState<Course[]>(sampleCourses);
+  const [courses] = useState<Course[]>(mockCourses);
 
   // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -139,7 +157,7 @@ export default function CoursesTablePage() {
     [courses]
   );
 
-  // Filtercurated and sorted data
+  // Filtered and sorted data (students page style)
   const filteredAndSortedData = useMemo(() => {
     let result = [...courses];
 
@@ -154,12 +172,12 @@ export default function CoursesTablePage() {
       );
     }
 
-    // Filteration by semester
+    // Filter by semester
     if (filters.semester) {
       result = result.filter(c => c.semester === filters.semester);
     }
 
-    // Filteration by status
+    // Filter by status
     if (filters.status) {
       result = result.filter(c => c.status === filters.status);
     }
@@ -174,7 +192,7 @@ export default function CoursesTablePage() {
         if (sortColumn === 'students' || sortColumn === 'semester') {
           comparison = Number(aValue) - Number(bValue);
         } else {
-          comparison = String(aValue).localeCompare(String(bValue), 'ru');
+          comparison = String(aValue).localeCompare(String(bValue), lang === 'ru' ? 'ru' : 'en');
         }
 
         return sortDirection === 'asc' ? comparison : -comparison;

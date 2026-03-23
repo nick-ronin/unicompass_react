@@ -68,7 +68,7 @@ export default function TableControls({
   const hasActiveFilters = searchQuery || Object.keys(activeFilters).length > 0;
 
   return (
-    <div className='space-y-4 mb-6 rounded-lg p-4 bg-light-blue-gray dark:bg-dark-gray/60'>
+    <div className='space-y-4 mb-6 rounded-lg p-4 bg-light-blue-gray dark:bg-surface'>
       {/* Search */}
       <div className='flex gap-2 items-center'>
         <div className='flex-1 relative'>
@@ -77,7 +77,7 @@ export default function TableControls({
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className='w-full px-4 py-2 rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
+            className='w-full px-4 py-2 rounded-lg bg-white dark:bg-surface-secondary text-dark-gray dark:text-white placeholder-medium-blue-gray focus:outline-none focus:ring-2 focus:ring-dark-cyan'
           />
           {searchQuery && (
             <button

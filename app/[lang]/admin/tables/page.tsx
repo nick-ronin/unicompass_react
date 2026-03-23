@@ -2,6 +2,7 @@
 
 import TableCard from '@/components/TableCard';
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const translations = {
   ru: {
@@ -35,48 +36,75 @@ export default function AdminTablesPage() {
   const lang = params.lang as string;
   const t = translations[lang as keyof typeof translations] || translations.ru;
 
+  const staticCounts = {
+    teachers: 6,
+    courses: 8,
+    enrollments: 7,
+    groups: 7,
+    schedules: 7,
+  } as const;
+
+  const [studentsCount, setStudentsCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const loadStudentsCount = async () => {
+      try {
+        const response = await fetch('/api/student/full_info_list');
+        if (!response.ok) throw new Error(`Failed to load students: ${response.status}`);
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
+        setStudentsCount(list.length);
+      } catch (err) {
+        console.error('Students count error:', err);
+        setStudentsCount(0);
+      }
+    };
+
+    loadStudentsCount();
+  }, []);
+
   const tables = [
     {
       id: 'students',
       title: t.tables.students.title,
       description: t.tables.students.description,
       icon: '👥',
-      count: 234,
+      count: studentsCount ?? 0,
     },
     {
       id: 'teachers',
       title: t.tables.teachers.title,
       description: t.tables.teachers.description,
       icon: '👨‍🏫',
-      count: 42,
+      count: staticCounts.teachers,
     },
     {
       id: 'courses',
       title: t.tables.courses.title,
       description: t.tables.courses.description,
       icon: '📚',
-      count: 18,
+      count: staticCounts.courses,
     },
     {
       id: 'enrollments',
       title: t.tables.enrollments.title,
       description: t.tables.enrollments.description,
       icon: '📝',
-      count: 567,
+      count: staticCounts.enrollments,
     },
     {
       id: 'groups',
       title: t.tables.groups.title,
       description: t.tables.groups.description,
       icon: '👫',
-      count: 12,
+      count: staticCounts.groups,
     },
     {
       id: 'schedules',
       title: t.tables.schedules.title,
       description: t.tables.schedules.description,
       icon: '📅',
-      count: 156,
+      count: staticCounts.schedules,
     },
   ];
 

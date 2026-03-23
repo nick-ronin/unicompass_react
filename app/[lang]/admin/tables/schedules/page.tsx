@@ -67,7 +67,7 @@ interface Schedule {
   teacher: string;
 }
 
-const sampleSchedules: Schedule[] = [
+const mockSchedules: Schedule[] = [
   {
     id: '1',
     day: 'Monday',
@@ -75,16 +75,16 @@ const sampleSchedules: Schedule[] = [
     course: 'Introduction to Programming',
     group: 'MI-101',
     room: '305',
-    teacher: 'Associate Professor Sidorova M.V..',
+    teacher: 'Assoc. Prof. Marina Sidorova',
   },
   {
     id: '2',
     day: 'Monday',
     time: '11:00-12:30',
-    course: 'OOP',
+    course: 'Object-Oriented Programming',
     group: 'MI-102',
     room: '307',
-    teacher: 'Associate Professor Sidorova M.V..',
+    teacher: 'Assoc. Prof. Marina Sidorova',
   },
   {
     id: '3',
@@ -93,34 +93,43 @@ const sampleSchedules: Schedule[] = [
     course: 'Databases',
     group: 'PM-101',
     room: '310',
-    teacher: 'Assistant Ivanov A.A..',
+    teacher: 'Asst. Alex Ivanov',
   },
   {
     id: '4',
     day: 'Tuesday',
     time: '10:30-12:00',
-    course: 'Web development',
+    course: 'Web Development',
     group: 'MI-201',
     room: '312',
-    teacher: 'Professor Petrov I.I..',
+    teacher: 'Prof. Irina Petrova',
   },
   {
     id: '5',
     day: 'Wednesday',
     time: '09:00-10:30',
-    course: 'Computer networks',
+    course: 'Computer Networks',
     group: 'MI-301',
     room: '315',
-    teacher: 'Associate Professor Kozlov D.E..',
+    teacher: 'Assoc. Prof. Diana Kozlova',
   },
   {
     id: '6',
     day: 'Thursday',
     time: '14:00-15:30',
-    course: 'Introduction to Programming',
-    group: 'MI-102',
+    course: 'Machine Learning',
+    group: 'AI-401',
     room: '306',
-    teacher: 'Professor Smirnova E.P..',
+    teacher: 'Prof. Irina Petrova',
+  },
+  {
+    id: '7',
+    day: 'Friday',
+    time: '12:00-13:30',
+    course: 'Software Testing',
+    group: 'MI-301',
+    room: '210',
+    teacher: 'Asst. Pavel Smirnov',
   },
 ];
 
@@ -128,7 +137,7 @@ export default function SchedulesTablePage() {
   const params = useParams();
   const lang = params.lang as string;
   const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
-  const [schedules] = useState<Schedule[]>(sampleSchedules);
+  const [schedules] = useState<Schedule[]>(mockSchedules);
 
   // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,7 +156,7 @@ export default function SchedulesTablePage() {
     [schedules]
   );
 
-  // Filtercurated and sorted data
+  // Filtered and sorted data (students page style)
   const filteredAndSortedData = useMemo(() => {
     let result = [...schedules];
 
@@ -162,12 +171,12 @@ export default function SchedulesTablePage() {
       );
     }
 
-    // Filteration by day
+    // Filter by day
     if (filters.day) {
       result = result.filter(s => s.day === filters.day);
     }
 
-    // Filteration by audience
+    // Filter by room
     if (filters.room) {
       result = result.filter(s => s.room === filters.room);
     }
@@ -178,7 +187,7 @@ export default function SchedulesTablePage() {
         const aValue = a[sortColumn as keyof Schedule] || '';
         const bValue = b[sortColumn as keyof Schedule] || '';
 
-        let comparison = String(aValue).localeCompare(String(bValue), 'ru');
+        let comparison = String(aValue).localeCompare(String(bValue), lang === 'ru' ? 'ru' : 'en');
         return sortDirection === 'asc' ? comparison : -comparison;
       });
     }

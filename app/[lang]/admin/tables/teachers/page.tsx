@@ -56,45 +56,53 @@ interface Teacher {
   status: string;
 }
 
-const sampleTeachers: Teacher[] = [
+const mockTeachers: Teacher[] = [
   {
     id: '1',
-    name: 'Professor Petrov AND.AND.',
-    email: 'prof.petrov@example.com',
+    name: 'Prof. Ivan Petrov',
+    email: 'petrov@example.com',
     department: 'Mathematics',
     subjects: 'Algebra, Geometry',
     status: 'Active',
   },
   {
     id: '2',
-    name: 'Associate Professor Sidorova M.IN.',
-    email: 'doc.sidorova@example.com',
-    department: 'ANDнформатAndToа',
-    subjects: 'OOP, Bases data',
+    name: 'Assoc. Prof. Marina Sidorova',
+    email: 'sidorova@example.com',
+    department: 'Informatics',
+    subjects: 'OOP, Databases',
     status: 'Active',
   },
   {
     id: '3',
-    name: 'Assistant ANDванов A.A.',
-    email: 'assist.ivanov@example.com',
+    name: 'Asst. Alex Ivanov',
+    email: 'ivanov@example.com',
     department: 'Physics',
-    subjects: 'MеханAndToа, Thermodynamics',
+    subjects: 'Mechanics, Thermodynamics',
     status: 'Active',
   },
   {
     id: '4',
-    name: 'Professor Smirnova E.P.',
-    email: 'prof.smirnova@example.com',
+    name: 'Prof. Elena Smirnova',
+    email: 'smirnova@example.com',
     department: 'Literature',
-    subjects: 'Russian literature',
-    status: 'IN vacation',
+    subjects: 'Russian Literature',
+    status: 'On leave',
   },
   {
     id: '5',
-    name: 'Associate Professor Kozlov D.E.',
-    email: 'doc.kozlov@example.com',
-    department: 'History',
-    subjects: 'Allpeaceful story, History Russia',
+    name: 'Assoc. Prof. Diana Kozlova',
+    email: 'kozlova@example.com',
+    department: 'Informatics',
+    subjects: 'Networks, Security',
+    status: 'Active',
+  },
+  {
+    id: '6',
+    name: 'Lecturer Anna Romanova',
+    email: 'romanova@example.com',
+    department: 'Design',
+    subjects: 'UI/UX, Visual Design',
     status: 'Active',
   },
 ];
@@ -103,15 +111,15 @@ export default function TeachersTablePage() {
   const params = useParams();
   const lang = params.lang as string;
   const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
-  const [teachers] = useState<Teacher[]>(sampleTeachers);
+  const [teachers] = useState<Teacher[]>(mockTeachers);
 
-  // PоAndсTo, sorting And фAndльтрацAndя
+  // Search, sorting, filters (students page style)
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  // PолученAndе унAndToальных значенAndй For фAndльтров
+  // Unique values for filters
   const uniqueDepartments = useMemo(
     () => [...new Set(teachers.map(t => t.department))].sort(),
     [teachers]
@@ -122,11 +130,11 @@ export default function TeachersTablePage() {
     [teachers]
   );
 
-  // Filterovated And отсортAndрovated data
+  // Filtered and sorted data
   const filteredAndSortedData = useMemo(() => {
     let result = [...teachers];
 
-    // PоAndсTo - Andщем By AndменAnd, email And дAndсцAndплAndнам
+    // Search by name, email, subjects
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -137,12 +145,12 @@ export default function TeachersTablePage() {
       );
     }
 
-    // FilterацAndя By department
+    // Filter by department
     if (filters.department) {
       result = result.filter(t => t.department === filters.department);
     }
 
-    // FilterацAndя By status
+    // Filter by status
     if (filters.status) {
       result = result.filter(t => t.status === filters.status);
     }
@@ -153,7 +161,7 @@ export default function TeachersTablePage() {
         const aValue = a[sortColumn as keyof Teacher] || '';
         const bValue = b[sortColumn as keyof Teacher] || '';
 
-        let comparison = String(aValue).localeCompare(String(bValue), 'ru');
+        let comparison = String(aValue).localeCompare(String(bValue), lang === 'ru' ? 'ru' : 'en');
         return sortDirection === 'asc' ? comparison : -comparison;
       });
     }

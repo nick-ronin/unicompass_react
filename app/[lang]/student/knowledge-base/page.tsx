@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useParams } from 'next/navigation';
 import InputField from "@/components/Input Field";
 import Link from 'next/link';
 import KnowledgeBaseCard from '@/components/Knowledge Base Card';
@@ -77,8 +78,9 @@ const translations = {
   },
 };
 
-export default function KnowledgeBasePage({ params }: { params: { lang: string } }) {
-  const { lang } = params;
+export default function KnowledgeBasePage() {
+  const params = useParams();
+  const lang = (params?.lang as string) || 'ru';
   const t = translations[lang as keyof typeof translations] || translations.ru;
   const base = `/${lang}/student`;
   const [query, setQuery] = useState('');

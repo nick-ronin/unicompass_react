@@ -290,12 +290,21 @@ export default function TasksPage() {
 
   const totalCount = tasks.length;
   const completedCount = tasks.filter((task) => task.status === 'completed').length;
-  const urgentTasks = tasks
-    .filter((task) => task.status !== 'completed' && getDaysToDeadline(task.deadline) <= 3)
-    .sort((a, b) => getDaysToDeadline(a.deadline) - getDaysToDeadline(b.deadline));
+
+  // Apply the active filters/search before picking urgent tasks so they stay in sync with the list
+  const filteredUrgentCandidates = filteredAndSortedTasks.filter((task) => task.status !== 'completed');
+  const urgentTasks = filteredUrgentCandidates
+    .slice()
+    .sort((a, b) => getDaysToDeadline(a.deadline) - getDaysToDeadline(b.deadline))
+    .slice(0, 3);
+
+  const urgentIds = new Set(urgentTasks.map((task) => task.id));
+  const nonUrgentFilteredTasks = filteredAndSortedTasks.filter((task) => !urgentIds.has(task.id));
 
   const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-  const urgentPercent = totalCount > 0 ? Math.round((urgentTasks.length / totalCount) * 100) : 0;
+  const urgentPercent = filteredAndSortedTasks.length > 0
+    ? Math.round((urgentTasks.length / filteredAndSortedTasks.length) * 100)
+    : 0;
 
   return (
     <div className='min-h-screen dark:bg-dark-gray py-12 px-6 md:px-12 lg:px-16'>
@@ -444,13 +453,13 @@ export default function TasksPage() {
               </h2>
             </div>
 
-            {filteredAndSortedTasks.length === 0 ? (
+            {nonUrgentFilteredTasks.length === 0 ? (
               <div className='bg-white dark:bg-surface rounded-3xl p-8'>
                 <p className='text-dark-gray dark:text-white text-lg'>{t.noTasks}</p>
               </div>
             ) : (
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-                {filteredAndSortedTasks.map((task) => (
+                {nonUrgentFilteredTasks.map((task) => (
                   <TaskCard
                     key={task.id}
                     id={task.id}

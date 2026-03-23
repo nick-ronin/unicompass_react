@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface DropdownProps {
@@ -24,6 +24,10 @@ export default function Dropdown({ label, options, onSelect, className, defaultV
     const t = translations[lang] || translations.ru;
     const [selected, setSelected] = useState(defaultValue);
     const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        setSelected(defaultValue || '');
+    }, [defaultValue]);
 
     const handleSelect = (option: string) => {
         setSelected(option);

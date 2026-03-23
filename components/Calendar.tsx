@@ -1,19 +1,31 @@
 "use client"
 
-import { useState, MouseEvent } from 'react';
+import { useEffect, useState, MouseEvent } from 'react';
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './calendar.css';
-import { cn } from '@/lib/utils';
 
 interface CalendarProps {
     onDateSelect?: (date: Date) => void;
     selectedDate?: Date;
     highlightedDates?: Date[];
+    lang?: 'ru' | 'en';
 }
 
-export default function Calendar({ onDateSelect, selectedDate, highlightedDates = [] }: CalendarProps) {
+const localeMap = {
+    ru: 'ru-RU',
+    en: 'en-US',
+} as const;
+
+export default function Calendar({ onDateSelect, selectedDate, highlightedDates = [], lang = 'ru' }: CalendarProps) {
     const [selected, setSelected] = useState<Date | undefined>(selectedDate || new Date());
+    const locale = localeMap[lang] ?? localeMap.ru;
+
+    useEffect(() => {
+        if (selectedDate) {
+            setSelected(selectedDate);
+        }
+    }, [selectedDate]);
 
     const handleDateChange = (value: unknown, _event?: MouseEvent<HTMLButtonElement>) => {
         // Handle single date
@@ -51,7 +63,7 @@ export default function Calendar({ onDateSelect, selectedDate, highlightedDates 
             <ReactCalendar
                 onChange={handleDateChange}
                 value={selected}
-                locale="ru-RU"
+                locale={locale}
                 tileClassName={getTileClassName}
             />
         </div>

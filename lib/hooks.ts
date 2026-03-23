@@ -141,11 +141,9 @@ export function useUpdateTask(id: string) {
       try {
         setLoading(true);
         setError(null);
-        const response = await apiClient.updateTask(id, data);
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to update task');
-        }
-        return response.data;
+        // Student task status updates go through student_task PATCH endpoint; backend may not wrap response
+        const response = await apiClient.updateStudentTask(id, data as { status: Task['status'] });
+        return (response as any)?.data ?? response;
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'An error occurred';
         setError(errorMsg);

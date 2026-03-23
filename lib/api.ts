@@ -71,6 +71,14 @@ class ApiClient {
     });
   }
 
+  async updateStudentTask(id: string, data: { status: Task['status'] }): Promise<any> {
+    const url = `/api/student_task/${id}`;
+    return this.fetchWithTimeout<any>(url, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
   async deleteTask(id: string): Promise<ApiResponse<void>> {
     const url = `/api/task/${id}`;
     return this.fetchWithTimeout<ApiResponse<void>>(url, {

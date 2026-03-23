@@ -59,14 +59,14 @@ interface Group {
   status: string;
 }
 
-const sampleGroups: Group[] = [
+const mockGroups: Group[] = [
   {
     id: '1',
     name: 'MI-101',
     specialization: 'Informatics',
     year: '1',
     students: '25',
-    curator: 'Professor Petrov I.I..',
+    curator: 'Prof. Ivan Petrov',
     status: 'Active',
   },
   {
@@ -75,7 +75,7 @@ const sampleGroups: Group[] = [
     specialization: 'Informatics',
     year: '1',
     students: '22',
-    curator: 'Associate Professor Sidorova M.V..',
+    curator: 'Assoc. Prof. Marina Sidorova',
     status: 'Active',
   },
   {
@@ -84,7 +84,7 @@ const sampleGroups: Group[] = [
     specialization: 'Applied Mathematics',
     year: '1',
     students: '20',
-    curator: 'Assistant Ivanov A.A..',
+    curator: 'Asst. Alex Ivanov',
     status: 'Active',
   },
   {
@@ -93,17 +93,35 @@ const sampleGroups: Group[] = [
     specialization: 'Informatics',
     year: '2',
     students: '23',
-    curator: 'Professor Smirnova E.P..',
+    curator: 'Prof. Elena Smirnova',
     status: 'Active',
   },
   {
     id: '5',
+    name: 'DS-201',
+    specialization: 'Data Science',
+    year: '2',
+    students: '19',
+    curator: 'Assoc. Prof. Diana Kozlova',
+    status: 'Active',
+  },
+  {
+    id: '6',
     name: 'MI-301',
     specialization: 'Informatics',
     year: '3',
     students: '18',
-    curator: 'Associate Professor Kozlov D.E..',
+    curator: 'Assoc. Prof. Diana Kozlova',
     status: 'Active',
+  },
+  {
+    id: '7',
+    name: 'AI-401',
+    specialization: 'Artificial Intelligence',
+    year: '4',
+    students: '16',
+    curator: 'Prof. Irina Petrova',
+    status: 'Planned',
   },
 ];
 
@@ -111,7 +129,7 @@ export default function GroupsTablePage() {
   const params = useParams();
   const lang = params.lang as string;
   const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
-  const [groups] = useState<Group[]>(sampleGroups);
+  const [groups] = useState<Group[]>(mockGroups);
 
   // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,7 +153,7 @@ export default function GroupsTablePage() {
     [groups]
   );
 
-  // Filtercurated and sorted data
+  // Filtered and sorted data (students page style)
   const filteredAndSortedData = useMemo(() => {
     let result = [...groups];
 
@@ -150,17 +168,17 @@ export default function GroupsTablePage() {
       );
     }
 
-    // Filteration by specialization
+    // Filter by specialization
     if (filters.specialization) {
       result = result.filter(g => g.specialization === filters.specialization);
     }
 
-    // Filteration at the rate
+    // Filter by year
     if (filters.year) {
       result = result.filter(g => g.year === filters.year);
     }
 
-    // Filteration by status
+    // Filter by status
     if (filters.status) {
       result = result.filter(g => g.status === filters.status);
     }
@@ -175,7 +193,7 @@ export default function GroupsTablePage() {
         if (sortColumn === 'year' || sortColumn === 'students') {
           comparison = Number(aValue) - Number(bValue);
         } else {
-          comparison = String(aValue).localeCompare(String(bValue), 'ru');
+          comparison = String(aValue).localeCompare(String(bValue), lang === 'ru' ? 'ru' : 'en');
         }
 
         return sortDirection === 'asc' ? comparison : -comparison;

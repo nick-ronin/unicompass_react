@@ -56,7 +56,7 @@ interface Enrollment {
   status: string;
 }
 
-const sampleEnrollments: Enrollment[] = [
+const mockEnrollments: Enrollment[] = [
   {
     id: '1',
     student: 'Ivan Petrov',
@@ -76,7 +76,7 @@ const sampleEnrollments: Enrollment[] = [
   {
     id: '3',
     student: 'Alexey Ivanov',
-    course: 'OOP',
+    course: 'Object-Oriented Programming',
     grade: '-',
     enrollmentDate: '2024-09-15',
     status: 'In progress',
@@ -84,7 +84,7 @@ const sampleEnrollments: Enrollment[] = [
   {
     id: '4',
     student: 'Elena Smirnova',
-    course: 'Web development',
+    course: 'Web Development',
     grade: 'A-',
     enrollmentDate: '2024-09-20',
     status: 'In progress',
@@ -95,7 +95,23 @@ const sampleEnrollments: Enrollment[] = [
     course: 'Databases',
     grade: '-',
     enrollmentDate: '2024-10-01',
-    status: 'Expectation',
+    status: 'Planned',
+  },
+  {
+    id: '6',
+    student: 'Svetlana Orlova',
+    course: 'Computer Networks',
+    grade: '-',
+    enrollmentDate: '2024-10-05',
+    status: 'In progress',
+  },
+  {
+    id: '7',
+    student: 'Yuri Antonov',
+    course: 'Machine Learning',
+    grade: '-',
+    enrollmentDate: '2024-10-12',
+    status: 'Planned',
   },
 ];
 
@@ -103,7 +119,7 @@ export default function EnrollmentsTablePage() {
   const params = useParams();
   const lang = params.lang as string;
   const t = translations[(lang as keyof typeof translations) ?? 'ru'] || translations.ru;
-  const [enrollments] = useState<Enrollment[]>(sampleEnrollments);
+  const [enrollments] = useState<Enrollment[]>(mockEnrollments);
 
   // Search, sort and filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -122,7 +138,7 @@ export default function EnrollmentsTablePage() {
     [enrollments]
   );
 
-  // Filtercurated and sorted data
+  // Filtered and sorted data (students page style)
   const filteredAndSortedData = useMemo(() => {
     let result = [...enrollments];
 
@@ -136,12 +152,12 @@ export default function EnrollmentsTablePage() {
       );
     }
 
-    // Filteration by assessment
+    // Filter by grade
     if (filters.grade) {
       result = result.filter(e => e.grade === filters.grade);
     }
 
-    // Filteration by status
+    // Filter by status
     if (filters.status) {
       result = result.filter(e => e.status === filters.status);
     }
@@ -152,7 +168,7 @@ export default function EnrollmentsTablePage() {
         const aValue = a[sortColumn as keyof Enrollment] || '';
         const bValue = b[sortColumn as keyof Enrollment] || '';
 
-        let comparison = String(aValue).localeCompare(String(bValue), 'ru');
+        let comparison = String(aValue).localeCompare(String(bValue), lang === 'ru' ? 'ru' : 'en');
         return sortDirection === 'asc' ? comparison : -comparison;
       });
     }

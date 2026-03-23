@@ -32,8 +32,12 @@ const translations = {
       firstName: 'First name',
       lastName: 'Last name',
       patronymic: 'Middle name',
-      age: 'Age',
       citizenship: 'Citizenship',
+      school: 'School',
+      studyGroup: 'Study group',
+      year: 'Year',
+      passport: 'Passport',
+      login: 'Login',
       email: 'Email',
       phone: 'Phone',
       dob: 'Date of birth',
@@ -65,8 +69,12 @@ const translations = {
       firstName: 'Имя',
       lastName: 'Фамилия',
       patronymic: 'Отчество',
-      age: 'Возраст',
       citizenship: 'Гражданство',
+        school: 'Институт',
+        studyGroup: 'Учебная группа',
+        year: 'Курс',
+        passport: 'Паспорт',
+        login: 'Логин',
       email: 'Email',
       phone: 'Телефон',
       dob: 'Дата рождения',
@@ -81,15 +89,16 @@ interface Student {
   first_name: string;
   last_name: string;
   patronymic: string;
-  age: string;
   citizenship: string;
   login: string;
-  password: string;
   date_of_birth: string;
   passport: string;
   address: string;
   email: string;
   phone_number: string;
+  school: string;
+  study_group: string;
+  year: string;
 }
 
 export default function StudentsTablePage() {
@@ -130,15 +139,16 @@ export default function StudentsTablePage() {
           first_name: student.first_name || '',
           last_name: student.last_name || '',
           patronymic: student.patronymic || '',
-          age: student.age?.toString() || '',
           citizenship: student.citizenship || '',
           login: student.login || '',
-          password: '••••••••',
           date_of_birth: student.date_of_birth || '',
           passport: student.passport || '',
           address: student.address || '',
           email: student.email || '',
           phone_number: student.phone_number || '',
+          school: student.school || '',
+          study_group: student.study_group || '',
+          year: student.year?.toString() || '',
         })
       );
 
@@ -172,8 +182,8 @@ export default function StudentsTablePage() {
     [students]
   );
 
-  const uniqueAges = useMemo(
-    () => [...new Set(students.map(s => s.age))].filter(Boolean).sort((a, b) => Number(a) - Number(b)),
+  const uniqueYears = useMemo(
+    () => [...new Set(students.map(s => s.year))].filter(Boolean).sort((a, b) => Number(a) - Number(b)),
     [students]
   );
 
@@ -190,7 +200,9 @@ export default function StudentsTablePage() {
           s.last_name.toLowerCase().includes(query) ||
           s.patronymic.toLowerCase().includes(query) ||
           s.email.toLowerCase().includes(query) ||
-          s.login.toLowerCase().includes(query)
+          s.login.toLowerCase().includes(query) ||
+          s.school.toLowerCase().includes(query) ||
+          s.study_group.toLowerCase().includes(query)
       );
     }
 
@@ -199,9 +211,9 @@ export default function StudentsTablePage() {
       result = result.filter(s => s.citizenship === filters.citizenship);
     }
 
-    // FilterацAndя By age
-    if (filters.age) {
-      result = result.filter(s => s.age === filters.age);
+    // FilterацAndя By year
+    if (filters.year) {
+      result = result.filter(s => s.year === filters.year);
     }
 
     // Sorting
@@ -236,9 +248,9 @@ export default function StudentsTablePage() {
       options: uniqueCitizenships.map(c => ({ label: c, value: c })),
     },
     {
-      name: 'age',
-      label: t.columns.age,
-      options: uniqueAges.map(age => ({ label: age, value: age })),
+      name: 'year',
+      label: t.columns.year,
+      options: uniqueYears.map(year => ({ label: year, value: year })),
     },
   ];
 
@@ -328,8 +340,12 @@ export default function StudentsTablePage() {
               { key: 'first_name', label: t.columns.firstName, sortable: true },
               { key: 'last_name', label: t.columns.lastName, sortable: true },
               { key: 'patronymic', label: t.columns.patronymic, sortable: true },
-              { key: 'age', label: t.columns.age, sortable: true },
               { key: 'citizenship', label: t.columns.citizenship, sortable: true },
+              { key: 'school', label: t.columns.school, sortable: true },
+              { key: 'study_group', label: t.columns.studyGroup, sortable: true },
+              { key: 'year', label: t.columns.year, sortable: true },
+              { key: 'passport', label: t.columns.passport },
+              { key: 'login', label: t.columns.login },
               { key: 'email', label: t.columns.email, sortable: true },
               { key: 'phone_number', label: t.columns.phone, sortable: true },
               { key: 'date_of_birth', label: t.columns.dob },

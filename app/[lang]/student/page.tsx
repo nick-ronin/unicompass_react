@@ -3,11 +3,26 @@
 import Button from '@/components/Button';
 import TaskCard from '@/components/Task Card';
 import Calendar from '@/components/Calendar';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
 type Lang = 'ru' | 'en';
+
+type TaskStatus = 'completed' | 'in-progress' | 'not completed';
+
+interface StudentTask {
+  id: string;
+  name: string;
+  description: string;
+  deadline: string;
+  status: TaskStatus;
+}
+
+interface StoredStudentAuth {
+  username?: string;
+  studentId?: string | null;
+}
 
 const translations = {
   en: {
@@ -31,6 +46,7 @@ const translations = {
     },
     tasksTitle: 'Your tasks',
     tasksSubtitle: 'What needs to be done for adaptation',
+    tasksEmpty: 'All tasks completed!',
     seeAllTasks: 'All adaptation tasks',
     calendarTitle: 'Calendar',
     quickLinksTitle: 'Quick links',
@@ -61,6 +77,7 @@ const translations = {
     },
     tasksTitle: 'Ваши задачи',
     tasksSubtitle: 'Что нужно сделать для адаптации',
+    tasksEmpty: 'Все задачи выполнены!',
     seeAllTasks: 'Все задачи адаптации',
     calendarTitle: 'Календарь',
     quickLinksTitle: 'Быстрые ссылки',
@@ -72,14 +89,210 @@ const translations = {
   },
 };
 
+const normalizeStatus = (value: unknown): TaskStatus => {
+  if (typeof value === 'boolean') {
+    return value ? 'completed' : 'not completed';
+  }
+
+  if (typeof value !== 'string') {
+    return 'not completed';
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'completed' || normalized === 'done') return 'completed';
+  if (normalized === 'in-progress' || normalized === 'in progress') return 'in-progress';
+  return 'not completed';
+};
+
+const getResponseList = (raw: any): any[] => {
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw?.data)) return raw.data;
+  if (Array.isArray(raw?.results)) return raw.results;
+  return [];
+};
+
+const mapTask = (entry: any, index: number): StudentTask => {
+  const taskSource = entry?.task || entry;
+
+  const taskId = taskSource?.id ?? entry?.task_id ?? entry?.id ?? `${index + 1}`;
+
+  const name = taskSource?.name || taskSource?.title || entry?.task_name || entry?.task_title || 'Untitled';
+
+  const description = taskSource?.description || entry?.description || '';
+
+  const rawDeadline = taskSource?.deadline ?? taskSource?.due_date ?? entry?.deadline ?? entry?.due_date ?? null;
+  const deadline = rawDeadline ? String(rawDeadline) : '';
+
+  const status = normalizeStatus(entry?.status ?? taskSource?.status ?? entry?.completed ?? taskSource?.completed);
+
+  return {
+    id: String(taskId),
+    name,
+    description,
+    deadline,
+    status,
+  };
+};
+
+const parseDeadline = (deadline: string): Date | null => {
+  if (!deadline) return null;
+  const date = new Date(deadline);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const formatDeadline = (deadline: string, lang: Lang) => {
+  const parsed = parseDeadline(deadline);
+  if (!parsed) return deadline || '—';
+  return parsed.toLocaleDateString(lang === 'en' ? 'en-US' : 'ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
 export default function StudentHome() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [tasks, setTasks] = useState<StudentTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const params = useParams();
   const lang = (params?.lang as Lang) || 'ru';
   const t = translations[lang] || translations.ru;
   const basePath = `/${lang}/student`;
-  const stats = t.stats;
-  const upcomingTasks = t.tasks;
+
+  useEffect(() => {
+    const loadStudentTasks = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const authRaw = localStorage.getItem('studentAuth');
+        if (!authRaw) {
+          throw new Error('No stored student session');
+        }
+
+        const auth = JSON.parse(authRaw) as StoredStudentAuth;
+        const username = auth.username?.trim() || '';
+        let studentId = auth.studentId?.toString() || '';
+
+        if (!studentId && username) {
+          const studentsResponse = await fetch('/api/student/full_info_list');
+          if (!studentsResponse.ok) {
+            throw new Error(`Failed to resolve student: ${studentsResponse.status}`);
+          }
+
+          const studentsRaw = await studentsResponse.json();
+          const students = getResponseList(studentsRaw);
+          const matchedStudent = students.find((student: any) =>
+            String(student?.login || '').trim().toLowerCase() === username.toLowerCase()
+          );
+
+          if (matchedStudent?.id) {
+            studentId = String(matchedStudent.id);
+            localStorage.setItem('studentAuth', JSON.stringify({ username, studentId }));
+          }
+        }
+
+        if (!studentId) {
+          throw new Error('User not identified');
+        }
+
+        const endpointCandidates = [
+          `/api/student_task/student/${studentId}`,
+          `/api//student_task/student/${studentId}`,
+        ];
+
+        let tasksRaw: any = null;
+        let lastStatus: number | null = null;
+
+        for (const endpoint of endpointCandidates) {
+          const response = await fetch(endpoint);
+          if (response.ok) {
+            tasksRaw = await response.json();
+            break;
+          }
+          lastStatus = response.status;
+        }
+
+        if (!tasksRaw) {
+          throw new Error(`Failed to load tasks (${lastStatus ?? 'unknown'})`);
+        }
+
+        const taskList = getResponseList(tasksRaw).map(mapTask);
+        setTasks(taskList);
+      } catch (err) {
+        console.error('Error loading student home tasks:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load tasks');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStudentTasks();
+  }, []);
+
+  const needsActionCount = useMemo(
+    () => tasks.filter((task) => task.status !== 'completed').length,
+    [tasks]
+  );
+  const completedCount = useMemo(
+    () => tasks.filter((task) => task.status === 'completed').length,
+    [tasks]
+  );
+  const inProgressCount = useMemo(
+    () => tasks.filter((task) => task.status === 'in-progress').length,
+    [tasks]
+  );
+
+  const nonCompletedTasks = useMemo(
+    () => tasks.filter((task) => task.status !== 'completed'),
+    [tasks]
+  );
+
+  const tasksWithParsedDeadline = useMemo(
+    () =>
+      nonCompletedTasks.map((task) => ({
+        ...task,
+        parsedDeadline: parseDeadline(task.deadline),
+      })),
+    [nonCompletedTasks]
+  );
+
+  const tasksForSelectedDate = useMemo(
+    () =>
+      tasksWithParsedDeadline.filter(
+        (task) => task.parsedDeadline && isSameDay(task.parsedDeadline, selectedDate)
+      ),
+    [tasksWithParsedDeadline, selectedDate]
+  );
+
+  const upcomingTasks = useMemo(() => {
+    const source = tasksForSelectedDate.length > 0 ? tasksForSelectedDate : tasksWithParsedDeadline;
+    return source
+      .slice()
+      .sort((a, b) => {
+        const aDate = a.parsedDeadline?.getTime() ?? Infinity;
+        const bDate = b.parsedDeadline?.getTime() ?? Infinity;
+        return aDate - bDate;
+      })
+      .map(({ parsedDeadline, ...task }) => task);
+  }, [tasksForSelectedDate, tasksWithParsedDeadline]);
+
+  const highlightedDates = useMemo(() => {
+    return tasks
+      .filter((task) => task.status !== 'completed')
+      .map((task) => parseDeadline(task.deadline))
+      .filter((d): d is Date => Boolean(d));
+  }, [tasks]);
+
+  const stats = [
+    { label: t.stats[0].label, value: needsActionCount.toString(), icon: t.stats[0].icon },
+    { label: t.stats[1].label, value: completedCount.toString(), icon: t.stats[1].icon },
+    { label: t.stats[2].label, value: inProgressCount.toString(), icon: t.stats[2].icon },
+  ];
 
   return (
     <div className='min-h-screen'>
@@ -133,8 +346,17 @@ export default function StudentHome() {
               </div>
 
               <div className='space-y-4'>
-                {upcomingTasks.map((task, index) => (
-                  <div key={index} className='group'>
+                {loading && (
+                  <p className='text-foreground/70'>{t.loading}</p>
+                )}
+                {!loading && error && (
+                  <p className='text-dark-orange'>{error}</p>
+                )}
+                {!loading && !error && upcomingTasks.length === 0 && (
+                  <p className='text-foreground/70'>{t.tasksEmpty}</p>
+                )}
+                {!loading && !error && upcomingTasks.map((task) => (
+                  <div key={task.id} className='group'>
                     <div className='dark:bg-dark-gray bg-light-blue-gray p-6 rounded-4xl transition-all cursor-pointer hover:shadow-md'>
                       <div className='flex items-start justify-between mb-2'>
                         <div className='flex-1'>
@@ -142,7 +364,7 @@ export default function StudentHome() {
                           <p className='text-foreground/70 text-sm mb-3'>{task.description}</p>
                           <div className='flex items-center gap-2 text-sm'>
                             <span className='material-symbols-outlined text-base'>calendar_today</span>
-                            <span>{task.deadline}</span>
+                            <span>{formatDeadline(task.deadline, lang)}</span>
                           </div>
                         </div>
                         <div className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
@@ -161,7 +383,7 @@ export default function StudentHome() {
               </div>
 
               <Button className='mt-8 w-full bg-background/50 text-foreground dark:hover:bg-dark-gray hover:bg-light-blue-gray transition-colors py-3 border border-foreground/10'>
-                <Link href={`${basePath}/tasks`} className='flex flex-row items-center justify-center gap-4'>
+                <Link href={`${basePath}/tasks`} className='flex flex-row items-center justify-start gap-4 w-full'>
                   {t.seeAllTasks}
                   <span className='material-symbols-outlined'>arrow_forward</span>
                 </Link>
@@ -173,7 +395,12 @@ export default function StudentHome() {
             <div className='bg-white dark:bg-surface rounded-3xl px-8 pb-2 pt-6 shadow-md'>
               <h3 className='text-xl font-bold mb-2'>{t.calendarTitle}</h3>
               <div className='bg-surface rounded-2xl'>
-                <Calendar />
+                <Calendar
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  highlightedDates={highlightedDates}
+                  lang={lang}
+                />
               </div>
             </div>
 
@@ -181,12 +408,12 @@ export default function StudentHome() {
               <h3 className='text-lg font-bold mb-4'>{t.quickLinksTitle}</h3>
               <div className='space-y-2'>
                 {t.quickLinks.map((link) => (
-                  <Button key={link.path} className='w-full justify-start bg-light-blue-gray dark:bg-dark-gray text-foreground transition-all hover:shadow-md'>
-                    <Link href={`${basePath}/${link.path}`} className='flex flex-row justify-center gap-2'>
+                  <Link key={link.path} href={`${basePath}/${link.path}`} className='flex flex-row justify-center gap-2'>
+                    <Button className='w-full justify-start bg-light-blue-gray dark:bg-dark-gray text-foreground transition-all hover:shadow-md'>
                       <span className='material-symbols-outlined'>{link.icon}</span>
                       {link.label}
-                    </Link>
-                  </Button>
+                    </Button>
+                  </Link>
                 ))}
               </div>
             </div>
