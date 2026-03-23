@@ -314,28 +314,36 @@ export default function CalendarPage() {
 
             {/* Upcoming Tasks Section */}
             <div className='space-y-4'>
-                <div>
-                    <h2 className='text-2xl font-bold text-dark-gray dark:text-white mb-1'>
-                        {t.upcomingTitle}
-                    </h2>
-                    <p className='text-medium-blue-gray dark:text-gray'>
-                        {t.upcomingSubtitle}
-                    </p>
-                </div>
+                {!loading && !error && upcomingTasks.length === 0 ? (
+                    <div className='p-4 text-dark-gray dark:text-gray text-2xl'>
+                        {lang === 'en' ? 'All tasks are done' : 'Все задачи выполнены'}
+                    </div>
+                ) : (
+                    <>
+                        <div>
+                            <h2 className='text-2xl font-bold text-dark-gray dark:text-white mb-1'>
+                                {t.upcomingTitle}
+                            </h2>
+                            <p className='text-medium-blue-gray dark:text-gray'>
+                                {t.upcomingSubtitle}
+                            </p>
+                        </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-                    {loading && <p>{t.pageSubtitle}</p>}
-                    {error && <p className='text-dark-orange'>{error}</p>}
-                    {!loading && !error && upcomingTasks.map((task) => (
-                        <TaskCard
-                            key={task.id}
-                            name={task.name}
-                            description={task.description}
-                            deadline={task.deadline}
-                            status={task.status}
-                        />
-                    ))}
-                </div>
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl-grid-cols-4 gap-4'>
+                            {loading && <p>{t.pageSubtitle}</p>}
+                            {error && <p className='text-dark-orange'>{error}</p>}
+                            {!loading && !error && upcomingTasks.map((task) => (
+                                <TaskCard
+                                    key={task.id}
+                                    name={task.name}
+                                    description={task.description}
+                                    deadline={task.deadline}
+                                    status={task.status}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

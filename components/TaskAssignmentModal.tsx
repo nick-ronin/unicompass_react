@@ -114,10 +114,12 @@ export default function TaskAssignmentModal({
   onSubmit,
   lang = 'ru',
 }: TaskAssignmentModalProps) {
+  const defaultDeadline = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   const [formData, setFormData] = useState<TaskAssignmentFormData>({
     name: '',
     description: '',
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    deadline: defaultDeadline(),
     studentIds: [],
   });
 
@@ -132,9 +134,20 @@ export default function TaskAssignmentModal({
 
   const t = copy[(lang as keyof typeof copy) ?? 'ru'] || copy.ru;
 
+  const resetForm = () => {
+    setFormData({ name: '', description: '', deadline: defaultDeadline(), studentIds: [] });
+    setSelectedStudents([]);
+    setAssignmentType('all');
+    setSelectedFilter('');
+    setErrors({});
+  };
+
   useEffect(() => {
     if (isOpen) {
+      resetForm();
       fetchStudents();
+    } else {
+      resetForm();
     }
   }, [isOpen]);
 

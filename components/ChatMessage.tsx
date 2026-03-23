@@ -28,6 +28,7 @@ export default function ChatMessage({
   isOwn,
 }: ChatMessageProps) {
   const getStatusIcon = () => {
+    if (!isOwn) return null;
     const iconClass = 'w-4 h-4 material-symbols-outlined text-xs';
     
     switch (status) {
@@ -52,7 +53,7 @@ export default function ChatMessage({
       <div className={`max-w-xs ${bgColor} rounded-lg p-3`}>
         {/* Text message */}
         {text && (
-          <p className={`${textColor} text-base wrap-break-word`}>{text}</p>
+          <p className={`${textColor} wrap-break-word text-lg`}>{text}</p>
         )}
 
         {/* Image */}

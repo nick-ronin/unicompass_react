@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import InputField from '@/components/Input Field';
 import AdminTaskItem from '@/components/AdminTaskItem';
 import TaskAssignmentModal from '@/components/TaskAssignmentModal';
@@ -91,40 +91,74 @@ export default function AdminTasksPage() {
   const [editFormData, setEditFormData] = useState({ name: '', description: '' });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/task');
-        
-        if (!response.ok) {
-          throw new Error(`Error loading: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
-          (task: any, index: number) => ({
-            id: task.id?.toString() || (index + 1).toString(),
-            name: task.name || task.title || 'Untitled',
-            description: task.description || '',
-            completionPercent: task.completion_percent || task.completionPercent || 0,
-            status: task.status || 'not completed',
-          })
-        );
-        
-        setTasks(formattedTasks);
-        setError(null);
-      } catch (err) {
-        console.error('Error loading tasks:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchTasks = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/task');
 
-    fetchTasks();
+      if (!response.ok) {
+        throw new Error(`Error loading: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
+        (task: any, index: number) => ({
+          id: task.id?.toString() || (index + 1).toString(),
+          name: task.name || task.title || 'Untitled',
+          description: task.description || '',
+          completionPercent: task.completion_percent || task.completionPercent || 0,
+          status: task.status || 'not completed',
+        })
+      );
+
+      const normalizeCompletionPercent = (analytics: any) => {
+        const rawValue =
+          analytics?.completed_percent ??
+          analytics?.completion_percent ??
+          analytics?.completedPercent ??
+          analytics?.completionPercent ??
+          analytics?.completed;
+        const value = Number(rawValue);
+        return Number.isFinite(value) ? value : 0;
+      };
+
+      const tasksWithCompletion = await Promise.all(
+        formattedTasks.map(async (task: Task) => {
+          try {
+            const analyticsResponse = await fetch(`/api/student_task/analytics/task/${task.id}`);
+
+            if (!analyticsResponse.ok) {
+              throw new Error(`Analytics load failed: ${analyticsResponse.status}`);
+            }
+
+            const analyticsData = await analyticsResponse.json();
+            const completionPercent = normalizeCompletionPercent(analyticsData);
+
+            return { ...task, completionPercent };
+          } catch (analyticsError) {
+            console.error('Error loading task analytics:', analyticsError);
+            return task;
+          }
+        })
+      );
+
+      setTasks(tasksWithCompletion);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading tasks:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      await fetchTasks();
+    };
+    load();
+  }, [fetchTasks]);
 
   useEffect(() => {
     if (!toast) return;
@@ -260,22 +294,9 @@ export default function AdminTasksPage() {
         }
       }
 
-      // Refresh tasks list
+      // Refresh tasks list (with updated analytics)
       setIsCreateModalOpen(false);
-      const tasksResponse = await fetch('/api/task');
-      if (tasksResponse.ok) {
-        const data = await tasksResponse.json();
-        const formattedTasks = (Array.isArray(data) ? data : data.results || []).map(
-          (task: any, index: number) => ({
-            id: task.id?.toString() || (index + 1).toString(),
-            name: task.name || task.title || 'Untitled',
-            description: task.description || '',
-            completionPercent: task.completion_percent || task.completionPercent || 0,
-            status: task.status || 'not completed',
-          })
-        );
-        setTasks(formattedTasks);
-      }
+      await fetchTasks();
 
       showToast(t.created, 'success');
     } catch (err) {

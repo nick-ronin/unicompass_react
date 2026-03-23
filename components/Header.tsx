@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import NotificationsBell from './NotificationsBell';
 
 interface HeaderProps {
   lang?: string;
@@ -48,32 +49,42 @@ export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
 
   useEffect(() => {
     const storedAvatar = typeof window !== 'undefined' ? localStorage.getItem('studentAvatarUrl') : null;
-    if (storedAvatar) {
-      setAvatarUrl(storedAvatar);
-      return;
-    }
+    if (storedAvatar) setAvatarUrl(storedAvatar);
 
-    const storedAuthRaw = typeof window !== 'undefined' ? localStorage.getItem('studentAuth') : null;
-    if (!storedAuthRaw || role !== 'student') return;
+    const pickAvatarUrl = (data: any) => data?.file_url || data?.file_path || data?.url || null;
 
-    try {
-      const storedAuth = JSON.parse(storedAuthRaw);
-      const studentId = storedAuth?.studentId;
-      if (!studentId) return;
+    const fetchAvatar = async () => {
+      if (role !== 'student') return;
 
-      fetch(`/api/files/upload-avatar/${studentId}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          const url = data?.file_url || data?.url || null;
-          if (url) {
-            setAvatarUrl(url);
-            localStorage.setItem('studentAvatarUrl', url);
+      const storedAuthRaw = typeof window !== 'undefined' ? localStorage.getItem('studentAuth') : null;
+      if (!storedAuthRaw) return;
+
+      try {
+        const storedAuth = JSON.parse(storedAuthRaw);
+        const studentId = storedAuth?.studentId;
+        if (!studentId) return;
+
+        const res = await fetch(`/api/files/avatar/${studentId}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            localStorage.removeItem('studentAvatarUrl');
+            setAvatarUrl(null);
           }
-        })
-        .catch(() => {});
-    } catch (err) {
-      console.warn('Avatar resolve skipped', err);
-    }
+          return;
+        }
+
+        const data = await res.json().catch(() => ({}));
+        const url = pickAvatarUrl(data);
+        if (url) {
+          setAvatarUrl(url);
+          localStorage.setItem('studentAvatarUrl', url);
+        }
+      } catch (err) {
+        console.warn('Avatar resolve skipped', err);
+      }
+    };
+
+    fetchAvatar();
   }, [role]);
 
   const isDark = mounted && resolvedTheme === 'dark';
@@ -114,7 +125,7 @@ export default function Header({ lang = 'ru', role = 'student' }: HeaderProps) {
       </div>
       <div className='flex gap-6 justify-end items-center'>
         <ThemeToggle lang={lang} />
-        <Link className='hover:text-dark-orange flex items-center' href={`${base}/notifications`}><span className='material-symbols-outlined'>notifications</span></Link>
+        <NotificationsBell lang={lang} role={role} />
         <LanguageToggle />
         <Link 
           href={`${base}/profile`}

@@ -79,13 +79,14 @@ const translations = {
   },
 };
 
+type TaskStatus = 'completed' | 'in-progress' | 'not completed';
+
 interface StudentTask {
   id: string;
   name: string;
   description: string;
   deadline: string;
-  status: 'completed' | 'in-progress' | 'not completed';
-  completionPercent?: number;
+  status: TaskStatus;
 }
 
 interface StudentProfileData {
@@ -134,6 +135,75 @@ export default function StudentProfileModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const normalizeStatus = (value: unknown): TaskStatus => {
+    if (typeof value === 'boolean') {
+      return value ? 'completed' : 'not completed';
+    }
+
+    if (typeof value !== 'string') {
+      return 'not completed';
+    }
+
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'completed' || normalized === 'done') {
+      return 'completed';
+    }
+    if (normalized === 'in-progress' || normalized === 'in progress') {
+      return 'in-progress';
+    }
+    return 'not completed';
+  };
+
+  const getResponseList = (raw: any): any[] => {
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    if (Array.isArray(raw?.results)) return raw.results;
+    return [];
+  };
+
+  const mapTask = (entry: any, index: number): StudentTask => {
+    const taskSource = entry?.task || entry;
+
+    const taskId =
+      taskSource?.id ??
+      entry?.task_id ??
+      entry?.id ??
+      `${index + 1}`;
+
+    const name =
+      taskSource?.name ||
+      taskSource?.title ||
+      entry?.task_name ||
+      entry?.task_title ||
+      'Untitled';
+
+    const description =
+      taskSource?.description ||
+      entry?.description ||
+      '';
+
+    const rawDeadline =
+      taskSource?.deadline ??
+      taskSource?.due_date ??
+      entry?.deadline ??
+      entry?.due_date ??
+      null;
+
+    const deadline = rawDeadline ? String(rawDeadline) : '';
+
+    const status = normalizeStatus(
+      entry?.status ?? taskSource?.status ?? entry?.completed ?? taskSource?.completed
+    );
+
+    return {
+      id: String(taskId),
+      name,
+      description,
+      deadline,
+      status,
+    };
+  };
 
   useEffect(() => {
     if (isOpen && studentId) {
@@ -185,14 +255,24 @@ export default function StudentProfileModal({
       setStudentData(normalized);
       setEditableStudent(normalized);
 
-      // Fetch student tasks
+      // Fetch student tasks (two endpoint fallbacks to match backend routing)
       try {
-        const tasksResponse = await fetch(`/api/student/${studentId}/tasks`);
-        if (tasksResponse.ok) {
-          const tasksData = await tasksResponse.json();
-          const taskList = Array.isArray(tasksData) ? tasksData : tasksData.results || [];
-          setTasks(taskList);
+        const endpoints = [
+          `/api/student_task/student/${studentId}`,
+          `/api//student_task/student/${studentId}`,
+        ];
+
+        let tasksRaw: any = null;
+        for (const endpoint of endpoints) {
+          const response = await fetch(endpoint);
+          if (response.ok) {
+            tasksRaw = await response.json();
+            break;
+          }
         }
+
+        const taskList = getResponseList(tasksRaw).map(mapTask);
+        setTasks(taskList);
       } catch (err) {
         console.error('Error at loading tasks student:', err);
         setTasks([]);
@@ -546,26 +626,16 @@ export default function StudentProfileModal({
                             </p>
 
                             <div className='flex items-center gap-4 mt-2 text-xs text-gray-600 dark:text-gray-400'>
-                              <span>📅 {t.deadline}: {new Date(task.deadline).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}</span>
-                              {task.completionPercent !== undefined && (
-                                <span>📊 {t.completion}: {task.completionPercent}%</span>
-                              )}
+                              <span>
+                                📅 {t.deadline}: {task.deadline ? new Date(task.deadline).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US') : '—'}
+                              </span>
                             </div>
                           </div>
 
-                          <div className='flex-shrink-0'>
+                          <div className='shrink-0'>
                             {getStatusBadge(task.status)}
                           </div>
                         </div>
-
-                        {task.completionPercent !== undefined && (
-                          <div className='mt-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2'>
-                            <div
-                              className='bg-blue-600 h-2 rounded-full transition-all duration-300'
-                              style={{ width: `${task.completionPercent}%` }}
-                            />
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>

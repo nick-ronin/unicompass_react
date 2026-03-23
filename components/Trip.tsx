@@ -1,5 +1,6 @@
 interface TripProps {
-    location: string;
+    departurePoint: string;
+    destination: string;
     arrivalDate: string;
     departureDate: string;
     onEdit?: () => void;
@@ -12,11 +13,13 @@ const formatDate = (value: string) => {
     return parsed.toLocaleDateString();
 };
 
-export default function Trip({ location, arrivalDate, departureDate, onEdit, onDelete }: TripProps) {
+export default function Trip({ departurePoint, destination, arrivalDate, departureDate, onEdit, onDelete }: TripProps) {
     return (
         <div className='bg-light-blue-gray rounded-2xl p-6 w-full flex flex-row items-center justify-between dark:bg-surface dark:text-white'>
             <div className='flex flex-col gap-1'>
-                <p className='text-lg font-semibold text-dark-gray dark:text-white'>{location}</p>
+                <p className='text-lg font-semibold text-dark-gray dark:text-white'>
+                    {departurePoint} {'->'} {destination}
+                </p>
                 <p className='text-sm text-gray-700 dark:text-gray-300'>
                     {formatDate(arrivalDate)} — {formatDate(departureDate)}
                 </p>

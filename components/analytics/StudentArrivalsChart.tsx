@@ -1,18 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export default function StudentArrivalsChart() {
-  const [mounted, setMounted] = useState(false);
   const params = useParams();
   const lang = (params?.lang as 'ru' | 'en') || 'ru';
 
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [arrivals, setArrivals] = useState<Array<{ month: string; arrivals: number }>>([]);
+  const [monthsCount, setMonthsCount] = useState(12);
+  const [selectedRange, setSelectedRange] = useState<'all' | 'spring' | 'summer' | 'autumn' | 'winter' | 'custom'>('all');
+  const [customStart, setCustomStart] = useState(0);
+  const [customEnd, setCustomEnd] = useState(11);
+
   const translations = {
     ru: {
+      loading: 'Загружаем данные...',
+      error: 'Не удалось загрузить статистику',
       title: 'Прибытие иностранных студентов по месяцам',
-      subtitle: 'Статистика прибытия иностранных студентов за текущий год',
+      subtitle: 'Статистика прибытия иностранных студентов за период',
       selectPeriod: 'Выберите период:',
       fullYear: 'Весь год',
       spring: 'Весна (март-май)',
@@ -25,11 +35,13 @@ export default function StudentArrivalsChart() {
       month: 'Месяц',
       international: 'Иностранные студенты',
       tooltipLabel: 'Иностранные студенты:',
-      months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+      months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
     },
     en: {
+      loading: 'Loading arrivals...',
+      error: 'Failed to load arrivals',
       title: 'Arrival of international students by month',
-      subtitle: 'Arrival statistics for international students this year',
+      subtitle: 'Arrival statistics for international students for the period',
       selectPeriod: 'Select period:',
       fullYear: 'Full year',
       spring: 'Spring (March-May)',
@@ -42,7 +54,7 @@ export default function StudentArrivalsChart() {
       month: 'Month',
       international: 'International students',
       tooltipLabel: 'International students:',
-      months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     },
   };
 
@@ -52,26 +64,66 @@ export default function StudentArrivalsChart() {
     setMounted(true);
   }, []);
 
-  const fullYearData = [
-    { month: t.months[0], international: 32 },
-    { month: t.months[1], international: 38 },
-    { month: t.months[2], international: 45 },
-    { month: t.months[3], international: 52 },
-    { month: t.months[4], international: 58 },
-    { month: t.months[5], international: 65 },
-    { month: t.months[6], international: 55 },
-    { month: t.months[7], international: 72 },
-    { month: t.months[8], international: 85 },
-    { month: t.months[9], international: 62 },
-    { month: t.months[10], international: 48 },
-    { month: t.months[11], international: 30 },
-  ];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const [selectedRange, setSelectedRange] = useState('all');
-  const [customStart, setCustomStart] = useState(0);
-  const [customEnd, setCustomEnd] = useState(11);
+        const token =
+          typeof window !== 'undefined'
+            ? localStorage.getItem('jwt') || localStorage.getItem('accessToken') || localStorage.getItem('token')
+            : null;
+        const authHeaders: Record<string, string> = {};
+        if (token) authHeaders.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(`/api/trip/analytics/arrivals?months=${monthsCount}&end=2026-10`, {
+          headers: { ...authHeaders },
+        });
+        if (!res.ok) throw new Error(`Failed to load arrivals: ${res.status}`);
+        const json = await res.json();
+        const data = Array.isArray(json?.data) ? json.data : [];
+
+        setArrivals(
+          data.map((item: any) => ({
+            month: typeof item?.month === 'string' ? item.month : '',
+            arrivals: Number(item?.arrivals) || 0,
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+        setError(err instanceof Error ? err.message : t.error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [monthsCount, t.error]);
+
+  const fullYearData = useMemo(() => {
+    return arrivals.map((item) => {
+      const [year, monthNum] = item.month.split('-');
+      const idx = Number(monthNum) - 1;
+      const monthName = t.months[idx] || item.month;
+      const display = year ? `${monthName} ${year}` : monthName;
+      return { month: display, international: item.arrivals };
+    });
+  }, [arrivals, t.months]);
+
+  useEffect(() => {
+    if (!fullYearData.length) {
+      setCustomStart(0);
+      setCustomEnd(0);
+      return;
+    }
+    setCustomStart((prev) => Math.min(prev, fullYearData.length - 1));
+    setCustomEnd((prev) => Math.min(prev, fullYearData.length - 1));
+  }, [fullYearData.length]);
 
   const getChartData = () => {
+    if (!fullYearData.length) return [];
+
     if (selectedRange === 'all') {
       return fullYearData;
     } else if (selectedRange === 'spring') {
@@ -90,6 +142,7 @@ export default function StudentArrivalsChart() {
 
   const chartData = getChartData();
   const totalInternational = chartData.reduce((sum, item) => sum + item.international, 0);
+  const tableData = chartData.filter((item) => item.international > 0);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -104,6 +157,8 @@ export default function StudentArrivalsChart() {
     }
     return null;
   };
+
+  const monthOptions = fullYearData.length ? fullYearData : t.months.map((m) => ({ month: m, international: 0 }));
 
   return (
     <div className='bg-white dark:bg-surface rounded-2xl p-8 shadow-lg w-full overflow-hidden'>
@@ -168,8 +223,25 @@ export default function StudentArrivalsChart() {
           </button>
         </div>
 
+        <div className='flex items-center gap-3 mt-4 flex-wrap'>
+          <label className='text-sm font-semibold text-black dark:text-white'>{lang === 'en' ? 'Months:' : 'Месяцев:'}</label>
+          <select
+            value={monthsCount}
+            onChange={(e) => setMonthsCount(Number(e.target.value) || 12)}
+            className='px-3 py-2 rounded-lg bg-white dark:bg-surface border border-gray dark:border-dark-gray text-black dark:text-white'
+          >
+            {[3, 6, 9, 12, 18, 24].map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          {loading && <span className='text-xs text-gray dark:text-medium-warm-gray'>{t.loading}</span>}
+          {error && <span className='text-xs text-red-500'>{t.error}: {error}</span>}
+        </div>
+
         {/* Custom Range Selection */}
-        <div className='flex items-end gap-3'>
+        <div className='flex items-end gap-3 mt-4'>
           <div className='flex-1'>
             <label className='block text-xs font-semibold text-black dark:text-white mb-2'>{lang === 'en' ? 'From month:' : 'С месяца:'}</label>
             <select
@@ -182,9 +254,9 @@ export default function StudentArrivalsChart() {
               }}
               className='w-full px-3 py-2 rounded-lg bg-white dark:bg-surface border border-gray dark:border-dark-gray text-black dark:text-white'
             >
-              {t.months.map((month, idx) => (
+              {monthOptions.map((item, idx) => (
                 <option key={idx} value={idx}>
-                  {month}
+                  {item.month}
                 </option>
               ))}
             </select>
@@ -200,9 +272,9 @@ export default function StudentArrivalsChart() {
               }}
               className='w-full px-3 py-2 rounded-lg bg-white dark:bg-surface border border-gray dark:border-dark-gray text-black dark:text-white'
             >
-              {t.months.map((month, idx) => (
+              {monthOptions.map((item, idx) => (
                 <option key={idx} value={idx}>
-                  {month}
+                  {item.month}
                 </option>
               ))}
             </select>
@@ -238,11 +310,9 @@ export default function StudentArrivalsChart() {
               <YAxis stroke='#6b7280' style={{ fontSize: '12px' }} />
               <Tooltip content={<CustomTooltip />} />
               <Legend
-                formatter={(value) => (
-                  <span className='text-black dark:text-white'>International students</span>
-                )}
+                formatter={() => <span className='text-black dark:text-white'>{t.international}</span>}
               />
-              <Bar dataKey='international' fill='#EF6B42' radius={[8, 8, 0, 0]} name='international' />
+              <Bar dataKey='international' fill='#EF6B42' radius={[8, 8, 0, 0]} name={t.international} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -260,7 +330,7 @@ export default function StudentArrivalsChart() {
               </tr>
             </thead>
             <tbody>
-              {chartData.map((item, index) => (
+              {tableData.map((item, index) => (
                 <tr
                   key={index}
                   className='border-b border-light-blue-gray dark:border-gray hover:bg-light-blue-gray dark:hover:bg-dark-gray'

@@ -22,6 +22,9 @@ interface Student {
   sfu_email: string;
   phone_home: string;
   phone_rf: string;
+  school: string;
+  study_group: string;
+  year: string;
 }
 
 interface TripModel {
@@ -29,7 +32,8 @@ interface TripModel {
   studentId: string;
   arrivalDate: string;
   departureDate: string;
-  location: string;
+  departurePoint: string;
+  destination: string;
 }
 
 const translations = {
@@ -52,7 +56,8 @@ const translations = {
     documents: 'Мои документы',
     trips: 'Мои поездки',
     addTrip: 'Добавить поездку',
-    tripLocation: 'Локация',
+    tripDeparture: 'Пункт отправления',
+    tripDestination: 'Пункт назначения',
     arrivalDate: 'Дата прибытия',
     departureDate: 'Дата отбытия',
     tripModalTitleAdd: 'Новая поездка',
@@ -74,6 +79,9 @@ const translations = {
     profileError: 'Не удалось загрузить профиль.',
     saveError: 'Не удалось сохранить профиль.',
     notFound: 'Профиль текущего пользователя не найден.',
+    school: 'Институт',
+    study_group: 'Учебная группа',
+    year: 'Курс',
   },
   en: {
     address: 'Residential address',
@@ -94,7 +102,8 @@ const translations = {
     documents: 'My documents',
     trips: 'My trips',
     addTrip: 'Add trip',
-    tripLocation: 'Location',
+    tripDeparture: 'Departure point',
+    tripDestination: 'Destination',
     arrivalDate: 'Arrival date',
     departureDate: 'Departure date',
     tripModalTitleAdd: 'New trip',
@@ -116,6 +125,9 @@ const translations = {
     profileError: 'Failed to load profile.',
     saveError: 'Failed to save profile.',
     notFound: 'Current user profile not found.',
+    school: 'School',
+    study_group: 'Study group',
+    year: 'Year',
   },
 };
 
@@ -134,6 +146,8 @@ const rightFields = (t: typeof translations.en) => ({
   phone_home: t.phone_home,
   phone_rf: t.phone_rf,
 });
+
+const pickAvatarUrl = (data: any) => data?.file_url || data?.file_path || data?.url || null;
 
 export default function ProfilePage() {
   const params = useParams();
@@ -160,7 +174,7 @@ export default function ProfilePage() {
   const [tripsError, setTripsError] = useState<string | null>(null);
   const [tripModalOpen, setTripModalOpen] = useState(false);
   const [editingTripId, setEditingTripId] = useState<string | null>(null);
-  const [tripForm, setTripForm] = useState({ location: '', arrivalDate: '', departureDate: '' });
+  const [tripForm, setTripForm] = useState({ departurePoint: '', destination: '', arrivalDate: '', departureDate: '' });
   const [tripSaving, setTripSaving] = useState(false);
   const [tripSaveError, setTripSaveError] = useState<string | null>(null);
   const [tripDeleteId, setTripDeleteId] = useState<string | null>(null);
@@ -169,6 +183,8 @@ export default function ProfilePage() {
     if (avatarFile) return URL.createObjectURL(avatarFile);
     return avatarUrl;
   }, [avatarFile, avatarUrl]);
+
+  const displayStudent = isEditing && editableStudent ? editableStudent : student;
 
   useEffect(() => {
     return () => {
@@ -194,7 +210,7 @@ export default function ProfilePage() {
   };
 
   const resetTripForm = () => {
-    setTripForm({ location: '', arrivalDate: '', departureDate: '' });
+    setTripForm({ departurePoint: '', destination: '', arrivalDate: '', departureDate: '' });
     setTripSaveError(null);
     setEditingTripId(null);
   };
@@ -211,7 +227,8 @@ export default function ProfilePage() {
 
   const handleEditTrip = (trip: TripModel) => {
     setTripForm({
-      location: trip.location || '',
+      departurePoint: trip.departurePoint || '',
+      destination: trip.destination || '',
       arrivalDate: trip.arrivalDate || '',
       departureDate: trip.departureDate || '',
     });
@@ -231,14 +248,15 @@ export default function ProfilePage() {
       }
 
       const data = await response.json();
-      const list = Array.isArray(data) ? data : data.results || [];
+      const list = Array.isArray(data) ? data : data?.results ?? (data ? [data] : []);
 
       const normalized: TripModel[] = list.map((item: any, index: number) => ({
         id: String(item.id ?? item.trip_id ?? index),
         studentId: String(item.student_id ?? id),
         arrivalDate: item.arrival_date || '',
         departureDate: item.departure_date || '',
-        location: item.location || '',
+        departurePoint: item.departure_point || item.location || '',
+        destination: item.destination || '',
       }));
 
       setTrips(normalized);
@@ -256,7 +274,7 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!tripForm.location || !tripForm.arrivalDate || !tripForm.departureDate) {
+    if (!tripForm.departurePoint || !tripForm.destination || !tripForm.arrivalDate || !tripForm.departureDate) {
       setTripSaveError(t.tripRequired);
       return;
     }
@@ -269,7 +287,8 @@ export default function ProfilePage() {
         student_id: Number(studentId),
         arrival_date: tripForm.arrivalDate,
         departure_date: tripForm.departureDate,
-        location: tripForm.location,
+        departure_point: tripForm.departurePoint,
+        destination: tripForm.destination,
       };
 
       const url = editingTripId ? `/api/trip/${editingTripId}` : '/api/trip';
@@ -350,6 +369,9 @@ export default function ProfilePage() {
         passport: editableStudent.passport,
         email: editableStudent.email,
         phone_number: editableStudent.phone_rf,
+        school: editableStudent.school,
+        study_group: editableStudent.study_group,
+        year: editableStudent.year,
       };
 
       const response = await fetch(`/api/student/full_patch/${studentId}`, {
@@ -502,6 +524,9 @@ export default function ProfilePage() {
           sfu_email: profileSource.sfu_email || '',
           phone_home: profileSource.phone_home || '',
           phone_rf: profileSource.phone_rf || profileSource.phone_number || '',
+          school: profileSource.school || '',
+          study_group: profileSource.study_group || '',
+          year: profileSource.year || '',
         });
 
         if (profileSource.id) {
@@ -516,14 +541,19 @@ export default function ProfilePage() {
           setStudentId(idString);
 
           try {
-            const avatarResponse = await fetch(`/api/files/upload-avatar/${idString}`);
+            const avatarResponse = await fetch(`/api/files/avatar/${idString}`);
             if (avatarResponse.ok) {
               const avatarData = await avatarResponse.json().catch(() => ({}));
-              const url = avatarData.file_url || avatarData.url || null;
+              const url = pickAvatarUrl(avatarData);
               if (url) {
                 setAvatarUrl(url);
                 localStorage.setItem('studentAvatarUrl', url);
+              } else {
+                localStorage.removeItem('studentAvatarUrl');
               }
+            } else if (avatarResponse.status === 404) {
+              localStorage.removeItem('studentAvatarUrl');
+              setAvatarUrl(null);
             }
           } catch (avatarErr) {
             console.warn('Avatar load skipped:', avatarErr);
@@ -592,8 +622,13 @@ export default function ProfilePage() {
             <p className='text-2xl font-extrabold text-dark-gray dark:text-white'>
               {student.last_name || ''} {student.first_name || ''} {student.patronymic || ''}
             </p>
-            <p className='text-lg text-dark-gray dark:text-white'>{t.headingStub}</p>
+            <p className='text-lg text-dark-gray dark:text-white'>
+              {t.year}: {displayStudent?.year || '—'}, {t.school}: {displayStudent?.school || '—'}, {t.study_group}: {displayStudent?.study_group || '—'}
+            </p>
           </div>
+        </div>
+
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-4'>
         </div>
 
         {/* Fields For editing */}
@@ -627,14 +662,6 @@ export default function ProfilePage() {
                 </Button>
               </div>
             )}
-            <Button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className='bg-red-500 text-white hover:bg-red-600 text-lg'
-              icon={<span className='material-symbols-outlined'>logout</span>}
-            >
-              {isLoggingOut ? t.loggingOut : t.logout}
-            </Button>
           </div>
 
           {saveError && (
@@ -642,6 +669,21 @@ export default function ProfilePage() {
               {saveError}
             </div>
           )}
+
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
+            {[{ key: 'school', label: t.school }, { key: 'study_group', label: t.study_group }, { key: 'year', label: t.year }].map((field) => (
+              <div key={field.key}>
+                <p className='text-lg px-4 text-dark-gray dark:text-white'>{field.label}</p>
+                <InputField
+                  placeholder={field.label}
+                  className='w-full text-lg'
+                  value={isEditing && editableStudent ? (editableStudent as any)[field.key] || '' : (student as any)?.[field.key] || ''}
+                  readOnly={!isEditing}
+                  onChange={(e) => isEditing && handleFieldChange(field.key as keyof Student, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
 
           <div className="grid grid-cols-2 gap-8">
             <div className='flex flex-col gap-4'>
@@ -673,6 +715,17 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className='flex justify-end mt-6'>
+            <Button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className='bg-red-500 text-white hover:bg-red-600 text-lg'
+              icon={<span className='material-symbols-outlined'>logout</span>}
+            >
+              {isLoggingOut ? t.loggingOut : t.logout}
+            </Button>
           </div>
         </div>
       </div>
@@ -732,7 +785,8 @@ export default function ProfilePage() {
           {trips.map((trip) => (
             <Trip
               key={trip.id}
-              location={trip.location}
+              departurePoint={trip.departurePoint}
+              destination={trip.destination}
               arrivalDate={trip.arrivalDate}
               departureDate={trip.departureDate}
               onEdit={() => handleEditTrip(trip)}
@@ -771,11 +825,20 @@ export default function ProfilePage() {
 
           <div className='flex flex-col gap-3'>
             <div>
-              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.tripLocation}</p>
+              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.tripDeparture}</p>
               <InputField
-                placeholder={t.tripLocation}
-                value={tripForm.location}
-                onChange={(e) => setTripForm((prev) => ({ ...prev, location: e.target.value }))}
+                placeholder={t.tripDeparture}
+                value={tripForm.departurePoint}
+                onChange={(e) => setTripForm((prev) => ({ ...prev, departurePoint: e.target.value }))}
+                className='w-full'
+              />
+            </div>
+            <div>
+              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.tripDestination}</p>
+              <InputField
+                placeholder={t.tripDestination}
+                value={tripForm.destination}
+                onChange={(e) => setTripForm((prev) => ({ ...prev, destination: e.target.value }))}
                 className='w-full'
               />
             </div>

@@ -13,7 +13,7 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
     <>
       <Header lang={lang} role='admin' />
       {children}
-      <div className='px-48 pb-8'>
+      <div className='px-48 pb-8 footer-wrapper'>
         <Footer />
       </div>
     </>

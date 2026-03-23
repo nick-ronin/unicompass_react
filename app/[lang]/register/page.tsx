@@ -124,8 +124,8 @@ export default function RegisterPage() {
 
       const data = await response.json();
       
-      // Redirect to student home page
-      router.push(`/${currentLang}/student`);
+      // Redirect to login after successful registration
+      router.push(`/${currentLang}/login`);
     } catch (err) {
       console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : t.registrationError);

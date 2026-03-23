@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import Button from '@/components/Button';
 import { useParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import TaskAssignmentModal from '@/components/TaskAssignmentModal';
 
 type Lang = 'ru' | 'en';
 
@@ -10,20 +13,20 @@ const translations = {
     heroTitle: 'Adaptation and Educational Center 🎓',
     heroSubtitle: 'Helping international students adapt and integrate',
     dateLabel: 'Today',
-    dateValue: '21 March 2026',
-    analytics: [
-      { label: 'Students in adaptation', value: '342', change: '+15%', icon: 'group', color: 'from-cyan to-dark-cyan' },
-      { label: 'Need help', value: '47', change: '↑2', icon: 'support_agent', color: 'from-orange to-dark-orange' },
-      { label: 'Successfully adapted', value: '89%', change: '+3%', icon: 'check_circle', color: 'from-light-green to-dark-cyan' },
-      { label: 'Resolved requests', value: '156', change: '+12', icon: 'task_alt', color: 'from-yellow to-dark-yellow' },
-    ],
+    analyticsLabels: {
+      students: 'Students in adaptation',
+      tasks: 'Total tasks',
+      completedToday: 'Completed today',
+      needHelp: 'Need help',
+    },
     quickActionsTitle: 'Quick actions',
-    quickActions: [
-      { label: 'New student', icon: 'person_add', color: 'from-cyan/10 to-dark-cyan/10', border: 'border-cyan/30 hover:border-cyan/60' },
-      { label: 'New appeal', icon: 'assignment_add', color: 'from-light-green/10 to-dark-cyan/10', border: 'border-light-green/30 hover:border-light-green/60' },
-      { label: 'New event', icon: 'event', color: 'from-yellow/10 to-orange/10', border: 'border-yellow/30 hover:border-yellow/60' },
-      { label: 'Documents', icon: 'description', color: 'from-orange/10 to-dark-orange/10', border: 'border-orange/30 hover:border-orange/60' },
-    ],
+    quickActions: {
+      students: 'All students',
+      assign: 'Assign task',
+      tasks: 'All tasks',
+      chat: 'Chat',
+      newMessages: (count: number) => `${count} new messages`,
+    },
     needHelpTitle: 'Need help',
     allAppeals: 'All appeals',
     help: 'Help',
@@ -65,20 +68,20 @@ const translations = {
     heroTitle: 'Центр адаптации и воспитательной работы 🎓',
     heroSubtitle: 'Помогаем иностранным студентам в адаптации и интеграции',
     dateLabel: 'Сегодня',
-    dateValue: '21 марта 2026',
-    analytics: [
-      { label: 'Студенты в адаптации', value: '342', change: '+15%', icon: 'group', color: 'from-cyan to-dark-cyan' },
-      { label: 'Нужна помощь', value: '47', change: '↑2', icon: 'support_agent', color: 'from-orange to-dark-orange' },
-      { label: 'Успешно адаптированы', value: '89%', change: '+3%', icon: 'check_circle', color: 'from-light-green to-dark-cyan' },
-      { label: 'Обращений решено', value: '156', change: '+12', icon: 'task_alt', color: 'from-yellow to-dark-yellow' },
-    ],
+    analyticsLabels: {
+      students: 'Студенты в адаптации',
+      tasks: 'Всего задач',
+      completedToday: 'Выполнено за день',
+      needHelp: 'Нужна помощь',
+    },
     quickActionsTitle: 'Быстрые действия',
-    quickActions: [
-      { label: 'Новый студент', icon: 'person_add', color: 'from-cyan/10 to-dark-cyan/10', border: 'border-cyan/30 hover:border-cyan/60' },
-      { label: 'Новое обращение', icon: 'assignment_add', color: 'from-light-green/10 to-dark-cyan/10', border: 'border-light-green/30 hover:border-light-green/60' },
-      { label: 'Новое событие', icon: 'event', color: 'from-yellow/10 to-orange/10', border: 'border-yellow/30 hover:border-yellow/60' },
-      { label: 'Документы', icon: 'description', color: 'from-orange/10 to-dark-orange/10', border: 'border-orange/30 hover:border-orange/60' },
-    ],
+    quickActions: {
+      students: 'Все студенты',
+      assign: 'Назначить задачу',
+      tasks: 'Все задачи',
+      chat: 'Чат',
+      newMessages: (count: number) => `${count} новых сообщений`,
+    },
     activeCuratorsTitle: 'Активные кураторы',
     studentsLabel: 'студентов',
     activeCurators: [
@@ -107,9 +110,173 @@ export default function AdminHomePage() {
   const params = useParams();
   const lang = (params?.lang as Lang) || 'ru';
   const t = translations[lang] || translations.ru;
-  const analytics = t.analytics;
   const activeCurators = t.activeCurators;
   const recentActivity = t.recentActivity;
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const newMessagesCount = 3;
+  const [studentsCount, setStudentsCount] = useState<number | null>(null);
+  const [tasksCount, setTasksCount] = useState<number | null>(null);
+  const [completedToday, setCompletedToday] = useState<number | null>(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+
+  const todayDate = useMemo(() => {
+    return new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }, [lang]);
+
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
+  const safeCount = (data: any): number => {
+    if (Array.isArray(data)) return data.length;
+    if (Array.isArray(data?.data)) return data.data.length;
+    if (typeof data?.pagination?.total === 'number') return data.pagination.total;
+    if (typeof data?.count === 'number') return data.count;
+    if (typeof data?.completed_count === 'number') return data.completed_count;
+    return 0;
+  };
+
+  const loadMetrics = async () => {
+    try {
+      setLoadingMetrics(true);
+
+      const [studentsRes, tasksRes, completedRes] = await Promise.all([
+        fetch('/api/student/info_list', { headers: { ...buildAuthHeaders() } }),
+        fetch('/api/task', { headers: { ...buildAuthHeaders() } }),
+        fetch('/api/student_task/completed/count', { headers: { ...buildAuthHeaders() } }),
+      ]);
+
+      if (studentsRes.ok) {
+        const data = await studentsRes.json().catch(() => null);
+        setStudentsCount(safeCount(data));
+      }
+
+      if (tasksRes.ok) {
+        const data = await tasksRes.json().catch(() => null);
+        setTasksCount(safeCount(data));
+      }
+
+      if (completedRes.ok) {
+        const data = await completedRes.json().catch(() => null);
+        setCompletedToday(safeCount(data));
+      }
+    } catch (err) {
+      console.warn('Metrics load failed', err);
+    } finally {
+      setLoadingMetrics(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMetrics();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const analytics = useMemo(() => {
+    const needHelpValue = studentsCount != null && completedToday != null
+      ? Math.max(studentsCount - completedToday, 0)
+      : null;
+
+    return [
+      {
+        label: t.analyticsLabels.students,
+        value: studentsCount != null ? studentsCount.toString() : '—',
+        change: '',
+        icon: 'group',
+        color: 'from-cyan to-dark-cyan',
+      },
+      {
+        label: t.analyticsLabels.tasks,
+        value: tasksCount != null ? tasksCount.toString() : '—',
+        change: '',
+        icon: 'checklist',
+        color: 'from-orange to-dark-orange',
+      },
+      {
+        label: t.analyticsLabels.completedToday,
+        value: completedToday != null ? completedToday.toString() : '—',
+        change: '',
+        icon: 'task_alt',
+        color: 'from-light-green to-dark-cyan',
+      },
+      {
+        label: t.analyticsLabels.needHelp,
+        value: needHelpValue != null ? needHelpValue.toString() : '—',
+        change: '',
+        icon: 'support_agent',
+        color: 'from-yellow to-dark-yellow',
+      },
+    ];
+  }, [t.analyticsLabels, studentsCount, tasksCount, completedToday]);
+
+  const quickActions = [
+    {
+      key: 'students',
+      label: t.quickActions.students,
+      icon: 'group',
+      href: `/${lang}/admin/tables/students`,
+      color: 'from-cyan/10 to-dark-cyan/10',
+      border: 'border-cyan/30 hover:border-cyan/60',
+    },
+    {
+      key: 'assign',
+      label: t.quickActions.assign,
+      icon: 'assignment_turned_in',
+      action: () => setIsAssignModalOpen(true),
+      color: 'from-light-green/10 to-dark-cyan/10',
+      border: 'border-light-green/30 hover:border-light-green/60',
+    },
+    {
+      key: 'tasks',
+      label: t.quickActions.tasks,
+      icon: 'checklist',
+      href: `/${lang}/admin/tasks`,
+      color: 'from-yellow/10 to-orange/10',
+      border: 'border-yellow/30 hover:border-yellow/60',
+    },
+    {
+      key: 'chat',
+      label: t.quickActions.chat,
+      icon: 'chat',
+      href: `/${lang}/admin/chat`,
+      color: 'from-orange/10 to-dark-orange/10',
+      border: 'border-orange/30 hover:border-orange/60',
+      badge: t.quickActions.newMessages(newMessagesCount),
+    },
+  ];
+
+  const handleAssignSubmit = async (data: { name: string; description: string; deadline: string; studentIds: string[] }) => {
+    try {
+      setAssignLoading(true);
+      await fetch('/api/student_task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          description: data.description,
+          deadline: data.deadline,
+          student_ids: data.studentIds,
+        }),
+      });
+    } catch (err) {
+      console.error('Assign task error', err);
+    } finally {
+      setAssignLoading(false);
+      setIsAssignModalOpen(false);
+    }
+  };
 
   return (
     <div className='min-h-screen'>
@@ -131,7 +298,7 @@ export default function AdminHomePage() {
               <div className='hidden lg:flex items-center gap-3'>
                 <div className='text-right text-white'>
                   <p className='text-sm opacity-90'>{t.dateLabel}</p>
-                  <p className='text-lg font-semibold'>{t.dateValue}</p>
+                  <p className='text-lg font-semibold'>{todayDate}</p>
                 </div>
                 <div className='w-12 h-12 bg-white/20 rounded-full flex items-center justify-center'>
                   <span className='material-symbols-outlined text-white'>calendar_today</span>
@@ -172,15 +339,38 @@ export default function AdminHomePage() {
             <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-md mb-8'>
               <h2 className='text-2xl font-bold mb-6'>{t.quickActionsTitle}</h2>
               <div className='grid grid-cols-2 gap-4'>
-                {t.quickActions.map((action) => (
-                  <Button
-                    key={action.label}
-                    className={`flex flex-col items-center justify-center gap-3 py-6 px-4 bg-linear-to-br ${action.color} hover:from-cyan/20 hover:to-dark-cyan/20 transition-all rounded-2xl border ${action.border}`}
-                  >
-                    <span className='material-symbols-outlined text-3xl text-cyan'>{action.icon}</span>
-                    <span className='font-semibold text-sm text-foreground'>{action.label}</span>
-                  </Button>
-                ))}
+                {quickActions.map((action) => {
+                  const content = (
+                    <div className={`relative w-full h-full flex flex-col items-center justify-center gap-3 py-6 px-4 bg-linear-to-br ${action.color} hover:from-cyan/20 hover:to-dark-cyan/20 transition-all rounded-2xl cursor-pointer border ${action.border}`}>
+                      {action.badge && (
+                        <span className='absolute top-3 right-3 text-xs font-semibold bg-orange text-white px-3 py-1 rounded-full'>
+                          {action.badge}
+                        </span>
+                      )}
+                      <span className='material-symbols-outlined text-3xl text-cyan'>{action.icon}</span>
+                      <span className='font-semibold text-sm text-foreground text-center'>{action.label}</span>
+                    </div>
+                  );
+
+                  if (action.href) {
+                    return (
+                      <Link key={action.key} href={action.href} className='block h-full'>
+                        {content}
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={action.key}
+                      type='button'
+                      onClick={action.action}
+                      className='w-full text-left'
+                    >
+                      {content}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -209,22 +399,6 @@ export default function AdminHomePage() {
                         {curator.rating}
                       </span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Status work */}
-            <div className='bg-linear-to-br from-light-green/10 to-cyan/10 rounded-3xl p-6 border border-light-green/30'>
-              <h3 className='text-lg font-bold mb-4 flex items-center gap-2'>
-                <span className='material-symbols-outlined text-light-green'>assessment</span>
-                {t.todayStatsTitle}
-              </h3>
-              <div className='space-y-3'>
-                {t.todayStats.map((item) => (
-                  <div key={item.label} className='flex items-center justify-between text-sm'>
-                    <span>{item.label}</span>
-                    <span className='font-bold'>{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -271,6 +445,13 @@ export default function AdminHomePage() {
           </Button>
         </div>
       </div>
+      <TaskAssignmentModal
+        isOpen={isAssignModalOpen}
+        isLoading={assignLoading}
+        onClose={() => setIsAssignModalOpen(false)}
+        onSubmit={handleAssignSubmit}
+        lang={lang}
+      />
     </div>
   );
 }

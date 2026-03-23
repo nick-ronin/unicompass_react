@@ -35,7 +35,7 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
 
   return (
     <div className="pb-16 flex flex-col gap-12">
-      <div className="bg-gradient-to-r from-cyan to-dark-cyan text-white px-10 md:px-24 py-16 flex flex-col gap-6">
+      <div className="bg-linear-to-r from-cyan to-dark-cyan text-white px-10 md:px-24 py-16 flex flex-col gap-6">
         <div className="text-sm opacity-80">
           <Link href={`${basePath}`}>{lang === "ru" ? "Главная" : "Home"}</Link>
           <span className="mx-2">/</span>

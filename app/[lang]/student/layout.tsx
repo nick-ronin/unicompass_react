@@ -13,7 +13,7 @@ export default async function StudentLayout({ children, params }: StudentLayoutP
     <>
       <Header lang={lang} role='student' />
       {children}
-      <div className='px-48 pb-8'>
+      <div className='px-48 pb-8 footer-wrapper'>
         <Footer />
       </div>
     </>

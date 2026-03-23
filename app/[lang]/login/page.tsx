@@ -157,16 +157,22 @@ export default function LoginPage() {
         })
       );
 
+      const pickAvatarUrl = (data: any) => data?.file_url || data?.file_path || data?.url || null;
+
       // Pull fresh avatar right after login so header has it immediately
       if (studentId) {
         try {
-          const avatarRes = await fetch(`/api/files/upload-avatar/${studentId}`);
+          const avatarRes = await fetch(`/api/files/avatar/${studentId}`);
           if (avatarRes.ok) {
             const avatarData = await avatarRes.json().catch(() => ({}));
-            const avatarUrl = avatarData.file_url || avatarData.url || null;
+            const avatarUrl = pickAvatarUrl(avatarData);
             if (avatarUrl) {
               localStorage.setItem('studentAvatarUrl', avatarUrl);
+            } else {
+              localStorage.removeItem('studentAvatarUrl');
             }
+          } else if (avatarRes.status === 404) {
+            localStorage.removeItem('studentAvatarUrl');
           }
         } catch (avatarErr) {
           console.warn('Avatar fetch after login failed', avatarErr);

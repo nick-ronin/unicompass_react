@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import InputField from '@/components/Input Field';
 import ChatUserCard from '@/components/ChatUserCard';
@@ -9,11 +9,11 @@ import MessageInput from '@/components/MessageInput';
 
 interface User {
   id: string;
-  name: string;
-  fullName: string;
-  lastMessage: string;
+  name?: string;
+  fullName?: string;
+  lastMessage?: string;
   avatar?: string;
-  lastOnline: string;
+  lastOnline?: string;
 }
 
 interface Message {
@@ -31,6 +31,16 @@ interface Message {
   userId: string;
 }
 
+interface ApiConversationMessage {
+  id: number;
+  sender_id: number;
+  recipient_id: number;
+  sent_at: string;
+  text: string;
+  sender_first_name?: string;
+  recipient_first_name?: string;
+}
+
 const translations = {
   ru: {
     searchPlaceholder: 'Поиск по чатам...',
@@ -38,6 +48,8 @@ const translations = {
     startConversation: 'Начните переписку!',
     selectChat: 'Выберите чат, чтобы начать общение',
     online: 'онлайн',
+    loadUsersError: 'Не удалось загрузить список пользователей',
+    noUserId: 'Нужно войти, чтобы отправлять сообщения',
   },
   en: {
     searchPlaceholder: 'Search chat...',
@@ -45,11 +57,11 @@ const translations = {
     startConversation: 'Start a conversation!',
     selectChat: 'Select a chat to start messaging',
     online: 'online',
+    loadUsersError: 'Failed to load users',
+    noUserId: 'You need to log in to send messages',
   },
 };
-
-// Mock data
-const mockUsers: User[] = [
+const fallbackUsers: User[] = [
   {
     id: '1',
     name: 'Ivan Petrov',
@@ -66,158 +78,176 @@ const mockUsers: User[] = [
     avatar: '/NoAvatarDefault.svg',
     lastOnline: '5 minutes ago',
   },
-  {
-    id: '3',
-    name: 'Sergey Ivanov',
-    fullName: 'Sergei Petrovich Ivanov',
-    lastMessage: 'Sent you a file',
-    avatar: '/NoAvatarDefault.svg',
-    lastOnline: '1 an hour ago',
-  },
-  {
-    id: '4',
-    name: 'Alexey Kozlov',
-    fullName: 'Alexey Viktorovich Kozlov',
-    lastMessage: 'See you!',
-    avatar: '/NoAvatarDefault.svg',
-    lastOnline: 'yesterday',
-  },
 ];
-
-const mockMessages: Record<string, Message[]> = {
-  '1': [
-    {
-      id: '1',
-      text: 'Hello! How are you?',
-      timestamp: '10:30',
-      status: 'read',
-      isOwn: false,
-      userId: '1',
-    },
-    {
-      id: '2',
-      text: 'Hello! OK, thank you! And you?',
-      timestamp: '10:31',
-      status: 'read',
-      isOwn: true,
-      userId: '1',
-    },
-    {
-      id: '3',
-      text: 'Same Fine! How about meeting on Friday?',
-      timestamp: '10:32',
-      status: 'received',
-      isOwn: false,
-      userId: '1',
-    },
-  ],
-  '2': [
-    {
-      id: '1',
-      text: 'Hello, can you help with the task?',
-      timestamp: '09:15',
-      status: 'read',
-      isOwn: false,
-      userId: '2',
-    },
-    {
-      id: '2',
-      text: 'Of course I will help!',
-      timestamp: '09:16',
-      status: 'read',
-      isOwn: true,
-      userId: '2',
-    },
-    {
-      id: '3',
-      text: 'Thanks for your help!',
-      timestamp: '09:20',
-      status: 'received',
-      isOwn: false,
-      userId: '2',
-    },
-  ],
-  '3': [
-    {
-      id: '1',
-      text: 'Look at the file I sent',
-      timestamp: '11:00',
-      status: 'read',
-      isOwn: false,
-      userId: '3',
-    },
-    {
-      id: '2',
-      document: {
-        name: 'presentation.pdf',
-        size: '2.5 MB',
-      },
-      caption: 'Here is the presentation',
-      timestamp: '11:01',
-      status: 'sent',
-      isOwn: true,
-      userId: '3',
-    },
-  ],
-  '4': [
-    {
-      id: '1',
-      text: 'See you on Friday!',
-      timestamp: '14:45',
-      status: 'read',
-      isOwn: false,
-      userId: '4',
-    },
-    {
-      id: '2',
-      text: 'Yes, see you later!',
-      timestamp: '14:46',
-      status: 'read',
-      isOwn: true,
-      userId: '4',
-    },
-  ],
-};
 
 export default function ChatPage() {
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [messages, setMessages] = useState<Record<string, Message[]>>(mockMessages);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [users, setUsers] = useState<User[]>(fallbackUsers);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const langParam = typeof params.lang === 'string' ? params.lang : Array.isArray(params.lang) ? params.lang[0] : 'ru';
   const t = translations[langParam as keyof typeof translations] || translations.ru;
 
-  const activeUser = mockUsers.find((u) => u.id === activeUserId);
-  const filteredUsers = mockUsers.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const formatTime = (value: string) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? value
+      : date.toLocaleTimeString(langParam === 'en' ? 'en-US' : 'ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+  };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
+  const extractStoredUserId = () => {
+    try {
+      const storedAuth = localStorage.getItem('studentAuth') || localStorage.getItem('userAuth');
+      if (storedAuth) {
+        const parsed = JSON.parse(storedAuth);
+        const id = parsed?.studentId || parsed?.userId || parsed?.id;
+        if (id) return String(id);
+      }
+      const rawId = localStorage.getItem('userId');
+      return rawId || null;
+    } catch (err) {
+      console.warn('Cannot read stored user id', err);
+      return null;
+    }
+  };
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    setUsersError(null);
+    try {
+      const res = await fetch('/api/student/full_info_list?limit=100', {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
+      if (!res.ok) throw new Error('Failed to load users');
+      const data = await res.json();
+      const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      const mapped = list.map((item: any) => ({
+        id: String(item.id || item.student_id || item.user_id || crypto.randomUUID()),
+        name: `${item.first_name ?? ''} ${item.last_name ?? ''}`.trim() || item.name,
+        fullName: `${item.first_name ?? ''} ${item.last_name ?? ''}`.trim() || item.full_name,
+        avatar: item.avatar || item.file_url || '/NoAvatarDefault.svg',
+        lastOnline: t.online,
+      })) as User[];
+      if (mapped.length) {
+        setUsers(mapped);
+        return;
+      }
+      setUsers(fallbackUsers);
+    } catch (err) {
+      console.warn('User list fetch failed', err);
+      setUsers(fallbackUsers);
+      setUsersError(t.loadUsersError);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const loadConversation = async (partnerId: string) => {
+    if (!currentUserId) return;
+    setMessagesLoading(true);
+    try {
+      const res = await fetch(`/api/chat/conversation/${currentUserId}/${partnerId}`, {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
+      if (!res.ok) throw new Error('Failed to load conversation');
+      const data: ApiConversationMessage[] = await res.json();
+      const mapped = data.map((msg) => ({
+        id: String(msg.id ?? crypto.randomUUID()),
+        text: msg.text,
+        timestamp: formatTime(msg.sent_at),
+        status: 'sent' as const,
+        isOwn: String(msg.sender_id) === currentUserId,
+        userId: String(msg.sender_id),
+      }));
+      setMessages((prev) => ({
+        ...prev,
+        [partnerId]: mapped,
+      }));
+    } catch (err) {
+      console.warn('Conversation fetch failed', err);
+    } finally {
+      setMessagesLoading(false);
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    const id = extractStoredUserId();
+    if (id) setCurrentUserId(String(id));
+    loadUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleSendMessage = (text: string, file?: File) => {
+  useEffect(() => {
+    document.body.classList.add('hide-footer');
+    return () => document.body.classList.remove('hide-footer');
+  }, []);
+
+  const withLastMessages = users.map((user) => {
+    const history = messages[user.id] || [];
+    const last = history.at(-1)?.text || user.lastMessage;
+    return {
+      ...user,
+      lastMessage: last,
+    };
+  });
+
+  const activeUser = withLastMessages.find((u) => u.id === activeUserId);
+  const filteredUsers = withLastMessages.filter((user) =>
+    (user.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
     if (!activeUserId) return;
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+  }, [activeUserId, messages]);
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
+  const handleSelectUser = (userId: string) => {
+    setActiveUserId(userId);
+    loadConversation(userId);
+  };
+
+  const handleSendMessage = async (text: string, file?: File) => {
+    if (!activeUserId || !currentUserId) return;
+
+    const optimistic: Message = {
+      id: crypto.randomUUID(),
       text: text || undefined,
-      timestamp: new Date().toLocaleTimeString(langParam === 'en' ? 'en-US' : 'ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      timestamp: formatTime(new Date().toISOString()),
       status: 'sending',
       isOwn: true,
-      userId: activeUserId,
+      userId: currentUserId,
     };
 
     if (file) {
-      newMessage.document = {
+      optimistic.document = {
         name: file.name,
         size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
       };
@@ -225,31 +255,51 @@ export default function ChatPage() {
 
     setMessages((prev) => ({
       ...prev,
-      [activeUserId]: [...(prev[activeUserId] || []), newMessage],
+      [activeUserId]: [...(prev[activeUserId] || []), optimistic],
     }));
 
-    // Simulate message status update
-    setTimeout(() => {
-      setMessages((prev) => ({
-        ...prev,
-        [activeUserId]: prev[activeUserId].map((msg) =>
-          msg.id === newMessage.id ? { ...msg, status: 'sent' as const } : msg
-        ),
-      }));
-    }, 500);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...buildAuthHeaders() },
+        body: JSON.stringify({
+          sender_id: Number(currentUserId),
+          recipient_id: Number(activeUserId),
+          text,
+        }),
+      });
 
-    setTimeout(() => {
+      if (!res.ok) {
+        const textBody = await res.text().catch(() => '');
+        throw new Error(`Failed to send message: ${res.status} ${res.statusText} ${textBody}`.trim());
+      }
+
+      const saved = await res.json().catch(() => null);
       setMessages((prev) => ({
         ...prev,
         [activeUserId]: prev[activeUserId].map((msg) =>
-          msg.id === newMessage.id ? { ...msg, status: 'received' as const } : msg
+          msg.id === optimistic.id
+            ? {
+                ...msg,
+                id: saved?.id ? String(saved.id) : msg.id,
+                timestamp: formatTime(saved?.sent_at || new Date().toISOString()),
+                status: 'sent',
+              }
+            : msg
         ),
       }));
-    }, 1000);
+      loadConversation(activeUserId);
+    } catch (err) {
+      console.error('Send message failed', err);
+      setMessages((prev) => ({
+        ...prev,
+        [activeUserId]: (prev[activeUserId] || []).filter((msg) => msg.id !== optimistic.id),
+      }));
+    }
   };
 
   return (
-    <div className='flex h-[calc(100vh-120px)] bg-white dark:bg-surface mb-8'>
+    <div className='flex h-[calc(100vh-120px)] bg-white dark:bg-surface overflow-hidden no-page-scrollbar'>
       {/* Left sidebar - Users list */}
       <div className='w-80 border-r border-light-blue-gray dark:border-dark-gray flex flex-col'>
         {/* Search */}
@@ -264,24 +314,28 @@ export default function ChatPage() {
         </div>
 
         {/* Users list */}
-        <div className='flex-1 overflow-y-auto'>
-          {filteredUsers.length > 0 ? (
+        <div className='flex-1 overflow-y-auto custom-scroll'>
+          {loadingUsers ? (
+            <div className='flex items-center justify-center h-full text-gray dark:text-white'>
+              <p className='text-lg'>Loading...</p>
+            </div>
+          ) : filteredUsers.length > 0 ? (
             <div className='p-3 space-y-2'>
               {filteredUsers.map((user) => (
                 <ChatUserCard
                   key={user.id}
                   id={user.id}
-                  name={user.name}
-                  lastMessage={user.lastMessage}
+                  name={user.name || ''}
+                  lastMessage={user.lastMessage || ''}
                   avatar={user.avatar}
                   isActive={activeUserId === user.id}
-                  onClick={() => setActiveUserId(user.id)}
+                  onClick={() => handleSelectUser(user.id)}
                 />
               ))}
             </div>
           ) : (
             <div className='flex items-center justify-center h-full text-gray dark:text-white'>
-              <p className='text-lg'>{t.noChats}</p>
+              <p className='text-lg'>{usersError || t.noChats}</p>
             </div>
           )}
         </div>
@@ -300,8 +354,15 @@ export default function ChatPage() {
             </div>
 
             {/* Messages area */}
-            <div className='flex-1 overflow-y-auto p-6 bg-white dark:bg-dark-gray'>
-              {activeUserId && (messages[activeUserId]?.length ?? 0) > 0 ? (
+            <div
+              ref={messagesContainerRef}
+              className='flex-1 overflow-y-auto p-6 bg-white dark:bg-dark-gray custom-scroll'
+            >
+              {messagesLoading ? (
+                <div className='flex items-center justify-center h-full'>
+                  <p className='text-lg text-gray dark:text-white'>Loading...</p>
+                </div>
+              ) : activeUserId && (messages[activeUserId]?.length ?? 0) > 0 ? (
                 <>
                   {activeUserId &&
                     messages[activeUserId]?.map((message: Message) => (
@@ -316,7 +377,6 @@ export default function ChatPage() {
                         isOwn={message.isOwn}
                       />
                     ))}
-                  <div ref={messagesEndRef} />
                 </>
               ) : (
                 <div className='flex items-center justify-center h-full'>
@@ -336,6 +396,9 @@ export default function ChatPage() {
                 chat
               </span>
               <p className='text-gray dark:text-white text-2xl'>{t.selectChat}</p>
+              {!currentUserId && (
+                <p className='text-sm text-gray dark:text-white mt-2'>{t.noUserId}</p>
+              )}
             </div>
           </div>
         )}
