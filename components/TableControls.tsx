@@ -7,6 +7,11 @@ export interface FilterOption {
   value: string;
 }
 
+export interface SortOption {
+  key: string;
+  label: string;
+}
+
 interface TableControlsProps {
   searchPlaceholder?: string;
   filterOptions?: Array<{
@@ -14,32 +19,58 @@ interface TableControlsProps {
     label: string;
     options: FilterOption[];
   }>;
+  sortOptions?: SortOption[];
   onSearch?: (query: string) => void;
+  onSort?: (key: string, direction: 'asc' | 'desc') => void;
   onFilter?: (filters: Record<string, string>) => void;
   resultCount?: number;
+  defaultSortKey?: string;
+  defaultSortDirection?: 'asc' | 'desc';
   labels?: {
     filters: string;
     reset: string;
     found: (count: number) => string;
     all: string;
+    sortBy?: string;
+    asc?: string;
+    desc?: string;
+    noSort?: string;
   };
 }
 
 export default function TableControls({
   searchPlaceholder = 'Search...',
   filterOptions = [],
+  sortOptions = [],
   onSearch,
+  onSort,
   onFilter,
   resultCount,
-  labels = {
+  defaultSortKey = '',
+  defaultSortDirection = 'asc',
+  labels,
+}: TableControlsProps) {
+  const defaultLabels = {
     filters: 'Filters',
     reset: 'Reset',
     found: (count: number) => `Found: ${count}`,
     all: 'All',
-  },
-}: TableControlsProps) {
+    sortBy: 'Sort by',
+    asc: 'Asc',
+    desc: 'Desc',
+    noSort: 'No sorting',
+  };
+
+  const mergedLabels = {
+    ...defaultLabels,
+    ...labels,
+    found: labels?.found ?? defaultLabels.found,
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [sortKey, setSortKey] = useState(defaultSortKey);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(defaultSortDirection);
   const [showFilters, setShowFilters] = useState(false);
 
   const handleSearch = (value: string) => {
@@ -58,14 +89,35 @@ export default function TableControls({
     onFilter?.(newFilters);
   };
 
+  const handleSortChange = (key: string) => {
+    setSortKey(key);
+    if (onSort) {
+      const directionToUse = key ? sortDirection : defaultSortDirection;
+      onSort(key, directionToUse);
+    }
+  };
+
+  const toggleSortDirection = () => {
+    const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortDirection(newDirection);
+    if (sortKey) {
+      onSort?.(sortKey, newDirection);
+    }
+  };
+
   const clearFilters = () => {
     setActiveFilters({});
     setSearchQuery('');
+    setSortKey(defaultSortKey);
+    setSortDirection(defaultSortDirection);
     onSearch?.('');
     onFilter?.({});
+    onSort?.(defaultSortKey, defaultSortDirection);
   };
 
-  const hasActiveFilters = searchQuery || Object.keys(activeFilters).length > 0;
+  const hasActiveFilters = Boolean(
+    searchQuery || Object.keys(activeFilters).length > 0 || sortKey
+  );
 
   return (
     <div className='space-y-4 mb-6 rounded-lg p-4 bg-light-blue-gray dark:bg-surface'>
@@ -99,7 +151,7 @@ export default function TableControls({
                 : 'bg-white dark:bg-surface-secondary text-dark-gray dark:text-white'
             } cursor-pointer`}
           >
-            {labels.filters} {Object.keys(activeFilters).length > 0 && `(${Object.keys(activeFilters).length})`}
+            {mergedLabels.filters} {Object.keys(activeFilters).length > 0 && `(${Object.keys(activeFilters).length})`}
           </button>
         )}
 
@@ -109,17 +161,48 @@ export default function TableControls({
             onClick={clearFilters}
             className='px-4 py-2 rounded-lg font-medium bg-white dark:bg-surface-secondary text-dark-gray dark:text-white hover:bg-light-blue-gray dark:hover:bg-dark-cyan/30 transition-colors cursor-pointer'
           >
-            {labels.reset}
+            {mergedLabels.reset}
           </button>
         )}
       </div>
 
-      {/* Sorting And AndнформацAndя */}
-      {resultCount !== undefined && (
-        <div className='flex gap-2 items-center flex-wrap'>
-          <span className='text-sm text-medium-blue-gray dark:text-light-blue-gray ml-auto'>
-            {labels.found(resultCount)}
-          </span>
+      {/* Sorting And info */}
+      {(sortOptions.length > 0 || resultCount !== undefined) && (
+        <div className='flex gap-3 items-center flex-wrap'>
+          {sortOptions.length > 0 && (
+            <div className='flex items-center gap-2 flex-wrap'>
+              <label className='text-sm text-dark-gray dark:text-light-blue-gray'>
+                {mergedLabels.sortBy}
+              </label>
+              <select
+                value={sortKey}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className='px-3 py-2 rounded-lg bg-white dark:bg-surface-secondary text-dark-gray dark:text-white text-sm'
+              >
+                <option value=''>
+                  {mergedLabels.noSort}
+                </option>
+                {sortOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={toggleSortDirection}
+                disabled={!sortKey}
+                className='px-3 py-2 rounded-lg bg-white dark:bg-surface-secondary text-dark-gray dark:text-white text-sm disabled:opacity-60 cursor-pointer'
+              >
+                {sortDirection === 'asc' ? mergedLabels.asc : mergedLabels.desc}
+              </button>
+            </div>
+          )}
+
+          {resultCount !== undefined && (
+            <span className='text-sm text-medium-blue-gray dark:text-light-blue-gray ml-auto'>
+              {mergedLabels.found(resultCount)}
+            </span>
+          )}
         </div>
       )}
 
@@ -136,7 +219,7 @@ export default function TableControls({
                 onChange={(e) => handleFilterChange(filter.name, e.target.value)}
                 className='w-full px-3 py-2 rounded-lg bg-white dark:bg-dark-gray text-dark-gray dark:text-white text-sm'
               >
-                <option value=''>{labels.all}</option>
+                <option value=''>{mergedLabels.all}</option>
                 {filter.options.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}

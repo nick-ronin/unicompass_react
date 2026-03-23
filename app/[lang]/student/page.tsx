@@ -29,6 +29,7 @@ const translations = {
     heroTitle: 'Welcome back!',
     heroSubtitle: "You are on the right path to success. Here is what's coming this week.",
     heroCta: 'My tasks',
+    loading: 'Loading tasks...',
     stats: [
       { label: 'Needs action', value: '5', icon: 'priority_high' },
       { label: 'Completed', value: '18', icon: 'check_circle' },
@@ -60,6 +61,7 @@ const translations = {
     heroTitle: 'С возвращением!',
     heroSubtitle: 'Вы на верном пути к успеху. Посмотрим, что ждёт вас на этой неделе.',
     heroCta: 'Мои задачи',
+    loading: 'Загружаем задачи...',
     stats: [
       { label: 'Требует внимания', value: '5', icon: 'priority_high' },
       { label: 'Завершено', value: '18', icon: 'check_circle' },
