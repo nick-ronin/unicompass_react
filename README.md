@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UniCompass (Адаптация+)
 
-## Getting Started
+Веб-приложение для сопровождения адаптации студентов с двумя ролями: **студент** и **администратор**.
 
-First, run the development server:
+Проект построен на **Next.js (App Router)** и использует проксирование API-запросов на внешний backend.
+
+## Что реализовано
+
+- Ролевая навигация: отдельные разделы для студента и администратора.
+- Авторизация и регистрация студента.
+- Задачи адаптации: создание, назначение, редактирование, отслеживание статуса выполнения.
+- Расписание и календарные представления.
+- Чат и уведомления.
+- База знаний для студентов (разделы, FAQ, быстрый поиск).
+- Аналитические виджеты (в том числе по выполнению задач и активности).
+- Переключение темы (light/dark) и языка интерфейса (ru/en).
+
+## Основные маршруты
+
+- `/` -> редирект на `/ru/student`
+- `/{lang}/login`
+- `/{lang}/register`
+- `/{lang}/student/*`
+- `/{lang}/admin/*`
+
+Где `{lang}`: `ru` или `en`.
+
+## Технологический стек
+
+- Next.js 16, React 19, TypeScript
+- Tailwind CSS 4
+- next-themes (темизация)
+- react-big-calendar / react-calendar / react-day-picker (календарные UI)
+- recharts (графики)
+- date-fns, clsx, tailwind-merge
+
+## Архитектура API
+
+В клиентской части используются два подхода:
+
+- Прямые `fetch('/api/...')` в страницах и компонентах.
+- Централизованный клиент `lib/api.ts` + хуки `lib/hooks.ts`.
+
+В `next.config.ts` настроен rewrite:
+
+- `/api/:path*` -> `http://212.67.15.151:8000/:path*`
+
+Это значит, что фронтенд обращается к `/api/...`, а Next.js проксирует запросы на backend.
+
+## Быстрый старт
+
+### 1. Установка зависимостей
+
+```bash
+npm install
+```
+
+### 2. Запуск в режиме разработки
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Приложение доступно по адресу:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `https://www.адаптация-плюс.рф`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Production-сборка
 
-## Learn More
+```bash
+npm run build
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Скрипты
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev` - запуск dev-сервера
+- `npm run build` - production-сборка
+- `npm run start` - запуск production-сервера
+- `npm run lint` - проверка ESLint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Структура проекта (кратко)
 
-## Deploy on Vercel
+- `app/` - маршруты и страницы (App Router)
+- `components/` - переиспользуемые UI-компоненты
+- `lib/api.ts` - API-клиент
+- `lib/hooks.ts` - кастомные React-хуки для данных
+- `lib/types.ts` - типы доменной модели и API
+- `public/` - статика (изображения, логотипы, шрифты)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Текущее состояние
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- В проекте есть готовый UI и интеграция с backend API через прокси.
+- Часть экранов содержит демонстрационные/статические данные рядом с реальными API-вызовами.
+- Тестовые сценарии (unit/e2e) в репозитории пока не добавлены.
