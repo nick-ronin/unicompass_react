@@ -1,3 +1,5 @@
+import MaterialIcon from '@/components/MaterialIcon';
+
 interface TripProps {
     departurePoint: string;
     destination: string;
@@ -15,9 +17,9 @@ const formatDate = (value: string) => {
 
 export default function Trip({ departurePoint, destination, arrivalDate, departureDate, onEdit, onDelete }: TripProps) {
     return (
-        <div className='bg-light-blue-gray rounded-2xl p-6 w-full flex flex-row items-center justify-between dark:bg-surface dark:text-white'>
+        <div className='flex w-full flex-col gap-3 rounded-2xl bg-light-blue-gray p-4 dark:bg-surface dark:text-white sm:flex-row sm:items-center sm:justify-between sm:p-6'>
             <div className='flex flex-col gap-1'>
-                <p className='text-lg font-semibold text-dark-gray dark:text-white'>
+                <p className='text-base font-semibold text-dark-gray dark:text-white sm:text-lg'>
                     {departurePoint} {'->'} {destination}
                 </p>
                 <p className='text-sm text-gray-700 dark:text-gray-300'>
@@ -25,25 +27,25 @@ export default function Trip({ departurePoint, destination, arrivalDate, departu
                 </p>
             </div>
             {(onEdit || onDelete) && (
-                <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-2 self-end sm:self-auto'>
                     {onEdit && (
                         <button
                             type='button'
                             onClick={onEdit}
-                            className='p-2 rounded-xl bg-medium-blue-gray text-white hover:bg-dark-gray transition-colors dark:bg-medium-blue-gray dark:hover:bg-dark-gray cursor-pointer'
+                            className='cursor-pointer rounded-xl bg-medium-blue-gray p-2 text-white transition-colors hover:bg-dark-gray dark:bg-medium-blue-gray dark:hover:bg-dark-gray'
                             aria-label='Edit trip'
                         >
-                            <span className='material-symbols-outlined text-lg'>edit</span>
+                            <MaterialIcon name='edit' className='text-lg' />
                         </button>
                     )}
                     {onDelete && (
                         <button
                             type='button'
                             onClick={onDelete}
-                            className='p-2 rounded-xl bg-orange text-white hover:bg-dark-orange transition-colors cursor-pointer'
+                            className='cursor-pointer rounded-xl bg-orange p-2 text-white transition-colors hover:bg-dark-orange'
                             aria-label='Delete trip'
                         >
-                            <span className='material-symbols-outlined text-lg'>delete</span>
+                            <MaterialIcon name='delete' className='text-lg' />
                         </button>
                     )}
                 </div>

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Button from '@/components/Button';
 import InputField from '@/components/Input Field';
 import Link from 'next/link';
+import MaterialIcon from '@/components/MaterialIcon';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -142,7 +143,7 @@ export default function RegisterPage() {
   return (
     <div className='min-h-screen flex items-center justify-center p-4 py-8 bg-dark-gray'>
       {/* Register Form Container */}
-      <div className='w-full max-w-lg bg-white rounded-3xl px-12 py-8'>
+      <div className='w-full max-w-lg bg-white rounded-2xl md:rounded-3xl p-8 md:px-12 md:py-8'>
           {/* Header with Language Toggle */}
           <div className='flex items-center justify-between gap-2 mb-8'>
             <h1 className='text-4xl font-bold text-dark-gray flex-1'>
@@ -153,7 +154,7 @@ export default function RegisterPage() {
               className='flex items-center justify-center gap-2 bg-cyan text-white px-4 py-3 rounded-2xl hover:bg-dark-cyan transition-colors duration-200 cursor-pointer whitespace-nowrap'
               aria-label={`Switch to ${currentLang === 'ru' ? 'English' : 'Russian'}`}
             >
-              <span className='material-symbols-outlined text-lg'>language</span>
+              <MaterialIcon name='language' className='text-lg' />
               <span className='text-base font-medium'>{currentLang.toUpperCase()}</span>
             </button>
           </div>
@@ -178,7 +179,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFirstName(e.target.value)}
                 required
                 disableDarkTheme
-                icon={<span className='material-symbols-outlined'>person</span>}
+                icon={<MaterialIcon name='person' />}
               />
             </div>
 
@@ -194,7 +195,7 @@ export default function RegisterPage() {
                 onChange={(e) => setLastName(e.target.value)}
                 required
                 disableDarkTheme
-                icon={<span className='material-symbols-outlined'>person</span>}
+                icon={<MaterialIcon name='person' />}
               />
             </div>
 
@@ -209,7 +210,7 @@ export default function RegisterPage() {
                 value={patronymic}
                 disableDarkTheme
                 onChange={(e) => setPatronymic(e.target.value)}
-                icon={<span className='material-symbols-outlined'>person</span>}
+                icon={<MaterialIcon name='person' />}
               />
             </div>
 
@@ -225,7 +226,7 @@ export default function RegisterPage() {
                 disableDarkTheme
                 onChange={(e) => setCitizenship(e.target.value)}
                 required
-                icon={<span className='material-symbols-outlined'>public</span>}
+                icon={<MaterialIcon name='public' />}
               />
             </div>
 
@@ -241,7 +242,7 @@ export default function RegisterPage() {
                 disableDarkTheme
                 onChange={(e) => setLogin(e.target.value)}
                 required
-                icon={<span className='material-symbols-outlined'>account_circle</span>}
+                icon={<MaterialIcon name='account_circle' />}
               />
             </div>
 
@@ -257,7 +258,7 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                icon={<span className='material-symbols-outlined'>lock</span>}
+                icon={<MaterialIcon name='lock' />}
               />
             </div>
 
@@ -273,7 +274,7 @@ export default function RegisterPage() {
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 required
-                icon={<span className='material-symbols-outlined'>lock</span>}
+                icon={<MaterialIcon name='lock' />}
               />
             </div>
 

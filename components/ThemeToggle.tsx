@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface ThemeToggleProps {
     lang?: string;
@@ -36,13 +37,11 @@ export default function ThemeToggle({ lang = 'ru' }: ThemeToggleProps) {
         <button
             type='button'
             onClick={() => setTheme(nextTheme)}
-            className='flex items-center cursor-pointer hover:text-dark-orange transition-colors duration-200'
+            className='cursor-pointer inline-flex items-center justify-center rounded-full p-2 text-lg transition-colors duration-200 hover:text-dark-orange'
             aria-label={label}
             title={label}
         >
-            <span className='material-symbols-outlined'>
-                {icon}
-            </span>
+            <MaterialIcon name={icon} size='md'/>
         </button>
     );
 }

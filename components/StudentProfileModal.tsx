@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Button from './Button';
 import InputField from './Input Field';
+import MaterialIcon from '@/components/MaterialIcon';
 
 const translations = {
   ru: {
@@ -404,7 +405,7 @@ export default function StudentProfileModal({
                 }
               }}
               className='bg-red-600 text-white hover:bg-red-700 text-sm cursor-pointer'
-              icon={<span className='material-symbols-outlined text-base'>delete</span>}
+              icon={<MaterialIcon name='delete' className='text-base' />}
               disabled={isSaving || isDeleting}
             >
               {isDeleting ? t.deleting : t.delete}
@@ -413,7 +414,7 @@ export default function StudentProfileModal({
               <Button
                 onClick={handleEditClick}
                 className='bg-orange text-white hover:bg-dark-orange text-sm cursor-pointer'
-                icon={<span className='material-symbols-outlined text-base'>edit</span>}
+                icon={<MaterialIcon name='edit' className='text-base' />}
               >
                 {t.edit}
               </Button>
@@ -423,7 +424,7 @@ export default function StudentProfileModal({
                   onClick={handleSave}
                   disabled={isSaving}
                   className='bg-light-green text-white hover:bg-dark-green text-sm cursor-pointer'
-                  icon={<span className='material-symbols-outlined text-base'>check</span>}
+                  icon={<MaterialIcon name='check' className='text-base' />}
                 >
                   {isSaving ? t.saving : t.save}
                 </Button>
@@ -431,7 +432,7 @@ export default function StudentProfileModal({
                   onClick={handleCancel}
                   disabled={isSaving}
                   className='bg-light-blue-gray dark:bg-surface-secondary text-white hover:bg-dark-gray text-sm cursor-pointer'
-                  icon={<span className='material-symbols-outlined text-base'>close</span>}
+                  icon={<MaterialIcon name='close' className='text-base' />}
                 >
                   {t.cancel}
                 </Button>

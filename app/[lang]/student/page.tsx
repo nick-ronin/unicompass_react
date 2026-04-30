@@ -6,6 +6,7 @@ import Calendar from '@/components/Calendar';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import MaterialIcon from '@/components/MaterialIcon';
 
 type Lang = 'ru' | 'en';
 
@@ -165,6 +166,17 @@ export default function StudentHome() {
   const t = translations[lang] || translations.ru;
   const basePath = `/${lang}/student`;
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   useEffect(() => {
     const loadStudentTasks = async () => {
       try {
@@ -181,7 +193,11 @@ export default function StudentHome() {
         let studentId = auth.studentId?.toString() || '';
 
         if (!studentId && username) {
-          const studentsResponse = await fetch('/api/student/full_info_list');
+          const studentsResponse = await fetch('/api/student/full_info_list', {
+            headers: {
+              ...buildAuthHeaders(),
+            },
+          });
           if (!studentsResponse.ok) {
             throw new Error(`Failed to resolve student: ${studentsResponse.status}`);
           }
@@ -211,7 +227,11 @@ export default function StudentHome() {
         let lastStatus: number | null = null;
 
         for (const endpoint of endpointCandidates) {
-          const response = await fetch(endpoint);
+          const response = await fetch(endpoint, {
+            headers: {
+              ...buildAuthHeaders(),
+            },
+          });
           if (response.ok) {
             tasksRaw = await response.json();
             break;
@@ -306,13 +326,13 @@ export default function StudentHome() {
           <div className='absolute bottom-0 left-0 w-96 h-96 bg-light-green rounded-full mix-blend-multiply blur-3xl'></div>
         </div>
         
-        <div className='relative px-8 py-16'>
+        <div className='relative px-4 py-10 sm:px-6 sm:py-14 md:px-8 md:py-16'>
           <div className='max-w-7xl mx-auto'>
-            <h1 className='text-5xl font-bold text-white mb-3'>{t.heroTitle}</h1>
-            <p className='text-xl text-white/90 mb-6'>{t.heroSubtitle}</p>
-            <Button className='bg-white text-cyan font-bold px-8 py-3 hover:bg-cyan hover:text-white transition-all hover:scale-105'>
+            <h1 className='mb-3 text-3xl font-bold text-white sm:text-4xl md:text-5xl'>{t.heroTitle}</h1>
+            <p className='mb-6 text-base text-white/90 sm:text-lg md:text-xl'>{t.heroSubtitle}</p>
+            <Button className='bg-white px-4 py-3 font-bold text-cyan transition-all hover:bg-cyan hover:text-white hover:scale-105 sm:px-8'>
               <Link href={`${basePath}/tasks`} className='flex flex-row items-start justify-center gap-2'>
-                <span className='material-symbols-outlined'>flash_on</span>
+                <MaterialIcon name='flash_on' size='sm'/>
                 {t.heroCta}
               </Link>
             </Button>
@@ -320,26 +340,26 @@ export default function StudentHome() {
         </div>
       </div>
 
-      <div className='max-w-7xl mx-auto px-8 pb-12'>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-12'>
+      <div className='mx-auto max-w-7xl px-4 pb-12 sm:px-6 md:px-8'>
+        <div className='mb-12 grid grid-cols-1 gap-4 md:grid-cols-3 sm:gap-6'>
           {stats.map((stat, index) => (
-            <div key={index} className='bg-white dark:bg-surface rounded-3xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer group'>
+            <div key={index} className='group cursor-pointer rounded-3xl bg-white p-6 shadow-md transition-shadow hover:shadow-lg dark:bg-surface'>
               <div className='flex items-center justify-between'>
                 <div>
                   <p className='text-foreground/70 text-sm font-medium mb-2'>{stat.label}</p>
                   <p className='text-4xl font-bold bg-linear-to-r from-cyan to-light-green bg-clip-text text-transparent'>{stat.value}</p>
                 </div>
                 <div className='w-16 h-16 bg-linear-to-br from-cyan/10 to-light-green/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform'>
-                  <span className='material-symbols-outlined text-2xl text-cyan'>{stat.icon}</span>
+                  <MaterialIcon name={stat.icon} className='text-2xl text-cyan' />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3 sm:gap-8'>
           <div className='lg:col-span-2'>
-            <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-md'>
+            <div className='rounded-3xl bg-white p-6 shadow-md dark:bg-surface sm:p-8'>
               <div className='flex items-center justify-between mb-8'>
                 <div>
                   <h2 className='text-3xl font-bold mb-2'>{t.tasksTitle}</h2>
@@ -365,7 +385,7 @@ export default function StudentHome() {
                           <h3 className='text-lg font-bold mb-1'>{task.name}</h3>
                           <p className='text-foreground/70 text-sm mb-3'>{task.description}</p>
                           <div className='flex items-center gap-2 text-sm'>
-                            <span className='material-symbols-outlined text-base'>calendar_today</span>
+                            <MaterialIcon name='calendar_today' className='text-base' />
                             <span>{formatDeadline(task.deadline, lang)}</span>
                           </div>
                         </div>
@@ -387,7 +407,7 @@ export default function StudentHome() {
               <Button className='mt-8 w-full bg-background/50 text-foreground dark:hover:bg-dark-gray hover:bg-light-blue-gray transition-colors py-3 border border-foreground/10'>
                 <Link href={`${basePath}/tasks`} className='flex flex-row items-center justify-start gap-4 w-full'>
                   {t.seeAllTasks}
-                  <span className='material-symbols-outlined'>arrow_forward</span>
+                  <MaterialIcon name='arrow_forward' />
                 </Link>
               </Button>
             </div>
@@ -406,13 +426,13 @@ export default function StudentHome() {
               </div>
             </div>
 
-            <div className='rounded-3xl p-6 bg-surface'>
+            <div className='rounded-3xl bg-surface p-6'>
               <h3 className='text-lg font-bold mb-4'>{t.quickLinksTitle}</h3>
               <div className='space-y-2'>
                 {t.quickLinks.map((link) => (
                   <Link key={link.path} href={`${basePath}/${link.path}`} className='flex flex-row justify-center gap-2'>
                     <Button className='w-full justify-start bg-light-blue-gray dark:bg-dark-gray text-foreground transition-all hover:shadow-md'>
-                      <span className='material-symbols-outlined'>{link.icon}</span>
+                      <MaterialIcon name={link.icon} />
                       {link.label}
                     </Button>
                   </Link>

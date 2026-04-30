@@ -22,11 +22,11 @@ export default function AdminAnalyticsPage() {
   const t = translations[lang as keyof typeof translations] || translations.ru;
 
   return (
-    <div className='min-h-screen dark:bg-dark-gray px-8 py-8'>
+    <div className='min-h-screen px-4 py-8 dark:bg-background sm:px-6 md:px-8'>
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
         <div className='mb-12'>
-          <h1 className='text-4xl font-extrabold text-black dark:text-white mb-2'>{t.title}</h1>
+          <h1 className='mb-2 text-3xl font-extrabold text-black dark:text-white sm:text-4xl'>{t.title}</h1>
           <p className='text-gray dark:text-medium-warm-gray'>{t.subtitle}</p>
         </div>
 

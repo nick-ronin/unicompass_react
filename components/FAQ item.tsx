@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface FAQItemProps {
     question: string;
@@ -25,9 +26,7 @@ export default function FAQItem({ question, answer, className }: FAQItemProps) {
                 className="w-full flex items-center justify-between px-6 py-5 cursor-pointer"
             >
                 <span className="text-xl font-medium text-black dark:text-white">{question}</span>
-                <span className="material-symbols-outlined text-black dark:text-white select-none">
-                    {isOpen ? 'remove' : 'add'}
-                </span>
+                <MaterialIcon name={isOpen ? 'remove' : 'add'} className="text-black dark:text-white select-none" />
             </button>
             <div
                 className={cn(

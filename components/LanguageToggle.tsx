@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import MaterialIcon from '@/components/MaterialIcon';
 
 const LANGUAGES: { code: string; label: string }[] = [
   { code: 'ru', label: 'RU' },
@@ -31,12 +32,12 @@ export default function LanguageToggle() {
     <button
       type='button'
       onClick={handleSwitch}
-      className='flex items-center gap-1 cursor-pointer transition-colors duration-200 bg-orange text-white hover:bg-dark-orange px-6 py-3 rounded-2xl'
+      className='cursor-pointer flex items-center gap-1 rounded-2xl bg-orange px-3 py-2 text-xs font-medium text-white transition-colors duration-200 hover:bg-dark-orange sm:px-6 sm:py-3 sm:text-sm'
       aria-label={`Switch language to ${nextLang.label}`}
       title={`Switch language to ${nextLang.label}`}
     >
-      <span className='material-symbols-outlined'>language</span>
-      <span className='text-sm font-medium'>{displayLang}</span>
+      <MaterialIcon name='language' size='md'/>
+      <span className='text-xs font-medium sm:text-sm'>{displayLang}</span>
     </button>
   );
 }

@@ -5,6 +5,7 @@ import Button from '@/components/Button';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import TaskAssignmentModal from '@/components/TaskAssignmentModal';
+import MaterialIcon from '@/components/MaterialIcon';
 
 type Lang = 'ru' | 'en';
 
@@ -59,7 +60,7 @@ const translations = {
     recentActivity: [
       { type: 'success', name: 'Anna Lebedeva', action: 'Successfully registered with the migration service', time: '30 min ago', icon: 'verified' },
       { type: 'urgent', name: 'New urgent request', action: 'Appeal received from Mohammed', time: '1 hour ago', icon: 'home' },
-      { type: 'success', name: 'Victor Sidorov', action: 'Received a social scholarship', time: '2 hours ago', icon: 'monetization_on' },
+      { type: 'success', name: 'Victor Sidorov', action: 'Received a social scholarship', time: '2 hours ago', icon: 'attach_money' },
       { type: 'info', name: 'Integration Day', action: 'Scheduled for 30.03 at 15:00', time: '5 hours ago', icon: 'event' },
     ],
     viewAllActivity: 'View all activity',
@@ -99,7 +100,7 @@ const translations = {
     recentActivity: [
       { type: 'success', name: 'Анна Лебедева', action: 'Успешно встала на миграционный учёт', time: '30 минут назад', icon: 'verified' },
       { type: 'urgent', name: 'Новое обращение', action: 'Получено обращение от Мохаммеда', time: '1 час назад', icon: 'home' },
-      { type: 'success', name: 'Виктор Сидоров', action: 'Получил социальную стипендию', time: '2 часа назад', icon: 'monetization_on' },
+      { type: 'success', name: 'Виктор Сидоров', action: 'Получил социальную стипендию', time: '2 часа назад', icon: 'attach_money' },
       { type: 'info', name: 'День интеграции', action: 'Назначен на 30.03 в 15:00', time: '5 часов назад', icon: 'event' },
     ],
     viewAllActivity: 'Показать всю активность',
@@ -288,12 +289,12 @@ export default function AdminHomePage() {
           <div className='absolute bottom-0 left-0 w-96 h-96 bg-light-green rounded-full mix-blend-multiply blur-3xl'></div>
         </div>
         
-        <div className='relative px-8 py-16'>
+        <div className='relative px-4 py-10 sm:px-6 sm:py-14 md:px-8 md:py-16'>
           <div className='max-w-7xl mx-auto'>
             <div className='flex items-center justify-between'>
               <div>
-                <h1 className='text-5xl font-bold text-white mb-3'>{t.heroTitle}</h1>
-                <p className='text-xl text-white/90'>{t.heroSubtitle}</p>
+                <h1 className='mb-3 text-3xl font-bold text-white sm:text-4xl md:text-5xl'>{t.heroTitle}</h1>
+                <p className='text-base text-white/90 sm:text-lg md:text-xl'>{t.heroSubtitle}</p>
               </div>
               <div className='hidden lg:flex items-center gap-3'>
                 <div className='text-right text-white'>
@@ -301,7 +302,7 @@ export default function AdminHomePage() {
                   <p className='text-lg font-semibold'>{todayDate}</p>
                 </div>
                 <div className='w-12 h-12 bg-white/20 rounded-full flex items-center justify-center'>
-                  <span className='material-symbols-outlined text-white'>calendar_today</span>
+                  <MaterialIcon name='calendar_today' className='text-white' />
                 </div>
               </div>
             </div>
@@ -309,17 +310,17 @@ export default function AdminHomePage() {
         </div>
       </div>
 
-      <div className='max-w-7xl mx-auto px-8 pb-12'>
+      <div className='mx-auto max-w-7xl px-4 pb-12 sm:px-6 md:px-8'>
         {/* ГлаVные метрAndкAnd adaptation */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12'>
+        <div className='mb-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 sm:gap-6'>
           {analytics.map((metric, index) => (
             <div 
               key={index} 
-              className='bg-white dark:bg-surface rounded-3xl p-6 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer group'
+              className='group cursor-pointer rounded-3xl bg-white p-6 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl dark:bg-surface'
             >
               <div className='flex items-start justify-between mb-6'>
                 <div className={`w-14 h-14 bg-linear-to-br ${metric.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                  <span className='material-symbols-outlined text-white text-2xl'>{metric.icon}</span>
+                  <MaterialIcon name={metric.icon} className='text-white text-2xl' />
                 </div>
                 <span className={`text-sm font-semibold ${metric.change.includes('+') || metric.change.includes('↑') ? 'text-light-green' : 'text-orange'}`}>
                   {metric.change}
@@ -332,22 +333,22 @@ export default function AdminHomePage() {
         </div>
 
         {/* Main content */}
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8'>
+        <div className='mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3 sm:gap-8'>
           {/* Left Column - Control */}
           <div className='lg:col-span-2'>
             {/* Quick Actions */}
-            <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-md mb-8'>
+            <div className='mb-8 rounded-3xl bg-white p-6 shadow-md dark:bg-surface sm:p-8'>
               <h2 className='text-2xl font-bold mb-6'>{t.quickActionsTitle}</h2>
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4'>
                 {quickActions.map((action) => {
                   const content = (
-                    <div className={`relative w-full h-full flex flex-col items-center justify-center gap-3 py-6 px-4 bg-linear-to-br ${action.color} hover:from-cyan/20 hover:to-dark-cyan/20 transition-all rounded-2xl cursor-pointer border ${action.border}`}>
+                    <div className={`relative flex h-full w-full flex-col items-center justify-center gap-3 rounded-2xl border px-4 py-5 transition-all bg-linear-to-br ${action.color} hover:from-cyan/20 hover:to-dark-cyan/20 cursor-pointer ${action.border}`}>
                       {action.badge && (
                         <span className='absolute top-3 right-3 text-xs font-semibold bg-orange text-white px-3 py-1 rounded-full'>
                           {action.badge}
                         </span>
                       )}
-                      <span className='material-symbols-outlined text-3xl text-cyan'>{action.icon}</span>
+                      <MaterialIcon name={action.icon} className='text-3xl text-cyan' />
                       <span className='font-semibold text-sm text-foreground text-center'>{action.label}</span>
                     </div>
                   );
@@ -378,9 +379,9 @@ export default function AdminHomePage() {
           {/* Right column */}
           <div className='space-y-6'>
             {/* Curators */}
-            <div className='bg-white dark:bg-surface rounded-3xl p-6 shadow-md'>
+            <div className='rounded-3xl bg-white p-6 shadow-md dark:bg-surface'>
               <h3 className='text-xl font-bold mb-4 flex items-center gap-2'>
-                <span className='material-symbols-outlined text-cyan'>supervisor_account</span>
+                <MaterialIcon name='supervisor_account' className='text-cyan' />
                 {t.activeCuratorsTitle}
               </h3>
               <div className='space-y-3'>
@@ -395,7 +396,7 @@ export default function AdminHomePage() {
                         </div>
                       </div>
                       <span className='text-sm font-bold text-yellow flex items-center gap-1 shrink-0'>
-                        <span className='material-symbols-outlined text-sm'>star</span>
+                        <MaterialIcon name='star' className='text-sm' />
                         {curator.rating}
                       </span>
                     </div>
@@ -407,9 +408,9 @@ export default function AdminHomePage() {
         </div>
 
         {/* Recent activity */}
-        <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-md'>
+        <div className='rounded-3xl bg-white p-6 shadow-md dark:bg-surface sm:p-8'>
           <h2 className='text-2xl font-bold mb-6 flex items-center gap-2'>
-            <span className='material-symbols-outlined text-cyan'>history</span>
+            <MaterialIcon name='history' className='text-cyan' />
             {t.recentActivityTitle}
           </h2>
           
@@ -424,11 +425,14 @@ export default function AdminHomePage() {
                   activity.type === 'success' ? 'bg-light-green/20' :
                   'bg-cyan/20'
                 }`}>
-                  <span className={`material-symbols-outlined text-sm ${
-                    activity.type === 'urgent' ? 'text-orange' :
-                    activity.type === 'success' ? 'text-light-green' :
-                    'text-cyan'
-                  }`}>{activity.icon}</span>
+                  <MaterialIcon
+                    name={activity.icon}
+                    className={`text-sm ${
+                      activity.type === 'urgent' ? 'text-orange' :
+                      activity.type === 'success' ? 'text-light-green' :
+                      'text-cyan'
+                    }`}
+                  />
                 </div>
                 <div className='flex-1 min-w-0'>
                   <p className='font-semibold text-sm'>{activity.name}</p>
@@ -441,7 +445,7 @@ export default function AdminHomePage() {
 
           <Button className='mt-6 w-full bg-background/50 text-foreground hover:bg-background transition-colors py-3 border border-foreground/10'>
             {t.viewAllActivity}
-            <span className='material-symbols-outlined'>arrow_forward</span>
+            <MaterialIcon name='arrow_forward' />
           </Button>
         </div>
       </div>

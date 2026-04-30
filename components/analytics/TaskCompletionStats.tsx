@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import MaterialIcon from '@/components/MaterialIcon';
 
 type Lang = 'ru' | 'en';
 
@@ -59,6 +60,17 @@ export default function TaskCompletionStats() {
   const lang = (params?.lang as Lang) || 'ru';
   const t = translations[lang] || translations.ru;
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   const normalizePercent = (analytics: any) => {
     const raw =
       analytics?.completed_percent ??
@@ -75,7 +87,11 @@ export default function TaskCompletionStats() {
       setLoading(true);
       setError(null);
 
-      const tasksResponse = await fetch('/api/task');
+      const tasksResponse = await fetch('/api/task', {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
       if (!tasksResponse.ok) {
         throw new Error(`Error loading tasks: ${tasksResponse.status}`);
       }
@@ -92,7 +108,11 @@ export default function TaskCompletionStats() {
       const withAnalytics = await Promise.all(
         formattedTasks.map(async (task: { id: string; name: string; description: string }) => {
           try {
-            const analyticsResponse = await fetch(`/api/student_task/analytics/task/${task.id}`);
+            const analyticsResponse = await fetch(`/api/student_task/analytics/task/${task.id}`, {
+              headers: {
+                ...buildAuthHeaders(),
+              },
+            });
 
             if (!analyticsResponse.ok) {
               throw new Error(`Analytics load failed: ${analyticsResponse.status}`);
@@ -157,7 +177,7 @@ export default function TaskCompletionStats() {
             onClick={() => setSortBy(sortBy === 'desc' ? 'asc' : 'desc')}
             className='flex items-center gap-2 px-4 py-2 rounded-lg bg-light-blue-gray dark:bg-dark-gray hover:bg-blue-gray transition-colors text-black dark:text-white cursor-pointer'
           >
-            <span className='material-symbols-outlined'>sort</span>
+            <MaterialIcon name='sort' />
             {sortBy === 'desc' ? t.sortDesc : t.sortAsc}
           </button>
         </div>
@@ -195,7 +215,7 @@ export default function TaskCompletionStats() {
                 <div className='bg-linear-to-br from-light-green via-cyan to-dark-cyan rounded-xl p-4 text-white shadow-lg'>
                   <div className='flex items-start gap-2 mb-2'>
                     <div className='p-2 bg-white/20 rounded shrink-0'>
-                      <span className='material-symbols-outlined text-lg'>{getTaskIcon(mostCompleted.name)}</span>
+                      <MaterialIcon name={getTaskIcon(mostCompleted.name)} className='text-lg' />
                     </div>
                     <div className='min-w-0 flex-1'>
                       <h4 className='text-xl leading-tight'>{mostCompleted.name}</h4>
@@ -220,7 +240,7 @@ export default function TaskCompletionStats() {
                 <div className='bg-linear-to-br from-light-orange via-orange to-dark-red rounded-xl p-4 text-white shadow-lg'>
                   <div className='flex items-start gap-2 mb-2'>
                     <div className='p-2 bg-white/20 rounded shrink-0'>
-                      <span className='material-symbols-outlined text-lg'>{getTaskIcon(leastCompleted.name)}</span>
+                      <MaterialIcon name={getTaskIcon(leastCompleted.name)} className='text-lg' />
                     </div>
                     <div className='min-w-0 flex-1'>
                       <h4 className='text-xl leading-tight'>{leastCompleted.name}</h4>
@@ -247,10 +267,10 @@ export default function TaskCompletionStats() {
             >
               <h3 className='text-xl text-black dark:text-white'>{t.allTasks}</h3>
               <span
-                className='material-symbols-outlined text-black dark:text-white transition-transform'
+                className='text-black dark:text-white transition-transform'
                 style={{ transform: isTasksExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
               >
-                expand_more
+                <MaterialIcon name='stat_minus' />
               </span>
             </button>
 

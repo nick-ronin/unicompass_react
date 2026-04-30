@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import MaterialIcon from '@/components/MaterialIcon';
 
 export type SectionGuide = {
   title: string;
@@ -35,7 +36,7 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
 
   return (
     <div className="pb-16 flex flex-col gap-12">
-      <div className="bg-linear-to-r from-cyan to-dark-cyan text-white px-10 md:px-24 py-16 flex flex-col gap-6">
+      <div className="bg-linear-to-r from-cyan to-dark-cyan text-white px-4 py-10 flex flex-col gap-5 sm:px-6 sm:py-16 md:px-24">
         <div className="text-sm opacity-80">
           <Link href={`${basePath}`}>{lang === "ru" ? "Главная" : "Home"}</Link>
           <span className="mx-2">/</span>
@@ -43,8 +44,8 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
           <span className="mx-2">/</span>
           <span className="font-semibold">{content.title}</span>
         </div>
-        <h1 className="text-4xl font-extrabold">{content.title}</h1>
-        <p className="text-lg max-w-4xl leading-relaxed opacity-90">{content.intro}</p>
+        <h1 className="text-3xl font-extrabold sm:text-4xl">{content.title}</h1>
+        <p className="max-w-4xl text-base leading-relaxed opacity-90 sm:text-lg">{content.intro}</p>
         <div className="flex flex-wrap gap-3 text-sm">
           <Link
             href={kbRoot}
@@ -61,12 +62,12 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
         </div>
       </div>
 
-      <div className="px-6 md:px-24 flex flex-col gap-10">
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex flex-col gap-10 px-4 sm:px-6 md:px-24">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {content.guides.map((guide) => (
             <article
               key={guide.title}
-              className="bg-white dark:bg-dark-gray rounded-2xl shadow-sm border border-gray/10 dark:border-medium-blue-gray/30 p-6 flex flex-col gap-4"
+              className="flex flex-col gap-4 rounded-2xl border border-gray/10 bg-white p-4 shadow-sm dark:border-medium-blue-gray/30 dark:bg-dark-gray sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-2">
@@ -86,7 +87,7 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
                     target={guide.action.external ? "_blank" : undefined}
                     className="inline-flex items-center gap-2 text-sm font-semibold text-dark-yellow hover:underline"
                   >
-                    <span className="material-symbols-outlined text-base">arrow_outward</span>
+                    <MaterialIcon name="arrow_outward" className="text-base" />
                     {guide.action.label}
                   </Link>
                 </div>
@@ -104,7 +105,7 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
               {lang === "ru" ? "Моковые данные для навигации" : "Mock navigation data"}
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {content.quickLinks.map((link) => (
               <Link
                 key={link.label}
@@ -113,13 +114,13 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
                 className="bg-white dark:bg-dark-gray text-dark-gray dark:text-white border border-gray/10 dark:border-medium-blue-gray/30 rounded-xl px-4 py-3 flex items-center justify-between hover:shadow-sm transition-shadow"
               >
                 <span>{link.label}</span>
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                <MaterialIcon name="arrow_forward" className="text-sm" />
               </Link>
             ))}
           </div>
         </section>
 
-        <section className="bg-dark-cyan text-white rounded-2xl p-8 flex flex-col gap-4">
+        <section className="flex flex-col gap-4 rounded-2xl bg-dark-cyan p-6 text-white sm:p-8">
           <h3 className="text-2xl font-bold">{lang === "ru" ? "Не нашли ответ?" : "Need more help?"}</h3>
           <p className="text-white/90 max-w-3xl">
             {lang === "ru"
@@ -131,14 +132,14 @@ export default function SectionTemplate({ basePath, lang, content }: SectionTemp
               href={`${basePath}/chat`}
               className="bg-white text-dark-yellow px-4 py-2 rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg transition-shadow"
             >
-              <span className="material-symbols-outlined text-base">chat</span>
+              <MaterialIcon name="chat" className="text-base" />
               {lang === "ru" ? "Открыть чат" : "Open chat"}
             </Link>
             <Link
               href={content.contactCta.href}
               className="border border-white/60 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 hover:bg-white/10 transition-colors"
             >
-              <span className="material-symbols-outlined text-base">support_agent</span>
+              <MaterialIcon name="support_agent" className="text-base" />
               {content.contactCta.label}
             </Link>
           </div>

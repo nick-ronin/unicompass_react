@@ -6,6 +6,7 @@ import Dropdown from './Dropdown';
 import Button from './Button';
 import { useUpdateTask } from '@/lib/hooks';
 import { Task } from '@/lib/types';
+import MaterialIcon from '@/components/MaterialIcon';
 
 type TaskStatus = Task['status'];
 
@@ -164,8 +165,8 @@ export default function TaskCard({
     return (
         <div 
             className={cn(
-                'relative group rounded-2xl shadow-lg transition-all duration-300 cursor-pointer h-100 flex flex-col',
-                'hover:shadow-2xl hover:scale-105 dark:hover:shadow-xl',
+                'relative group flex min-h-76 cursor-pointer flex-col rounded-2xl shadow-lg transition-all duration-300 md:min-h-88 lg:min-h-100',
+                'md:hover:scale-105 dark:hover:shadow-xl',
                 config.bg,
                 config.border,
                 className
@@ -181,18 +182,16 @@ export default function TaskCard({
             </div>
 
             {/* Content */}
-            <div className='relative z-10 flex flex-col h-full p-6'>
+            <div className='relative z-10 flex h-full flex-col p-4 sm:p-6'>
                 {/* Header */}
                 <div className='flex items-start justify-between mb-3'>
                     <div className='flex-1'>
-                        <h3 className='text-xl font-bold text-white mb-1 line-clamp-2'>
+                        <h3 className='mb-1 text-lg font-bold text-white line-clamp-2 sm:text-xl'>
                             {name}
                         </h3>
                         <div className='flex items-center gap-2'>
-                            <span className={cn('material-symbols-outlined text-lg', config.accent)}>
-                                {config.icon}
-                            </span>
-                            <span className='text-xs font-semibold text-white opacity-90'>
+                            <MaterialIcon name={config.icon} className={cn('text-lg', config.accent)} />
+                            <span className='text-[11px] font-semibold text-white opacity-90 sm:text-xs'>
                                 {statusLabelMap[currentStatus]}
                             </span>
                         </div>
@@ -200,7 +199,7 @@ export default function TaskCard({
                 </div>
 
                 {/* Description */}
-                <p className='text-sm text-white opacity-90 mb-4 line-clamp-2 grow'>
+                <p className='mb-4 grow text-sm text-white opacity-90 line-clamp-2'>
                     {description}
                 </p>
 
@@ -208,9 +207,9 @@ export default function TaskCard({
                 <div className='grow'></div>
 
                 {/* Deadline Info */}
-                <div className='flex items-center justify-between mb-4 px-3 py-2'>
+                <div className='mb-4 flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='flex items-center gap-2'>
-                        <span className='material-symbols-outlined text-base text-white'>calendar_today</span>
+                        <MaterialIcon name='calendar_today' className='text-base text-white' />
                         <span className='text-xs text-white opacity-80'>{formattedDeadline}</span>
                     </div>
                     <span className={cn('text-xs font-bold px-3 py-1 rounded-full', deadlineInfo.badge)}>
@@ -230,8 +229,8 @@ export default function TaskCard({
                 {/* Action Button */}
                 {currentStatus === 'completed' && (
                     <Button 
-                        className='bg-white text-dark-gray hover:bg-light-blue-gray self-start w-full font-semibold shadow-lg transition-all' 
-                        icon={<span className='material-symbols-outlined'>check</span>}
+                        className='w-full self-start bg-white font-semibold text-dark-gray shadow-lg transition-all hover:bg-light-blue-gray' 
+                        icon={<MaterialIcon name='check' />}
                     >
                         {t.confirm}
                     </Button>

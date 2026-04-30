@@ -46,10 +46,25 @@ export default function AdminTablesPage() {
 
   const [studentsCount, setStudentsCount] = useState<number | null>(null);
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   useEffect(() => {
     const loadStudentsCount = async () => {
       try {
-        const response = await fetch('/api/student/full_info_list');
+        const response = await fetch('/api/student/full_info_list', {
+          headers: {
+            ...buildAuthHeaders(),
+          },
+        });
         if (!response.ok) throw new Error(`Failed to load students: ${response.status}`);
         const data = await response.json();
         const list = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
@@ -109,9 +124,9 @@ export default function AdminTablesPage() {
   ];
 
   return (
-    <div className='px-6 md:px-12 lg:px-48 py-8'>
+    <div className='px-4 py-8 sm:px-6 md:px-12 lg:px-48'>
       <div className='mb-8'>
-        <h1 className='text-4xl font-extrabold text-dark-gray dark:text-white mb-2'>
+        <h1 className='mb-2 text-3xl font-extrabold text-dark-gray dark:text-white sm:text-4xl'>
           {t.title}
         </h1>
         <p className='text-medium-blue-gray dark:text-light-blue-gray'>

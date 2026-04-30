@@ -6,6 +6,7 @@ import InputField from '@/components/Input Field';
 import ChatUserCard from '@/components/ChatUserCard';
 import ChatMessage from '@/components/ChatMessage';
 import MessageInput from '@/components/MessageInput';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface User {
   id: string;
@@ -309,28 +310,28 @@ export default function ChatPage() {
   };
 
   return (
-    <div className='flex h-[calc(100vh-120px)] bg-white dark:bg-surface mb-8 overflow-hidden no-page-scrollbar'>
+    <div className='flex min-h-[calc(100dvh-120px)] flex-col bg-white mb-8 overflow-hidden no-page-scrollbar dark:bg-surface md:h-[calc(100vh-120px)] md:flex-row'>
       {/* Left sidebar - Users list */}
-      <div className='w-80 border-r border-light-blue-gray dark:border-dark-gray flex flex-col'>
+      <div className='flex max-h-[38vh] w-full flex-col border-b border-light-blue-gray dark:border-dark-gray md:max-h-none md:w-80 md:border-b-0 md:border-r'>
         {/* Search */}
-        <div className='p-4 border-b border-light-blue-gray dark:border-dark-gray'>
+        <div className='border-b border-light-blue-gray p-3 dark:border-dark-gray sm:p-4'>
           <InputField
-            icon={<span className='material-symbols-outlined'>search</span>}
+            icon={<MaterialIcon name='search' />}
             placeholder={t.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            className='w-full text-lg dark:bg-dark-gray'
+            className='w-full text-base dark:bg-dark-gray sm:text-lg'
           />
         </div>
 
         {/* Users list */}
-        <div className='flex-1 overflow-y-auto custom-scroll'>
+        <div className='flex-1 overflow-y-auto custom-scroll md:min-h-0'>
           {loadingUsers ? (
             <div className='flex items-center justify-center h-full text-gray dark:text-white'>
               <p className='text-lg'>Loading...</p>
             </div>
           ) : filteredUsers.length > 0 ? (
-            <div className='p-3 space-y-2'>
+            <div className='space-y-2 p-3'>
               {filteredUsers.map((user) => (
                 <ChatUserCard
                   key={user.id}
@@ -352,25 +353,25 @@ export default function ChatPage() {
       </div>
 
       {/* Right section - Chat area */}
-      <div className='flex-1 flex flex-col bg-white dark:bg-surface'>
+      <div className='flex flex-1 min-h-[52vh] flex-col bg-white dark:bg-surface md:min-h-0'>
         {activeUser ? (
           <>
             {/* Header with user info */}
-            <div className='border-b border-light-blue-gray dark:border-dark-gray py-3 px-4 bg-white dark:bg-surface text-start'>
-              <h2 className='text-2xl font-semibold text-dark-gray dark:text-white'>
+            <div className='border-b border-light-blue-gray bg-white px-4 py-3 text-start dark:border-dark-gray dark:bg-surface sm:px-4'>
+              <h2 className='text-xl font-semibold text-dark-gray dark:text-white sm:text-2xl'>
                 {activeUser.displayFullName}
               </h2>
-              <p className='text-base text-gray dark:text-white mt-1'>{activeUser.lastOnline}</p>
+              <p className='mt-1 text-sm text-gray dark:text-white sm:text-base'>{activeUser.lastOnline}</p>
             </div>
 
             {/* Messages area */}
             <div
               ref={messagesContainerRef}
-              className='flex-1 overflow-y-auto p-6 bg-white dark:bg-dark-gray custom-scroll'
+              className='flex-1 overflow-y-auto bg-white p-4 custom-scroll dark:bg-dark-gray sm:p-6'
             >
               {messagesLoading ? (
                 <div className='flex items-center justify-center h-full'>
-                  <p className='text-lg text-gray dark:text-white'>Loading...</p>
+                  <p className='text-base text-gray dark:text-white sm:text-lg'>Loading...</p>
                 </div>
               ) : activeUserId && (messages[activeUserId]?.length ?? 0) > 0 ? (
                 <>
@@ -390,7 +391,7 @@ export default function ChatPage() {
                 </>
               ) : (
                 <div className='flex items-center justify-center h-full'>
-                  <p className='text-lg text-gray dark:text-white'>{t.startConversation}</p>
+                  <p className='text-base text-gray dark:text-white sm:text-lg'>{t.startConversation}</p>
                 </div>
               )}
             </div>
@@ -402,10 +403,8 @@ export default function ChatPage() {
           /* Empty state */
           <div className='flex-1 flex items-center justify-center'>
             <div className='text-center'>
-              <span className='material-symbols-outlined text-6xl text-light-blue-gray dark:text-cyan mb-4 block'>
-                chat
-              </span>
-              <p className='text-gray dark:text-white text-2xl'>{t.selectChat}</p>
+              <MaterialIcon name='chat' className='mb-4 block text-5xl text-light-blue-gray dark:text-cyan sm:text-6xl' />
+              <p className='text-xl text-gray dark:text-white sm:text-2xl'>{t.selectChat}</p>
               {!currentUserId && (
                 <p className='text-sm text-gray dark:text-white mt-2'>{t.noUserId}</p>
               )}

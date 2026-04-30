@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Button from '@/components/Button';
 import InputField from '@/components/Input Field';
-import Document from '@/components/Document';
 import Trip from '@/components/Trip';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface Student {
   first_name: string;
@@ -179,6 +179,17 @@ export default function ProfilePage() {
   const [tripSaveError, setTripSaveError] = useState<string | null>(null);
   const [tripDeleteId, setTripDeleteId] = useState<string | null>(null);
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   const avatarPreview = useMemo(() => {
     if (avatarFile) return URL.createObjectURL(avatarFile);
     return avatarUrl;
@@ -242,7 +253,11 @@ export default function ProfilePage() {
       setTripsLoading(true);
       setTripsError(null);
 
-      const response = await fetch(`/api/trip/student/${id}`);
+      const response = await fetch(`/api/trip/student/${id}`, {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
       if (!response.ok) {
         throw new Error(`Error loading trips: ${response.status}`);
       }
@@ -298,6 +313,7 @@ export default function ProfilePage() {
         method,
         headers: {
           'Content-Type': 'application/json',
+          ...buildAuthHeaders(),
         },
         body: JSON.stringify(payload),
       });
@@ -327,6 +343,9 @@ export default function ProfilePage() {
 
       const response = await fetch(`/api/trip/${tripId}`, {
         method: 'DELETE',
+        headers: {
+          ...buildAuthHeaders(),
+        },
       });
 
       if (!response.ok) {
@@ -378,6 +397,7 @@ export default function ProfilePage() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...buildAuthHeaders(),
         },
         body: JSON.stringify(payload),
       });
@@ -398,6 +418,9 @@ export default function ProfilePage() {
 
         const uploadResponse = await fetch(`/api/files/upload-avatar/${studentId}`, {
           method: 'POST',
+          headers: {
+            ...buildAuthHeaders(),
+          },
           body: formData,
         });
 
@@ -484,14 +507,22 @@ export default function ProfilePage() {
         let profileSource: any = null;
 
         if (storedStudentId) {
-          const byIdResponse = await fetch(`/api/student/${storedStudentId}`);
+          const byIdResponse = await fetch(`/api/student/${storedStudentId}`, {
+            headers: {
+              ...buildAuthHeaders(),
+            },
+          });
           if (byIdResponse.ok) {
             profileSource = await byIdResponse.json();
           }
         }
 
         if (!profileSource) {
-          const listResponse = await fetch('/api/student/full_info_list');
+          const listResponse = await fetch('/api/student/full_info_list', {
+            headers: {
+              ...buildAuthHeaders(),
+            },
+          });
           if (!listResponse.ok) {
             throw new Error(`Error loading profile: ${listResponse.status}`);
           }
@@ -541,7 +572,11 @@ export default function ProfilePage() {
           setStudentId(idString);
 
           try {
-            const avatarResponse = await fetch(`/api/files/avatar/${idString}`);
+            const avatarResponse = await fetch(`/api/files/avatar/${idString}`, {
+              headers: {
+                ...buildAuthHeaders(),
+              },
+            });
             if (avatarResponse.ok) {
               const avatarData = await avatarResponse.json().catch(() => ({}));
               const url = pickAvatarUrl(avatarData);
@@ -577,7 +612,7 @@ export default function ProfilePage() {
 
   return (
     <>
-    <div className='px-48 pb-8 gap-24 flex flex-col'>
+    <div className='flex flex-col gap-8 px-4 pb-8 sm:px-6 md:px-12 lg:px-48 md:gap-16 lg:gap-24'>
       {loading && (
         <div className='bg-white rounded-2xl p-4 text-dark-gray'>
           {t.loading}
@@ -593,7 +628,7 @@ export default function ProfilePage() {
       {!loading && !error && student && (
       <>
       <div>
-        <div className='flex flex-row gap-4 items-center mt-8'>
+        <div className='mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center'>
           <div className='relative w-16 h-16'>
             <Image
               src={avatarPreview || '/NoAvatarDefault.svg'}
@@ -619,10 +654,10 @@ export default function ProfilePage() {
             )}
           </div>
           <div className='flex flex-col'>
-            <p className='text-2xl font-extrabold text-dark-gray dark:text-white'>
+            <p className='text-xl font-extrabold text-dark-gray dark:text-white sm:text-2xl'>
               {student.last_name || ''} {student.first_name || ''} {student.patronymic || ''}
             </p>
-            <p className='text-lg text-dark-gray dark:text-white'>
+            <p className='text-base text-dark-gray dark:text-white sm:text-lg'>
               {t.year}: {displayStudent?.year || '—'}, {t.school}: {displayStudent?.school || '—'}, {t.study_group}: {displayStudent?.study_group || '—'}
             </p>
           </div>
@@ -633,12 +668,12 @@ export default function ProfilePage() {
 
         {/* Fields For editing */}
         <div className='flex flex-col'>
-          <div className='flex justify-end gap-3'>
+          <div className='flex flex-wrap justify-start gap-3 sm:justify-end'>
             {!isEditing ? (
               <Button
                 onClick={handleEditClick}
                 className='bg-orange text-white hover:bg-dark-orange text-lg dark:bg-orange dark:hover:bg-dark-orange'
-                icon={<span className='material-symbols-outlined'>edit</span>}
+                icon={<MaterialIcon name='edit' />}
               >
                 {t.edit}
               </Button>
@@ -648,7 +683,7 @@ export default function ProfilePage() {
                   onClick={handleSave}
                   disabled={isSaving}
                   className='bg-light-green text-white hover:bg-dark-green text-lg dark:bg-light-green dark:hover:bg-dark-green'
-                  icon={<span className='material-symbols-outlined'>check</span>}
+                  icon={<MaterialIcon name='check' />}
                 >
                   {isSaving ? t.saving : t.save}
                 </Button>
@@ -656,7 +691,7 @@ export default function ProfilePage() {
                   onClick={handleCancel}
                   disabled={isSaving}
                   className='bg-medium-blue-gray text-white hover:bg-dark-gray text-lg dark:bg-medium-blue-gray dark:hover:bg-dark-gray'
-                  icon={<span className='material-symbols-outlined'>close</span>}
+                  icon={<MaterialIcon name='close' />}
                 >
                   {t.cancel}
                 </Button>
@@ -670,7 +705,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
+          <div className='mb-6 grid grid-cols-1 gap-4 md:grid-cols-3'>
             {[{ key: 'school', label: t.school }, { key: 'study_group', label: t.study_group }, { key: 'year', label: t.year }].map((field) => (
               <div key={field.key}>
                 <p className='text-lg px-4 text-dark-gray dark:text-white'>{field.label}</p>
@@ -685,7 +720,7 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className='flex flex-col gap-4'>
               {Object.entries(leftFields(t)).map(([key, label]) => (
                 <div key={key}>
@@ -722,7 +757,7 @@ export default function ProfilePage() {
               onClick={handleLogout}
               disabled={isLoggingOut}
               className='bg-red-500 text-white hover:bg-red-600 text-lg'
-              icon={<span className='material-symbols-outlined'>logout</span>}
+              icon={<MaterialIcon name='logout' />}
             >
               {isLoggingOut ? t.loggingOut : t.logout}
             </Button>
@@ -730,35 +765,15 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Documents */}
-      <div className='flex flex-col gap-8'>
-        <p className='text-2xl font-extrabold text-dark-gray dark:text-white'>{t.documents}</p>
-        <div className='grid grid-cols-4 col-span-4 gap-8 justify-center items-center'>
-          <Document name={t.docNames[0]} image={<Image src='/img/doc1.png' width={240} height={340} alt='Document' className='object-fill' />} />
-          <Document name={t.docNames[1]} image={<Image src='/img/doc3.png' width={240} height={340} alt='Document' className='object-fill' />} />
-          <Document name={t.docNames[2]} image={<Image src='/img/doc2.png' width={240} height={340} alt='Document' className='object-fill' />} />
-          <Document name={t.docNames[3]} image={<Image src='/img/doc5.png' width={240} height={340} alt='Document' className='object-fill' />} />
-          <Document name={t.docNames[4]} image={<Image src='/img/doc4.png' width={240} height={340} alt='Document' className='object-fill' />} />
-          <Document name={t.docNames[5]} image={<Image src='/img/doc6.jpg' width={240} height={340} alt='Document' className='object-fill' />} />
-          <div className='flex items-center justify-center w-[264]'>
-            <Button
-              className='bg-cyan text-white hover:bg-dark-cyan dark:bg-cyan dark:hover:bg-dark-cyan px-4 py-4 rounded-full'
-              icon={<span className='material-symbols-outlined'>add</span>}
-              aria-label={t.addDoc}
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Trips */}
       <div className='flex flex-col gap-8'>
-        <div className='flex flex-row justify-between items-center'>
-          <p className='text-2xl font-extrabold text-dark-gray dark:text-white'>{t.trips}</p>
+        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+          <p className='text-xl font-extrabold text-dark-gray dark:text-white sm:text-2xl'>{t.trips}</p>
           <Button
             onClick={handleOpenTripModal}
             disabled={!studentId || tripsLoading}
             className='bg-cyan text-white hover:bg-dark-cyan dark:bg-cyan dark:hover:bg-dark-cyan text-lg disabled:opacity-60 disabled:cursor-not-allowed'
-            icon={<span className='material-symbols-outlined'>add</span>}
+            icon={<MaterialIcon name='add' />}
           >
             {t.addTrip}
           </Button>
@@ -808,9 +823,9 @@ export default function ProfilePage() {
 
     {tripModalOpen && (
       <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
-        <div className='bg-white dark:bg-surface rounded-2xl p-6 w-full max-w-lg shadow-xl flex flex-col gap-4'>
-          <div className='flex justify-between items-center'>
-            <p className='text-xl font-extrabold text-dark-gray dark:text-white'>
+        <div className='flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-white p-4 shadow-xl dark:bg-surface sm:p-6'>
+          <div className='flex items-center justify-between gap-3'>
+            <p className='text-lg font-extrabold text-dark-gray dark:text-white sm:text-xl'>
               {editingTripId ? t.tripModalTitleEdit : t.tripModalTitleAdd}
             </p>
             <button
@@ -819,13 +834,13 @@ export default function ProfilePage() {
               className='text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
               aria-label='Close'
             >
-              <span className='material-symbols-outlined'>close</span>
+              <MaterialIcon name='close' />
             </button>
           </div>
 
           <div className='flex flex-col gap-3'>
             <div>
-              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.tripDeparture}</p>
+              <p className='px-1 text-base text-dark-gray dark:text-white sm:text-lg'>{t.tripDeparture}</p>
               <InputField
                 placeholder={t.tripDeparture}
                 value={tripForm.departurePoint}
@@ -834,7 +849,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.tripDestination}</p>
+              <p className='px-1 text-base text-dark-gray dark:text-white sm:text-lg'>{t.tripDestination}</p>
               <InputField
                 placeholder={t.tripDestination}
                 value={tripForm.destination}
@@ -843,7 +858,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.arrivalDate}</p>
+              <p className='px-1 text-base text-dark-gray dark:text-white sm:text-lg'>{t.arrivalDate}</p>
               <InputField
                 type='date'
                 placeholder={t.arrivalDate}
@@ -853,7 +868,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <p className='text-lg px-1 text-dark-gray dark:text-white'>{t.departureDate}</p>
+              <p className='px-1 text-base text-dark-gray dark:text-white sm:text-lg'>{t.departureDate}</p>
               <InputField
                 type='date'
                 placeholder={t.departureDate}
@@ -870,18 +885,18 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className='flex justify-end gap-2'>
+          <div className='flex flex-col gap-2 sm:flex-row sm:justify-end'>
             <Button
               onClick={closeTripModal}
               disabled={tripSaving}
-              className='bg-medium-blue-gray text-white hover:bg-dark-gray text-lg dark:bg-medium-blue-gray dark:hover:bg-dark-gray'
+              className='bg-medium-blue-gray text-base text-white hover:bg-dark-gray dark:bg-medium-blue-gray dark:hover:bg-dark-gray sm:text-lg'
             >
               {t.cancel}
             </Button>
             <Button
               onClick={handleTripSubmit}
               disabled={tripSaving}
-              className='bg-cyan text-white hover:bg-dark-cyan dark:bg-cyan dark:hover:bg-dark-cyan text-lg'
+              className='bg-cyan text-base text-white hover:bg-dark-cyan dark:bg-cyan dark:hover:bg-dark-cyan sm:text-lg'
             >
               {tripSaving ? t.saving : editingTripId ? t.updateTrip : t.saveTrip}
             </Button>

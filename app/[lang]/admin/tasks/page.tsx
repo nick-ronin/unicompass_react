@@ -6,6 +6,7 @@ import AdminTaskItem from '@/components/AdminTaskItem';
 import TaskAssignmentModal from '@/components/TaskAssignmentModal';
 import TaskReassignmentModal from '@/components/TaskReassignmentModal';
 import { useParams } from 'next/navigation';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface Task {
   id: string;
@@ -91,10 +92,25 @@ export default function AdminTasksPage() {
   const [editFormData, setEditFormData] = useState({ name: '', description: '' });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/task');
+      const response = await fetch('/api/task', {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error loading: ${response.status}`);
@@ -126,7 +142,11 @@ export default function AdminTasksPage() {
       const tasksWithCompletion = await Promise.all(
         formattedTasks.map(async (task: Task) => {
           try {
-            const analyticsResponse = await fetch(`/api/student_task/analytics/task/${task.id}`);
+            const analyticsResponse = await fetch(`/api/student_task/analytics/task/${task.id}`, {
+              headers: {
+                ...buildAuthHeaders(),
+              },
+            });
 
             if (!analyticsResponse.ok) {
               throw new Error(`Analytics load failed: ${analyticsResponse.status}`);
@@ -219,6 +239,7 @@ export default function AdminTasksPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...buildAuthHeaders(),
         },
         body: JSON.stringify({
           title: editFormData.name,
@@ -260,6 +281,7 @@ export default function AdminTasksPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...buildAuthHeaders(),
         },
         body: JSON.stringify({
           title: formData.name,
@@ -280,6 +302,7 @@ export default function AdminTasksPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...buildAuthHeaders(),
           },
           body: JSON.stringify({
             student_id: parseInt(studentId),
@@ -323,6 +346,7 @@ export default function AdminTasksPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...buildAuthHeaders(),
           },
           body: JSON.stringify({
             student_id: parseInt(studentId.toString()),
@@ -350,9 +374,9 @@ export default function AdminTasksPage() {
   };
 
   return (
-    <div className='px-6 md:px-12 lg:px-48 py-8'>
+    <div className='px-4 py-8 sm:px-6 md:px-12 lg:px-48'>
       <div className='mb-8'>
-        <h1 className='text-4xl font-extrabold text-dark-gray dark:text-white mb-2'>
+        <h1 className='mb-2 text-3xl font-extrabold text-dark-gray dark:text-white sm:text-4xl'>
           {t.title}
         </h1>
         <p className='text-medium-blue-gray dark:text-light-blue-gray'>
@@ -368,23 +392,23 @@ export default function AdminTasksPage() {
 
       <div className='mb-6'>
         <InputField
-          icon={<span className='material-symbols-outlined'>search</span>}
+          icon={<MaterialIcon name='search' />}
           placeholder={t.search}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      <div className='mb-6 flex gap-3'>
+      <div className='mb-6 flex flex-col gap-3 sm:flex-row'>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className='px-6 py-2 bg-dark-cyan hover:bg-cyan text-white font-medium rounded-lg transition-colors cursor-pointer'
+          className='w-full cursor-pointer rounded-lg bg-dark-cyan px-6 py-2 font-medium text-white transition-colors hover:bg-cyan sm:w-auto'
         >
           {t.create}
         </button>
         <button
           onClick={() => setIsReassignModalOpen(true)}
-          className='px-6 py-2 bg-orange hover:bg-dark-orange text-white font-medium rounded-lg transition-colors cursor-pointer'
+          className='w-full cursor-pointer rounded-lg bg-orange px-6 py-2 font-medium text-white transition-colors hover:bg-dark-orange sm:w-auto'
         >
           {t.assignExisting}
         </button>
@@ -397,7 +421,7 @@ export default function AdminTasksPage() {
       ) : (
         <>
           {/* View toggle */}
-          <div className='flex gap-2 mb-6'>
+          <div className='mb-6 flex flex-wrap gap-2'>
             <button
               onClick={() => setView('list')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -441,7 +465,7 @@ export default function AdminTasksPage() {
               ))}
             </div>
           ) : (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 sm:gap-6'>
               {filteredTasks.map((task) => (
                 <AdminTaskItem
                   key={task.id}
@@ -461,9 +485,7 @@ export default function AdminTasksPage() {
           {filteredTasks.length === 0 && !loading && (
             <div className='flex items-center justify-center py-16'>
               <div className='text-center'>
-                <span className='material-symbols-outlined text-6xl text-light-blue-gray mb-4 block'>
-                  task_alt
-                </span>
+                <MaterialIcon name='task_alt' className='text-6xl text-light-blue-gray mb-4 block' />
                 <p className='text-xl text-medium-blue-gray dark:text-light-blue-gray'>
                   {t.empty}
                 </p>
@@ -492,11 +514,11 @@ export default function AdminTasksPage() {
 
       {/* Edit Modal */}
       {isEditModalOpen && editingTask && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70'>
-          <div className='bg-white dark:bg-surface rounded-lg shadow-xl w-full max-w-2xl'>
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 dark:bg-black/70'>
+          <div className='w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-surface'>
             {/* Header */}
-            <div className='flex items-center justify-between p-6 border-b border-light-blue-gray dark:border-medium-blue-gray'>
-              <h2 className='text-2xl font-bold text-dark-gray dark:text-white'>
+            <div className='flex items-center justify-between border-b border-light-blue-gray p-4 dark:border-medium-blue-gray sm:p-6'>
+              <h2 className='text-xl font-bold text-dark-gray dark:text-white sm:text-2xl'>
                 {t.editTitle}
               </h2>
               <button
@@ -508,7 +530,7 @@ export default function AdminTasksPage() {
             </div>
 
             {/* Form Content */}
-            <div className='p-6 space-y-6'>
+            <div className='space-y-6 p-4 sm:p-6'>
               {/* Task Name */}
               <div>
                 <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
@@ -538,12 +560,12 @@ export default function AdminTasksPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className='flex gap-3 pt-4 border-t border-light-blue-gray dark:border-medium-blue-gray'>
+              <div className='flex flex-col gap-3 border-t border-light-blue-gray pt-4 dark:border-medium-blue-gray sm:flex-row'>
                 <button
                   type='button'
                   onClick={() => setIsEditModalOpen(false)}
                   disabled={isSubmitting}
-                  className='flex-1 px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray text-dark-gray dark:text-light-blue-gray rounded-lg hover:bg-light-blue-gray dark:hover:bg-dark-gray transition-colors disabled:opacity-50 font-medium cursor-pointer'
+                  className='flex-1 cursor-pointer rounded-lg border border-light-blue-gray px-4 py-2 font-medium text-dark-gray transition-colors hover:bg-light-blue-gray disabled:opacity-50 dark:border-medium-blue-gray dark:text-light-blue-gray dark:hover:bg-dark-gray'
                 >
                   {t.cancel}
                 </button>
@@ -551,7 +573,7 @@ export default function AdminTasksPage() {
                   type='button'
                   onClick={handleTaskEdit}
                   disabled={isSubmitting}
-                  className='flex-1 px-4 py-2 bg-dark-cyan text-white rounded-lg hover:bg-cyan transition-colors disabled:opacity-50 font-medium cursor-pointer'
+                  className='flex-1 cursor-pointer rounded-lg bg-dark-cyan px-4 py-2 font-medium text-white transition-colors hover:bg-cyan disabled:opacity-50'
                 >
                   {isSubmitting ? t.saving : t.save}
                 </button>

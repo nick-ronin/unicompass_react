@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface DropdownProps {
     label?: string;
@@ -36,27 +37,25 @@ export default function Dropdown({ label, options, onSelect, className, defaultV
     };
 
     return (
-        <div className={cn('flex flex-col gap-2 relative', className)}>
-            {label && <p className='text-xl'>{label}</p>}
+        <div className={cn('relative flex flex-col gap-2', className)}>
+            {label && <p className='text-lg sm:text-xl'>{label}</p>}
             <button
                 type='button'
                 onClick={() => setIsOpen(!isOpen)}
-                className='flex items-center justify-between px-4 py-3 rounded-2xl bg-light-blue-gray dark:bg-surface dark:text-white cursor-pointer'
+                className='flex w-full items-center justify-between rounded-2xl bg-light-blue-gray px-3 py-2.5 text-sm cursor-pointer dark:bg-surface dark:text-white sm:px-4 sm:py-3 sm:text-base'
             >
                 <span>{selected || placeholder || t.select}</span>
-                <span className={cn('material-symbols-outlined transition-transform duration-200', isOpen && 'rotate-180')}>
-                    expand_more
-                </span>
+                <MaterialIcon name='stat_minus' className={cn('transition-transform duration-200', isOpen && 'rotate-180')} />
             </button>
             {isOpen && (
-                <div className='absolute top-full mt-1 left-0 right-0 bg-white dark:bg-surface dark:text-white rounded-2xl shadow-lg z-10 overflow-hidden'>
+                <div className='absolute left-0 right-0 top-full z-10 mt-1 max-h-60 overflow-y-auto rounded-2xl bg-white shadow-lg dark:bg-surface dark:text-white'>
                     {options.map((option) => (
                         <button
                             key={option}
                             type='button'
                             onClick={() => handleSelect(option)}
                             className={cn(
-                                'w-full text-left px-4 py-3 cursor-pointer hover:bg-light-blue-gray dark:hover:bg-surface-secondary transition-colors duration-150',
+                                'w-full cursor-pointer px-4 py-2.5 text-left text-sm transition-colors duration-150 hover:bg-light-blue-gray dark:hover:bg-surface-secondary sm:py-3 sm:text-base',
                                 selected === option && 'bg-light-blue-gray dark:bg-surface-secondary font-medium'
                             )}
                         >

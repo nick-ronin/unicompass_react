@@ -25,16 +25,16 @@ export default function ChatUserCard({
     <div
       onClick={onClick}
       className={cn(
-        'p-3 rounded-lg cursor-pointer transition-colors duration-200',
+        'p-3 sm:p-4 rounded-lg cursor-pointer transition-colors duration-200',
         isActive
           ? 'bg-cyan'
           : 'hover:bg-light-blue-gray dark:hover:bg-dark-gray'
       )}
     >
-      <div className='flex flex-row gap-3'>
+      <div className='flex flex-row gap-3 sm:gap-4'>
         <div
           className={cn(
-            'shrink-0 rounded-full overflow-hidden flex items-center justify-center w-14 h-14',
+            'shrink-0 rounded-full overflow-hidden flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14',
             isActive ? 'text-white' : 'text-orange'
           )}
         >
@@ -55,7 +55,7 @@ export default function ChatUserCard({
         <div className='flex-1 min-w-0'>
           <p
             className={cn(
-              'text-xl font-medium truncate',
+              'text-base font-medium truncate sm:text-xl',
               isActive ? 'text-white' : 'text-dark-gray dark:text-white'
             )}
           >
@@ -63,7 +63,7 @@ export default function ChatUserCard({
           </p>
           <p
             className={cn(
-              'text-base truncate',
+              'truncate text-sm sm:text-base',
               isActive ? 'text-white opacity-80' : 'text-gray'
             )}
           >

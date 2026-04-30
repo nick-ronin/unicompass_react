@@ -245,7 +245,7 @@ export default function Schedule({
     return (
         <div className={cn('p-4', className)}>
             <div className='mb-4'>
-                <h3 className='text-2xl text-dark-gray dark:text-white'>
+                <h3 className='text-xl text-dark-gray dark:text-white sm:text-2xl'>
                     {copy.title[lang]} {date.toLocaleDateString(lang === 'en' ? 'en-US' : 'ru-RU', {
                         weekday: 'long',
                         day: 'numeric',
@@ -260,24 +260,24 @@ export default function Schedule({
                         <div
                             key={item.id}
                             className={cn(
-                                'py-3 px-6 rounded-4xl flex justify-between items-start transition-colors',
+                                'flex flex-col gap-2 rounded-3xl px-4 py-3 transition-colors sm:flex-row sm:items-start sm:justify-between sm:px-6',
                                 item.isCurrent
                                     ? 'bg-cyan text-white'
                                     : 'bg-light-blue-gray text-dark-gray dark:bg-surface dark:text-white',
                             )}
                         >
                             <div className='flex-1 space-y-0.26'>
-                                <h4 className='text-2xl'>
+                                <h4 className='text-lg sm:text-2xl'>
                                     {item.subject}
                                 </h4>
-                                <p className='text-lg opacity-90'>
+                                <p className='text-sm opacity-90 sm:text-lg'>
                                     {translateType(item.type, lang)}
                                 </p>
-                                <p className='text-lg opacity-90'>
+                                <p className='text-sm opacity-90 sm:text-lg'>
                                     {item.location}
                                 </p>
                             </div>
-                            <div className='text-right text-lg whitespace-nowrap'>
+                            <div className='text-left text-sm whitespace-nowrap sm:text-right sm:text-lg'>
                                 {item.time}
                             </div>
                         </div>

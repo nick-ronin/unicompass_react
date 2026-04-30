@@ -96,7 +96,7 @@ export default function Table<T extends { id: string | number }>({
   if (isLoading) {
     return (
       <div className='overflow-x-auto rounded-lg'>
-        <div className='p-6 space-y-3 animate-pulse'>
+        <div className='space-y-3 p-4 animate-pulse sm:p-6'>
           {[1, 2, 3].map(i => (
             <div key={i} className='h-12 bg-light-blue-gray dark:bg-medium-blue-gray rounded'></div>
           ))}
@@ -107,12 +107,12 @@ export default function Table<T extends { id: string | number }>({
 
   if (error) {
     return (
-      <div className='overflow-x-auto rounded-lg border border-dark-orange dark:border-dark-red bg-light-orange dark:bg-dark-red/30 p-6'>
-        <p className='text-dark-gray dark:text-white mb-4'>{t.error} {error}</p>
+      <div className='overflow-x-auto rounded-lg border border-dark-orange bg-light-orange p-4 dark:border-dark-red dark:bg-dark-red/30 sm:p-6'>
+        <p className='mb-4 text-dark-gray dark:text-white'>{t.error} {error}</p>
         {onRetry && (
           <button
             onClick={onRetry}
-            className='px-4 py-2 bg-dark-orange text-white rounded hover:bg-orange transition-colors cursor-pointer'
+            className='cursor-pointer rounded bg-dark-orange px-4 py-2 text-white transition-colors hover:bg-orange'
           >
             {t.retry}
           </button>
@@ -123,7 +123,7 @@ export default function Table<T extends { id: string | number }>({
 
   if (data.length === 0) {
     return (
-      <div className='overflow-x-auto rounded-lg bg-light-blue-gray dark:bg-dark-gray p-6 text-center'>
+      <div className='overflow-x-auto rounded-lg bg-light-blue-gray p-4 text-center dark:bg-dark-gray sm:p-6'>
         <p className='text-medium-blue-gray dark:text-light-blue-gray'>{t.empty}</p>
       </div>
     );
@@ -131,11 +131,11 @@ export default function Table<T extends { id: string | number }>({
 
   return (
     <div className={`overflow-x-auto rounded-lg ${className}`}>
-      <table className='w-full'>
+      <table className='min-w-full w-full'>
         <thead className='bg-light-blue-gray dark:bg-dark-gray'>
           <tr>
             {(onEdit || onDelete || enableSelection) && (
-              <th className='px-6 py-3 text-left text-sm font-semibold text-dark-gray dark:text-white w-8'>
+              <th className='w-8 px-3 py-3 text-left text-xs font-semibold text-dark-gray dark:text-white sm:px-6 sm:text-sm'>
                 <input
                   type='checkbox'
                   onChange={handleSelectAll}
@@ -147,7 +147,7 @@ export default function Table<T extends { id: string | number }>({
             {columns.map((column) => (
               <th
                 key={String(column.key)}
-                className={`px-6 py-3 text-left text-sm font-semibold text-dark-gray dark:text-white ${
+                className={`px-3 py-3 text-left text-xs font-semibold text-dark-gray dark:text-white sm:px-6 sm:text-sm ${
                   column.sortable && onSort ? 'cursor-pointer hover:bg-light-blue-gray dark:hover:bg-dark-gray' : ''
                 }`}
                 style={{ width: column.width }}
@@ -164,7 +164,7 @@ export default function Table<T extends { id: string | number }>({
               </th>
             ))}
             {(onEdit || onDelete) && (
-              <th className='px-6 py-3 text-left text-sm font-semibold text-dark-gray dark:text-white'>
+              <th className='px-3 py-3 text-left text-xs font-semibold text-dark-gray dark:text-white sm:px-6 sm:text-sm'>
                 {t.actions}
               </th>
             )}
@@ -179,7 +179,7 @@ export default function Table<T extends { id: string | number }>({
               } ${selectedRows.includes(item.id) ? 'bg-light-blue-gray dark:bg-dark-cyan/30' : ''}`}
             >
               {(onEdit || onDelete || enableSelection) && (
-                <td className='px-6 py-3 text-sm'>
+                <td className='px-3 py-3 text-xs sm:px-6 sm:text-sm'>
                   <input
                     type='checkbox'
                     checked={selectedRows.includes(item.id)}
@@ -195,36 +195,38 @@ export default function Table<T extends { id: string | number }>({
                 <td
                   key={String(column.key)}
                   onClick={onRowClick ? () => onRowClick(item) : undefined}
-                  className={`px-6 py-3 text-sm text-dark-gray dark:text-light-blue-gray ${onRowClick ? 'cursor-pointer' : ''}`}
+                  className={`px-3 py-3 text-xs text-dark-gray dark:text-light-blue-gray sm:px-6 sm:text-sm ${onRowClick ? 'cursor-pointer' : ''}`}
                   style={{ width: column.width }}
                 >
                   {column.render ? column.render(item[column.key], item) : String(item[column.key])}
                 </td>
               ))}
               {(onEdit || onDelete) && (
-                <td className='px-6 py-3 text-sm flex gap-2'>
-                  {onEdit && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(item);
-                      }}
-                      className='text-dark-cyan dark:text-cyan hover:underline font-medium cursor-pointer'
-                    >
-                      {t.edit}
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(item);
-                      }}
-                      className='text-dark-orange dark:text-orange hover:underline font-medium cursor-pointer'
-                    >
-                      {t.delete}
-                    </button>
-                  )}
+                <td className='px-3 py-3 text-xs sm:px-6 sm:text-sm'>
+                  <div className='flex gap-2'>
+                    {onEdit && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(item);
+                        }}
+                        className='cursor-pointer font-medium text-dark-cyan hover:underline dark:text-cyan'
+                      >
+                        {t.edit}
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(item);
+                        }}
+                        className='cursor-pointer font-medium text-dark-orange hover:underline dark:text-orange'
+                      >
+                        {t.delete}
+                      </button>
+                    )}
+                  </div>
                 </td>
               )}
             </tr>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
+import { useState } from 'react';
 import Button from './Button';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface MessageInputProps {
   onSendMessage: (message: string, file?: File) => void;
@@ -37,29 +38,25 @@ export default function MessageInput({
   };
 
   return (
-    <div className='bg-white dark:bg-surface border-t border-light-blue-gray dark:border-dark-gray p-4'>
+    <div className='border-t border-light-blue-gray bg-white p-3 dark:border-dark-gray dark:bg-surface sm:p-4'>
       {attachedFile && (
         <div className='mb-3 flex items-center gap-2 bg-light-blue-gray dark:bg-dark-gray rounded p-2'>
-          <span className='material-symbols-outlined text-dark-gray dark:text-white text-2xl'>
-            attachment
-          </span>
+          <MaterialIcon name='attachment' className='text-dark-gray dark:text-white text-2xl' />
           <span className='text-base text-dark-gray dark:text-white flex-1 truncate'>
             {attachedFile.name}
           </span>
           <button
             onClick={() => setAttachedFile(null)}
-            className='text-gray dark:text-medium-blue-gray hover:text-dark-gray dark:hover:text-white material-symbols-outlined'
+            className='text-gray dark:text-medium-blue-gray hover:text-dark-gray dark:hover:text-white'
           >
-            close
+            <MaterialIcon name='close' />
           </button>
         </div>
       )}
 
-      <div className='flex gap-3'>
+      <div className='flex items-end gap-2 sm:gap-3'>
         <label className='flex items-center justify-center cursor-pointer'>
-          <span className='material-symbols-outlined text-cyan dark:text-cyan hover:text-dark-cyan dark:hover:text-dark-cyan text-2xl'>
-            attach_file
-          </span>
+          <MaterialIcon name='attach_file' className='text-cyan dark:text-cyan hover:text-dark-cyan dark:hover:text-dark-cyan text-2xl' />
           <input
             type='file'
             onChange={handleFileAttach}
@@ -73,14 +70,14 @@ export default function MessageInput({
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
-          className='flex-1 resize-none rounded-lg p-3 focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan text-dark-gray dark:text-white bg-white dark:bg-dark-gray text-base max-h-24'
+          className='flex-1 min-h-11 resize-none rounded-lg bg-white p-3 text-sm text-dark-gray focus:outline-none focus:ring-1 focus:ring-cyan dark:bg-dark-gray dark:text-white sm:text-base max-h-24'
           rows={1}
         />
 
         <Button
           onClick={handleSendMessage}
-          className='bg-cyan dark:bg-cyan hover:bg-dark-cyan dark:hover:bg-dark-cyan text-white rounded-lg px-4 py-3 flex items-center justify-center'
-          icon={<span className='material-symbols-outlined'>send</span>}
+          className='flex items-center justify-center rounded-lg bg-cyan px-3 py-3 text-white hover:bg-dark-cyan dark:bg-cyan dark:hover:bg-dark-cyan sm:px-4'
+          icon={<MaterialIcon name='send' />}
           iconPosition='right'
         >
           <span className='hidden sm:inline'>Send</span>

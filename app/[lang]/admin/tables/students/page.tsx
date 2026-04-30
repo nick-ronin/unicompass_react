@@ -109,6 +109,17 @@ export default function StudentsTablePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   // Search, sorting And фAndльтрацAndя
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('');
@@ -125,7 +136,11 @@ export default function StudentsTablePage() {
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/student/full_info_list');
+      const response = await fetch('/api/student/full_info_list', {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
 
       if (!response.ok) {
         throw new Error(t.fetchError(response.status));

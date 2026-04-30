@@ -5,6 +5,7 @@ import TaskCard from '@/components/Task Card';
 import Dropdown from '@/components/Dropdown';
 import InputField from '@/components/Input Field';
 import { useParams } from 'next/navigation';
+import MaterialIcon from '@/components/MaterialIcon';
 
 type TaskStatus = 'completed' | 'in-progress' | 'not completed';
 
@@ -159,6 +160,17 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   const [selectedSort, setSelectedSort] = useState<SortOption>('Name');
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -186,7 +198,11 @@ export default function TasksPage() {
         let studentId = auth.studentId?.toString() || '';
 
         if (!studentId && username) {
-          const studentsResponse = await fetch('/api/student/full_info_list');
+          const studentsResponse = await fetch('/api/student/full_info_list', {
+            headers: {
+              ...buildAuthHeaders(),
+            },
+          });
           if (!studentsResponse.ok) {
             throw new Error(`${t.identifyError} ${studentsResponse.status}`);
           }
@@ -219,7 +235,11 @@ export default function TasksPage() {
         let lastStatus: number | null = null;
 
         for (const endpoint of endpointCandidates) {
-          const response = await fetch(endpoint);
+          const response = await fetch(endpoint, {
+            headers: {
+              ...buildAuthHeaders(),
+            },
+          });
           if (response.ok) {
             tasksRaw = await response.json();
             break;
@@ -307,18 +327,18 @@ export default function TasksPage() {
     : 0;
 
   return (
-    <div className='min-h-screen dark:bg-dark-gray py-12 px-6 md:px-12 lg:px-16'>
-      <div className='max-w-7xl mx-auto mb-12'>
+    <div className='min-h-screen px-4 py-8 dark:bg-background sm:px-6 md:px-12 lg:px-16'>
+      <div className='mx-auto mb-12 max-w-7xl'>
         <div className='mb-8'>
-          <h1 className='text-4xl md:text-5xl font-bold text-dark-gray dark:text-white mb-2'>
+          <h1 className='mb-2 text-3xl font-bold text-dark-gray dark:text-white sm:text-4xl md:text-5xl'>
             {t.title}
           </h1>
-          <p className='text-lg text-medium-blue-gray dark:text-gray'>
+          <p className='text-base text-medium-blue-gray dark:text-gray sm:text-lg'>
             {t.subtitle}
           </p>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8 items-end'>
+        <div className='mb-8 grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           <Dropdown
             options={sortOptions.map((key) => t.sortLabels[key])}
             className='text-base'
@@ -342,7 +362,7 @@ export default function TasksPage() {
             lang={lang as 'ru' | 'en'}
           />
           <InputField
-            icon={<span className='material-symbols-outlined'>search</span>}
+            icon={<MaterialIcon name='search' />}
             placeholder={t.searchPlaceholder}
             className='focus:bg-white'
             value={searchQuery}
@@ -350,13 +370,13 @@ export default function TasksPage() {
           />
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-12'>
-          <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-lg border-l-4 border-cyan'>
+        <div className='mb-12 grid grid-cols-1 gap-4 md:grid-cols-3 sm:gap-6'>
+          <div className='rounded-3xl border-l-4 border-cyan bg-white p-6 shadow-lg dark:bg-surface sm:p-8'>
             <div className='flex items-center justify-between mb-4'>
-              <span className='material-symbols-outlined text-cyan text-4xl'>assignment</span>
+              <MaterialIcon name='assignment' className='text-cyan text-4xl' />
             </div>
             <p className='text-medium-blue-gray dark:text-gray text-sm font-medium mb-2'>{t.allTasksCard}</p>
-            <p className='text-5xl font-bold bg-linear-to-r from-cyan to-dark-cyan bg-clip-text text-transparent'>
+            <p className='text-3xl font-bold bg-linear-to-r from-cyan to-dark-cyan bg-clip-text text-transparent sm:text-4xl'>
               {totalCount}
             </p>
             <div className='mt-4 w-full bg-light-blue-gray dark:bg-surface-secondary rounded-full h-2'>
@@ -364,12 +384,12 @@ export default function TasksPage() {
             </div>
           </div>
 
-          <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-lg border-l-4 border-light-green'>
+          <div className='rounded-3xl border-l-4 border-light-green bg-white p-6 shadow-lg dark:bg-surface sm:p-8'>
             <div className='flex items-center justify-between mb-4'>
-              <span className='material-symbols-outlined text-light-green text-4xl'>check_circle</span>
+              <MaterialIcon name='check_circle' className='text-light-green text-4xl' />
             </div>
             <p className='text-medium-blue-gray dark:text-gray text-sm font-medium mb-2'>{t.completedCard}</p>
-            <p className='text-5xl font-bold bg-linear-to-r from-light-green to-cyan bg-clip-text text-transparent'>
+            <p className='text-3xl font-bold bg-linear-to-r from-light-green to-cyan bg-clip-text text-transparent sm:text-4xl'>
               {completedCount}
             </p>
             <div className='mt-4 w-full bg-light-blue-gray dark:bg-surface-secondary rounded-full h-2'>
@@ -380,12 +400,12 @@ export default function TasksPage() {
             </div>
           </div>
 
-          <div className='bg-white dark:bg-surface rounded-3xl p-8 shadow-lg border-l-4 border-orange'>
+          <div className='rounded-3xl border-l-4 border-orange bg-white p-6 shadow-lg dark:bg-surface sm:p-8'>
             <div className='flex items-center justify-between mb-4'>
-              <span className='material-symbols-outlined text-orange text-4xl'>priority_high</span>
+              <MaterialIcon name='priority_high' className='text-orange text-4xl' />
             </div>
             <p className='text-medium-blue-gray dark:text-gray text-sm font-medium mb-2'>{t.urgentCard}</p>
-            <p className='text-5xl font-bold bg-linear-to-r from-orange to-dark-orange bg-clip-text text-transparent'>
+            <p className='text-3xl font-bold bg-linear-to-r from-orange to-dark-orange bg-clip-text text-transparent sm:text-4xl'>
               {urgentTasks.length}
             </p>
             <div className='mt-4 w-full bg-light-blue-gray dark:bg-surface-secondary rounded-full h-2'>
@@ -413,9 +433,9 @@ export default function TasksPage() {
       {!loading && !error && (
         <>
           <div className='max-w-7xl mx-auto mb-12'>
-            <div className='bg-linear-to-r from-orange via-light-orange to-yellow rounded-3xl shadow-xl p-8 md:p-10'>
+            <div className='rounded-3xl bg-linear-to-r from-orange via-light-orange to-yellow p-6 shadow-xl sm:p-8 md:p-10'>
               <div className='flex items-center gap-3 mb-6'>
-                <span className='material-symbols-outlined text-white text-3xl'>priority_high</span>
+                <MaterialIcon name='priority_high' className='text-white text-3xl' />
                 <h2 className='text-3xl font-bold text-white'>{t.urgentBlock}</h2>
                 <span className='ml-auto bg-white text-orange px-4 py-2 rounded-full font-bold text-lg'>
                   {urgentTasks.length}
@@ -427,7 +447,7 @@ export default function TasksPage() {
                   {t.urgentEmpty}
                 </div>
               ) : (
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                   {urgentTasks.slice(0, 3).map((task) => (
                     <TaskCard
                       key={`urgent-${task.id}`}
@@ -448,7 +468,7 @@ export default function TasksPage() {
           <div className='max-w-7xl mx-auto'>
             <div className='mb-8'>
               <h2 className='text-3xl font-bold text-dark-gray dark:text-white flex items-center gap-3'>
-                <span className='material-symbols-outlined text-cyan'>list</span>
+                <MaterialIcon name='list' className='text-cyan' />
                 {t.allTasksHeading}
               </h2>
             </div>
@@ -458,7 +478,7 @@ export default function TasksPage() {
                 <p className='text-dark-gray dark:text-white text-lg'>{t.noTasks}</p>
               </div>
             ) : (
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6'>
                 {nonUrgentFilteredTasks.map((task) => (
                   <TaskCard
                     key={task.id}

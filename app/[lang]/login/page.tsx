@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Button from '@/components/Button';
 import InputField from '@/components/Input Field';
 import Link from 'next/link';
+import MaterialIcon from '@/components/MaterialIcon';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,6 +42,32 @@ export default function LoginPage() {
   };
 
   const t = translations[currentLang as keyof typeof translations] || translations.ru;
+
+  const extractAuthToken = (payload: any): string | null => {
+    if (!payload) return null;
+
+    if (typeof payload === 'string') {
+      return payload.trim() || null;
+    }
+
+    if (typeof payload !== 'object') {
+      return null;
+    }
+
+    const candidate =
+      payload.access_token ||
+      payload.accessToken ||
+      payload.jwt ||
+      payload.token ||
+      payload.refresh_token ||
+      payload.refreshToken;
+
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+
+    return extractAuthToken(payload.data || payload.result || payload.response || payload.user || payload.session);
+  };
 
   const extractErrorMessage = (errorData: unknown): string | null => {
     if (!errorData) return null;
@@ -157,6 +184,13 @@ export default function LoginPage() {
         })
       );
 
+      const authToken = extractAuthToken(loginResponseData);
+      if (authToken) {
+        localStorage.setItem('accessToken', authToken);
+        localStorage.setItem('jwt', authToken);
+        localStorage.setItem('token', authToken);
+      }
+
       const pickAvatarUrl = (data: any) => data?.file_url || data?.file_path || data?.url || null;
 
       // Pull fresh avatar right after login so header has it immediately
@@ -196,7 +230,7 @@ export default function LoginPage() {
   return (
     <div className='min-h-screen flex items-center justify-center p-4 bg-dark-gray'>
       {/* Login Form Container */}
-      <div className='w-full max-w-md bg-white rounded-3xl shadow-lg p-16'>
+      <div className='w-full max-w-md bg-white rounded-2xl md:rounded-3xl shadow-lg p-8 md:p-16'>
         <div>
           {/* Header with Language Toggle */}
           <div className='flex items-center justify-between gap-4 mb-8'>
@@ -208,7 +242,7 @@ export default function LoginPage() {
               className='flex items-center justify-center gap-2 bg-cyan text-white px-4 py-3 rounded-2xl hover:bg-dark-cyan transition-colors duration-200 cursor-pointer whitespace-nowrap'
               aria-label={`Switch to ${currentLang === 'ru' ? 'English' : 'Russian'}`}
             >
-              <span className='material-symbols-outlined text-lg'>language</span>
+              <MaterialIcon name='language' className='text-lg' />
               <span className='text-base font-medium'>{currentLang.toUpperCase()}</span>
             </button>
           </div>
@@ -234,7 +268,7 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disableDarkTheme
-                icon={<span className='material-symbols-outlined'>account_circle</span>}
+                icon={<MaterialIcon name='account_circle' />}
               />
             </div>
 
@@ -250,7 +284,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disableDarkTheme
-                icon={<span className='material-symbols-outlined'>lock</span>}
+                icon={<MaterialIcon name='lock' />}
               />
             </div>
 

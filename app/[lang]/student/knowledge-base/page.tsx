@@ -6,6 +6,7 @@ import InputField from "@/components/Input Field";
 import Link from 'next/link';
 import KnowledgeBaseCard from '@/components/Knowledge Base Card';
 import FAQItem from '@/components/FAQ item';
+import MaterialIcon from '@/components/MaterialIcon';
 
 const translations = {
   ru: {
@@ -114,22 +115,22 @@ export default function KnowledgeBasePage() {
 
   return (
     <div className='pb-8'>
-      <div className='bg-cyan dark:bg-dark-cyan flex flex-col items-center justify-center px-60 py-32 gap-8'>
-        <p className='text-white text-5xl'>{t.needHelp}</p>
+      <div className='flex flex-col justify-center items-center gap-6 bg-cyan px-4 py-12 dark:bg-dark-cyan sm:px-6 sm:py-16 lg:px-16 lg:py-24'>
+        <p className='text-3xl text-white sm:text-4xl lg:text-5xl'>{t.needHelp}</p>
         <div className='flex flex-row gap-4'>
           <InputField
-            icon={<span className='material-symbols-outlined'>search</span>}
+            icon={<MaterialIcon name='search' size='sm' />}
             placeholder={t.searchPlaceholder}
-            className='text-xl w-96 focus:bg-white'
+            className='w-full max-w-xl text-base focus:bg-white sm:text-lg'
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
       </div>
-      <div className='px-32 py-8 flex flex-row gap-12'>
-        <div className='flex flex-col gap-12 min-w-60'>
-          <p className='font-extrabold text-3xl text-dark-gray dark:text-white'>{t.sections}</p>
-          <div className='flex flex-col gap-6 text-xl text-gray dark:text-medium-blue-gray'>
+      <div className='flex flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:gap-12 lg:px-8'>
+        <div className='flex flex-col gap-8 lg:min-w-60 lg:gap-12'>
+          <p className='text-2xl font-extrabold text-dark-gray dark:text-white sm:text-3xl'>{t.sections}</p>
+          <div className='flex flex-col gap-4 text-base text-gray dark:text-medium-blue-gray sm:gap-6 sm:text-xl'>
             {filteredSections.map((section) => (
               <Link key={section.href} href={section.href} className='hover:underline'>
                 {section.label}
@@ -142,13 +143,13 @@ export default function KnowledgeBasePage() {
             )}
           </div>
         </div>
-        <div className='flex flex-col gap-10 flex-1'>
-          <p className='font-extrabold text-3xl text-dark-gray dark:text-white'>{t.frequently}</p>
-          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6'>
+        <div className='flex flex-1 flex-col gap-8 sm:gap-10'>
+          <p className='text-2xl font-extrabold text-dark-gray dark:text-white sm:text-3xl'>{t.frequently}</p>
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 sm:gap-6'>
             {filteredFrequent.map((item, idx) => (
               <KnowledgeBaseCard
                 key={`${item.title}-${idx}`}
-                icon={<span className='material-symbols-outlined'>{item.icon}</span>}
+                icon={<MaterialIcon name={item.icon} />}
                 title={item.title}
                 description={item.description}
               />
@@ -160,7 +161,7 @@ export default function KnowledgeBasePage() {
             )}
           </div>
           <div className='flex flex-col gap-6'>
-            <p className='font-extrabold text-3xl text-dark-gray dark:text-white'>{t.faq}</p>
+            <p className='text-2xl font-extrabold text-dark-gray dark:text-white sm:text-3xl'>{t.faq}</p>
             <div className='flex flex-col gap-3'>
               {t.faqItems.map((item, idx) => (
                 <FAQItem key={`${item.question}-${idx}`} question={item.question} answer={item.answer} />
@@ -170,10 +171,10 @@ export default function KnowledgeBasePage() {
         </div>
       </div>
       {/* CTA */}
-      <div className='bg-cover bg-center bg-no-repeat px-74 py-48 flex flex-col items-start justify-center gap-6' style={{ backgroundImage: "url('/Questions Left.svg')" }}>
-        <p className='text-white text-5xl'>{t.stillQuestions}</p>
-        <Link href={`${base}/chat`} className='group bg-white text-dark-yellow pr-6 pl-4 py-4 text-2xl font-medium transition-all duration-300 hover:gap-3 dark:bg-white dark:text-dark-yellow rounded-2xl flex flex-row items-center gap-4'>
-          <span className='material-symbols-outlined inline-flex items-center max-w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-w-8 group-hover:opacity-100'>arrow_forward</span>
+      <div className='flex flex-col items-start justify-center gap-6 bg-cover bg-center bg-no-repeat px-4 py-12 sm:px-6 sm:py-16 lg:px-16 lg:py-24' style={{ backgroundImage: "url('/Questions Left.svg')" }}>
+        <p className='text-3xl text-white sm:text-4xl lg:text-5xl'>{t.stillQuestions}</p>
+        <Link href={`${base}/chat`} className='group flex flex-row items-center gap-4 rounded-2xl bg-white px-4 py-3 text-base font-medium text-dark-yellow transition-all duration-300 hover:gap-3 dark:bg-white dark:text-dark-yellow sm:px-6 sm:py-4 sm:text-2xl'>
+          <MaterialIcon name='arrow_forward' className='inline-flex items-center max-w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-w-8 group-hover:opacity-100' />
           {t.askStaff}
         </Link>
       </div>

@@ -170,6 +170,17 @@ export default function CalendarPage() {
         const lang = (params?.lang as 'ru' | 'en') || 'ru';
         const t = translations[lang] || translations.ru;
 
+        const buildAuthHeaders = (): Record<string, string> => {
+            const token =
+                (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+                (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+                (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+            const headers: Record<string, string> = {};
+            if (token) headers.Authorization = `Bearer ${token}`;
+            return headers;
+        };
+
         useEffect(() => {
             const loadTasks = async () => {
                 try {
@@ -184,7 +195,11 @@ export default function CalendarPage() {
                     let studentId = auth.studentId?.toString() || '';
 
                     if (!studentId && username) {
-                        const studentsResponse = await fetch('/api/student/full_info_list');
+                        const studentsResponse = await fetch('/api/student/full_info_list', {
+                            headers: {
+                                ...buildAuthHeaders(),
+                            },
+                        });
                         if (!studentsResponse.ok) throw new Error(`Failed to resolve student: ${studentsResponse.status}`);
                         const studentsRaw = await studentsResponse.json();
                         const students = getResponseList(studentsRaw);
@@ -208,7 +223,11 @@ export default function CalendarPage() {
                     let lastStatus: number | null = null;
 
                     for (const endpoint of endpointCandidates) {
-                        const response = await fetch(endpoint);
+                        const response = await fetch(endpoint, {
+                            headers: {
+                                ...buildAuthHeaders(),
+                            },
+                        });
                         if (response.ok) {
                             tasksRaw = await response.json();
                             break;
@@ -281,41 +300,39 @@ export default function CalendarPage() {
         }, [tasksForSelectedDate, tasksWithParsedDeadline]);
 
     return (
-        <div className='px-48 py-8 flex flex-col'>
-            {/* Header */}
-            <div>
-                                <h1 className='text-3xl font-bold text-dark-gray dark:text-white'>{t.pageTitle}</h1>
+        <div className='flex flex-col px-4 py-6 sm:px-6 sm:py-8 lg:px-48'>
+            <div className='flex flex-col items-start justify-center'>
+                    <h1 className='text-2xl font-bold text-dark-gray dark:text-white sm:text-3xl'>{t.pageTitle}</h1>
                                 <p className='text-medium-blue-gray dark:text-gray'>
                                         {t.pageSubtitle}
                                 </p>
-            </div>
+                {/* Calendar and Schedule Container */}
+                <div className='grid w-full grid-cols-1 items-center justify-center gap-6 lg:grid-cols-2'>
+                    {/* Calendar */}
+                    <div>
+                        <Calendar 
+                            selectedDate={selectedDate}
+                            onDateSelect={setSelectedDate}
+                            highlightedDates={highlightedDates}
+                            lang={lang}
+                        />
+                    </div>
 
-            {/* Calendar and Schedule Container */}
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 w-full justify-center items-center'>
-                {/* Calendar */}
-                <div>
-                    <Calendar 
-                        selectedDate={selectedDate}
-                        onDateSelect={setSelectedDate}
-                        highlightedDates={highlightedDates}
-                        lang={lang}
-                    />
-                </div>
-
-                {/* Schedule */}
-                <div>
-                    <Schedule 
-                        date={selectedDate}
-                        lang={lang}
-                        items={scheduleItems}
-                    />
+                    {/* Schedule */}
+                    <div>
+                        <Schedule 
+                            date={selectedDate}
+                            lang={lang}
+                            items={scheduleItems}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Upcoming Tasks Section */}
             <div className='space-y-4'>
                 {!loading && !error && upcomingTasks.length === 0 ? (
-                    <div className='p-4 text-dark-gray dark:text-gray text-2xl'>
+                    <div className='p-4 text-dark-gray dark:text-light-blue-gray text-2xl'>
                         {lang === 'en' ? 'All tasks are done' : 'Все задачи выполнены'}
                     </div>
                 ) : (
@@ -329,7 +346,7 @@ export default function CalendarPage() {
                             </p>
                         </div>
 
-                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl-grid-cols-4 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
                             {loading && <p>{t.pageSubtitle}</p>}
                             {error && <p className='text-dark-orange'>{error}</p>}
                             {!loading && !error && upcomingTasks.map((task) => (

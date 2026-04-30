@@ -134,6 +134,17 @@ export default function TaskAssignmentModal({
 
   const t = copy[(lang as keyof typeof copy) ?? 'ru'] || copy.ru;
 
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   const resetForm = () => {
     setFormData({ name: '', description: '', deadline: defaultDeadline(), studentIds: [] });
     setSelectedStudents([]);
@@ -166,7 +177,11 @@ export default function TaskAssignmentModal({
   const fetchStudents = async () => {
     try {
       setLoadingStudents(true);
-      const response = await fetch('/api/student/full_info_list');
+      const response = await fetch('/api/student/full_info_list', {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
 
       if (!response.ok) {
         throw new Error(t.loadingStudents);
@@ -289,11 +304,11 @@ export default function TaskAssignmentModal({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 dark:bg-black/70'>
       <div className='bg-white dark:bg-surface rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
         {/* Header */}
-        <div className='sticky top-0 flex items-center justify-between p-6 border-b border-light-blue-gray dark:border-medium-blue-gray bg-white dark:bg-surface'>
-          <h2 className='text-2xl font-bold text-dark-gray dark:text-white'>
+        <div className='sticky top-0 flex items-center justify-between border-b border-light-blue-gray bg-white p-4 dark:border-medium-blue-gray dark:bg-surface sm:p-6'>
+          <h2 className='text-xl font-bold text-dark-gray dark:text-white sm:text-2xl'>
             {t.title}
           </h2>
           <button
@@ -305,7 +320,7 @@ export default function TaskAssignmentModal({
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className='p-6 space-y-6'>
+        <form onSubmit={handleSubmit} className='space-y-6 p-4 sm:p-6'>
           {/* Task Name */}
           <div>
             <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-2'>
@@ -361,7 +376,7 @@ export default function TaskAssignmentModal({
             <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray mb-3'>
               {t.assignmentTypeLabel}
             </label>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
+            <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4'>
               {[
                 { value: 'all', label: t.assignmentTypeOptions.all },
                 { value: 'citizenship', label: t.assignmentTypeOptions.citizenship },
@@ -429,7 +444,7 @@ export default function TaskAssignmentModal({
 
           {/* Students Selection */}
           <div>
-            <div className='flex justify-between items-center mb-2'>
+            <div className='mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
               <label className='block text-sm font-medium text-dark-gray dark:text-light-blue-gray'>
                 {t.selectLabel(filteredStudents.length)}
               </label>
@@ -493,19 +508,19 @@ export default function TaskAssignmentModal({
           </div>
 
           {/* Action Buttons */}
-          <div className='flex gap-3 pt-4 border-t border-light-blue-gray dark:border-medium-blue-gray'>
+          <div className='flex flex-col gap-3 border-t border-light-blue-gray pt-4 dark:border-medium-blue-gray sm:flex-row'>
             <button
               type='button'
               onClick={onClose}
               disabled={isLoading}
-              className='flex-1 px-4 py-2 border border-light-blue-gray dark:border-medium-blue-gray text-dark-gray dark:text-light-blue-gray rounded-lg hover:bg-light-blue-gray dark:hover:bg-dark-gray transition-colors disabled:opacity-50 font-medium cursor-pointer'
+              className='w-full cursor-pointer rounded-lg border border-light-blue-gray px-4 py-2 font-medium text-dark-gray transition-colors hover:bg-light-blue-gray disabled:opacity-50 dark:border-medium-blue-gray dark:text-light-blue-gray dark:hover:bg-dark-gray sm:flex-1'
             >
               {t.cancel}
             </button>
             <button
               type='submit'
               disabled={isLoading}
-              className='flex-1 px-4 py-2 bg-dark-cyan text-white rounded-lg hover:bg-cyan transition-colors disabled:opacity-50 font-medium cursor-pointer'
+              className='w-full cursor-pointer rounded-lg bg-dark-cyan px-4 py-2 font-medium text-white transition-colors hover:bg-cyan disabled:opacity-50 sm:flex-1'
             >
               {isLoading ? `${t.submit}...` : t.submit}
             </button>

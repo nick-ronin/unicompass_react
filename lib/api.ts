@@ -6,21 +6,38 @@
 
 import { ApiResponse, PaginatedResponse, Task, Schedule, ChatMessage, User, Student, Teacher, Notification, AnalyticsData, TaskFilter, ScheduleFilter } from './types';
 
+function getStoredAuthToken(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return (
+    localStorage.getItem('jwt') ||
+    localStorage.getItem('accessToken') ||
+    localStorage.getItem('token')
+  );
+}
+
 class ApiClient {
   private timeout: number = 30000; // 30 seconds
 
   private async fetchWithTimeout<T>(url: string, options: RequestInit = {}): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    const storedToken = getStoredAuthToken();
+
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+      ...options.headers,
+    };
 
     try {
       const response = await fetch(url, {
         ...options,
+        credentials: options.credentials ?? 'include',
         signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        headers,
       });
 
       if (!response.ok) {

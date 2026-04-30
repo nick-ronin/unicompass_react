@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { ReactNode } from 'react';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface ChatMessageProps {
   text?: string;
@@ -29,17 +30,17 @@ export default function ChatMessage({
 }: ChatMessageProps) {
   const getStatusIcon = () => {
     if (!isOwn) return null;
-    const iconClass = 'w-4 h-4 material-symbols-outlined text-xs';
+    const iconClass = 'w-4 h-4 text-xs';
     
     switch (status) {
       case 'sending':
-        return <span className={`${iconClass} text-gray`}>schedule</span>;
+        return <MaterialIcon name='schedule' className={`${iconClass} text-gray`} />;
       case 'sent':
-        return <span className={`${iconClass} text-dark-gray`}>check</span>;
+        return <MaterialIcon name='check' className={`${iconClass} text-dark-gray`} />;
       case 'received':
-        return <span className={`${iconClass} text-dark-gray`}>done_all</span>;
+        return <MaterialIcon name='done_all' className={`${iconClass} text-dark-gray`} />;
       case 'read':
-        return <span className={`${iconClass} text-white`}>done_all</span>;
+        return <MaterialIcon name='done_all' className={`${iconClass} text-white`} />;
       default:
         return null;
     }
@@ -50,10 +51,10 @@ export default function ChatMessage({
 
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-xs ${bgColor} rounded-lg p-3`}>
+      <div className={`max-w-[85%] sm:max-w-xs md:max-w-sm ${bgColor} rounded-2xl p-3`}>
         {/* Text message */}
         {text && (
-          <p className={`${textColor} wrap-break-word text-lg`}>{text}</p>
+          <p className={`${textColor} wrap-break-word text-base sm:text-lg`}>{text}</p>
         )}
 
         {/* Image */}
@@ -64,7 +65,7 @@ export default function ChatMessage({
               alt='Message image'
               width={240}
               height={240}
-              className='rounded-lg max-w-xs object-cover'
+              className='w-full max-w-full rounded-lg object-cover'
             />
           </div>
         )}
@@ -72,9 +73,7 @@ export default function ChatMessage({
         {/* Document */}
         {document && (
           <div className='flex items-center gap-3 mb-2 bg-white/20 rounded p-2'>
-            <span className={`material-symbols-outlined ${textColor}`}>
-              description
-            </span>
+            <MaterialIcon name='description' className={textColor} />
             <div className='flex-1 min-w-0'>
               <p className={`${textColor} text-base truncate font-medium`}>
                 {document.name}
@@ -92,7 +91,7 @@ export default function ChatMessage({
         )}
 
         {/* Timestamp and Status */}
-        <div className={`flex justify-between items-center mt-2 ${textColor} text-xs opacity-70`}>
+        <div className={`mt-2 flex items-center justify-between ${textColor} text-[10px] opacity-70 sm:text-xs`}>
           <span>{timestamp}</span>
           {getStatusIcon()}
         </div>

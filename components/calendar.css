@@ -239,6 +239,41 @@
   background-color: #C44536 !important;
 }
 
+@media (max-width: 640px) {
+  .calendar-wrapper {
+    padding: 0.5rem;
+  }
+
+  .react-calendar {
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .react-calendar__navigation {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .react-calendar__navigation button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .react-calendar__navigation__label {
+    font-size: 1rem;
+  }
+
+  .react-calendar__month-view__weekdays__weekday {
+    font-size: 0.7rem;
+    padding: 0.5rem 0;
+  }
+
+  .react-calendar__tile {
+    font-size: 0.85rem;
+  }
+}
+
 .dark .react-calendar__tile.highlighted-task.react-calendar__tile--active {
   background-color: #32A2A9 !important;
 }

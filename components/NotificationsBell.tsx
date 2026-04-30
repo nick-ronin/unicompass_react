@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface NotificationItem {
   id: number;
@@ -27,30 +28,70 @@ export default function NotificationsBell({ lang = 'ru', role = 'student' }: Not
   const [hasFetched, setHasFetched] = useState(false);
   const [markingId, setMarkingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const storedAuthRaw = typeof window !== 'undefined' ? localStorage.getItem('studentAuth') : null;
-    if (!storedAuthRaw) return;
-    try {
-      const parsed = JSON.parse(storedAuthRaw) as { studentId?: string | number | null; userId?: string | number | null };
-      const foundId = parsed?.studentId ?? parsed?.userId;
-      if (foundId !== undefined && foundId !== null) {
-        setUserId(String(foundId));
-      }
-    } catch (err) {
-      console.warn('NotificationsBell: failed to parse stored auth', err);
+  const buildAuthHeaders = (): Record<string, string> => {
+    const token =
+      (typeof window !== 'undefined' && localStorage.getItem('jwt')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('accessToken')) ||
+      (typeof window !== 'undefined' && localStorage.getItem('token'));
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
+  const resolveUserId = (): string | null => {
+    if (typeof window === 'undefined') {
+      return null;
     }
+
+    const storedAuthRaw = localStorage.getItem('studentAuth');
+    if (storedAuthRaw) {
+      try {
+        const parsed = JSON.parse(storedAuthRaw) as {
+          studentId?: string | number | null;
+          userId?: string | number | null;
+          id?: string | number | null;
+        };
+        const foundId = parsed?.studentId ?? parsed?.userId ?? parsed?.id;
+        if (foundId !== undefined && foundId !== null && String(foundId).trim()) {
+          return String(foundId);
+        }
+      } catch (err) {
+        console.warn('NotificationsBell: failed to parse stored auth', err);
+      }
+    }
+
+    const fallbackId =
+      localStorage.getItem('studentId') ||
+      localStorage.getItem('userId') ||
+      localStorage.getItem('id');
+
+    return fallbackId && fallbackId.trim() ? fallbackId : null;
+  };
+
+  useEffect(() => {
+    setUserId(resolveUserId());
   }, [role]);
 
   const fetchNotifications = async () => {
-    if (!userId) {
+    const resolvedUserId = userId || resolveUserId();
+    if (!resolvedUserId) {
       setError('Не удалось определить пользователя');
       return;
+    }
+
+    if (!userId) {
+      setUserId(resolvedUserId);
     }
 
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/notifications/user/${userId}`);
+      const res = await fetch(`/api/notifications/user/${resolvedUserId}`, {
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
       if (!res.ok) {
         throw new Error(`Ошибка загрузки уведомлений (${res.status})`);
       }
@@ -66,6 +107,10 @@ export default function NotificationsBell({ lang = 'ru', role = 'student' }: Not
   };
 
   const handleOpen = () => {
+    const resolvedUserId = resolveUserId();
+    if (resolvedUserId && resolvedUserId !== userId) {
+      setUserId(resolvedUserId);
+    }
     setIsOpen(true);
     if (!hasFetched && !loading) {
       fetchNotifications();
@@ -75,13 +120,24 @@ export default function NotificationsBell({ lang = 'ru', role = 'student' }: Not
   const handleClose = () => setIsOpen(false);
 
   const markAsRead = async (id: number) => {
-    if (!userId) {
+    const resolvedUserId = userId || resolveUserId();
+    if (!resolvedUserId) {
       setError('Не удалось определить пользователя');
       return;
     }
+
+    if (!userId) {
+      setUserId(resolvedUserId);
+    }
+
     setMarkingId(id);
     try {
-      const res = await fetch(`/api/notifications/user/${userId}/notifications/${id}/read`, { method: 'POST' });
+      const res = await fetch(`/api/notifications/user/${resolvedUserId}/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+          ...buildAuthHeaders(),
+        },
+      });
       if (!res.ok) {
         throw new Error('Не удалось отметить как прочитанное');
       }
@@ -114,7 +170,7 @@ export default function NotificationsBell({ lang = 'ru', role = 'student' }: Not
         className='relative flex items-center justify-center rounded-full p-2 hover:text-dark-orange transition-colors cursor-pointer'
         aria-label='Открыть уведомления'
       >
-        <span className='material-symbols-outlined'>notifications</span>
+        <MaterialIcon name='notifications' size='md'/>
         {unreadCount > 0 && (
           <span className='absolute -top-1 -right-1 bg-orange text-white text-xs w-5 h-5 rounded-full flex items-center justify-center'>
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -130,11 +186,11 @@ export default function NotificationsBell({ lang = 'ru', role = 'student' }: Not
           >
             <div className='flex items-center justify-between px-5 py-4 border-b border-light-blue-gray/60 dark:border-dark-gray'>
               <div className='flex items-center gap-2'>
-                <span className='material-symbols-outlined'>notifications</span>
+                <MaterialIcon name='notifications' />
                 <div className='font-semibold text-lg'>Уведомления</div>
               </div>
               <button onClick={handleClose} aria-label='Закрыть уведомления' className='hover:text-dark-orange'>
-                <span className='material-symbols-outlined'>close</span>
+                <MaterialIcon name='close' />
               </button>
             </div>
 

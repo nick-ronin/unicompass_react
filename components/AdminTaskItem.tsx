@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { Task } from '@/lib/types';
+import MaterialIcon from '@/components/MaterialIcon';
 
 interface AdminTaskItemProps {
   id: string;
@@ -54,7 +55,7 @@ export default function AdminTaskItem({
   if (isLoading) {
     return (
       <div className={cn(
-        'bg-white dark:bg-surface rounded-2xl p-6 animate-pulse',
+        'bg-white dark:bg-surface rounded-2xl p-4 animate-pulse sm:p-6',
         view === 'grid' ? 'shadow-md' : 'shadow-sm'
       )}>
         <div className='h-12 bg-light-blue-gray rounded mb-4'></div>
@@ -66,38 +67,40 @@ export default function AdminTaskItem({
 
   if (view === 'grid') {
     return (
-      <div className='bg-white dark:bg-surface rounded-2xl p-6 shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col gap-4'>
-        <div className='flex flex-row justify-between items-start gap-4'>
-          <div className=''>
-            <h3 className='text-lg font-semibold text-dark-gray dark:text-white line-clamp-2'>
+      <div className='flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-md transition-shadow duration-200 hover:shadow-lg dark:bg-surface sm:p-6'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+          <div>
+            <h3 className='text-base font-semibold text-dark-gray line-clamp-2 dark:text-white sm:text-lg'>
               {name}
             </h3>
-            <p className='text-sm text-gray dark:text-medium-blue-gray line-clamp-2 mt-2'>
+            <p className='mt-2 line-clamp-2 text-sm text-gray dark:text-medium-blue-gray'>
               {description}
             </p>
           </div>
+          <div className='flex items-center gap-2 self-end sm:self-auto'>
             <button
               onClick={() => onAssign?.(id)}
-              className='shrink-0 text-dark-cyan hover:text-cyan transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray dark:text-cyan dark:hover:text-cyan cursor-pointer'
+              className='shrink-0 cursor-pointer rounded-lg p-2 text-dark-cyan transition-colors hover:bg-light-blue-gray hover:text-cyan dark:text-cyan dark:hover:bg-dark-gray dark:hover:text-cyan'
               aria-label={t.assign}
             >
-              <span className='material-symbols-outlined text-2xl'>person_add</span>
+              <MaterialIcon name='person_add' className='text-xl sm:text-2xl' />
             </button>
             <button
               onClick={() => onEdit?.(id)}
-              className='shrink-0 text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray cursor-pointer'
+              className='shrink-0 cursor-pointer rounded-lg p-2 text-orange transition-colors hover:bg-light-blue-gray hover:text-dark-orange dark:hover:bg-dark-gray'
               aria-label={t.edit}
             >
-              <span className='material-symbols-outlined text-2xl'>edit</span>
+              <MaterialIcon name='edit' className='text-xl sm:text-2xl' />
             </button>
+          </div>
         </div>
 
-        <div className='flex flex-col gap-2 pt-2 border-t border-light-blue-gray dark:border-dark-gray'>
+        <div className='flex flex-col gap-2 border-t border-light-blue-gray pt-2 dark:border-dark-gray'>
           <div className='flex justify-between items-center'>
             <span className='text-xs text-gray dark:text-medium-blue-gray uppercase tracking-wide'>
                 {t.completion}
             </span>
-            <span className={`text-lg font-bold ${completionColor.replace('bg-', 'text-')}`}>
+            <span className={`text-base font-bold ${completionColor.replace('bg-', 'text-')} sm:text-lg`}>
               {completionPercent}%
             </span>
           </div>
@@ -114,8 +117,8 @@ export default function AdminTaskItem({
 
   // List view
   return (
-    <div className='bg-white dark:bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center justify-between gap-6'>
-      <div className='flex items-center gap-4 flex-1 min-w-0'>
+    <div className='flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md dark:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-6'>
+      <div className='flex flex-1 min-w-0 items-center gap-4'>
 
         <div className='flex-1 min-w-0'>
           <h3 className='text-base font-semibold text-dark-gray dark:text-white truncate'>
@@ -127,12 +130,12 @@ export default function AdminTaskItem({
         </div>
       </div>
 
-      <div className='flex items-center gap-6'>
+      <div className='flex items-center gap-4 sm:gap-6'>
         <div className='flex flex-col items-end gap-2'>
-          <span className={`text-lg font-bold ${completionColor.replace('bg-', 'text-')}`}>
+          <span className={`text-base font-bold ${completionColor.replace('bg-', 'text-')} sm:text-lg`}>
             {completionPercent}%
           </span>
-          <div className='w-24 h-2 bg-light-blue-gray dark:bg-dark-gray rounded-full overflow-hidden'>
+          <div className='h-2 w-20 overflow-hidden rounded-full bg-light-blue-gray dark:bg-dark-gray sm:w-24'>
             <div
               className={`h-full ${completionColor} transition-all duration-300`}
               style={{ width: `${completionPercent}%` }}
@@ -141,17 +144,17 @@ export default function AdminTaskItem({
         </div>
         <button
           onClick={() => onAssign?.(id)}
-          className='text-dark-cyan hover:text-cyan transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray dark:text-cyan dark:hover:text-cyan shrink-0 cursor-pointer'
+          className='shrink-0 cursor-pointer rounded-lg p-2 text-dark-cyan transition-colors hover:bg-light-blue-gray hover:text-cyan dark:text-cyan dark:hover:bg-dark-gray dark:hover:text-cyan'
           aria-label={t.assign}
         >
-          <span className='material-symbols-outlined'>person_add</span>
+          <MaterialIcon name='person_add' />
         </button>
         <button
           onClick={() => onEdit?.(id)}
-          className='text-orange hover:text-dark-orange transition-colors p-2 hover:bg-light-blue-gray rounded-lg dark:hover:bg-dark-gray shrink-0 cursor-pointer'
+          className='shrink-0 cursor-pointer rounded-lg p-2 text-orange transition-colors hover:bg-light-blue-gray hover:text-dark-orange dark:hover:bg-dark-gray'
           aria-label={t.edit}
         >
-          <span className='material-symbols-outlined'>edit</span>
+          <MaterialIcon name='edit' />
         </button>
       </div>
     </div>

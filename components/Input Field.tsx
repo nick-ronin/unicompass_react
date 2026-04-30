@@ -17,8 +17,8 @@ export default function InputField({
     ...props
 }: InputFieldProps) {
     const baseInputClasses = disableDarkTheme 
-        ? 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan focus:bg-white transition-colors duration-150 w-full'
-        : 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:ring-2 focus:ring-cyan focus:bg-white dark:bg-surface dark:text-white dark:focus:bg-surface transition-colors duration-150 w-full';
+        ? 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:bg-white focus:ring-2 focus:ring-cyan transition-colors duration-150 w-full'
+        : 'py-3 rounded-2xl bg-light-blue-gray text-black outline-none focus:bg-white dark:bg-surface dark:text-white dark:focus:bg-surface focus:ring-2 focus:ring-cyan dark:focus:ring-dark-cyan transition-colors duration-150 w-full';
 
     if (icon) {
         return (
