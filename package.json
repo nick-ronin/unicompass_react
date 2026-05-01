@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "cp -r .next/standalone/* .next/",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint"
   },
   "dependencies": {
